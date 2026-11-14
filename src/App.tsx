@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { ProfileSheetHost, openProfileSheet } from './components/ProfileSheet'
+import GroupSwitcher from './components/GroupSwitcher'
 import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner } from './components/ui'
@@ -17,6 +18,7 @@ import Earn from './pages/Earn'
 import CreateGroup from './pages/CreateGroup'
 import SignIn from './pages/SignIn'
 import Join from './pages/Join'
+import Messages from './pages/Messages'
 
 export default function App() {
   const route = useRoute()
@@ -54,6 +56,7 @@ export default function App() {
             {route.page === 'members' && <Members />}
             {route.page === 'activity' && <Activity />}
             {route.page === 'earn' && <Earn />}
+            {route.page === 'messages' && <Messages />}
           </DaoGate>
         </Shell>
       )}
@@ -113,6 +116,7 @@ const NAV: { page: Page; label: string; icon: string }[] = [
   { page: 'pay', label: 'Pay', icon: 'M12 5v14M5 12h14' },
   { page: 'approve', label: 'Approve', icon: 'M5 13l4 4L19 7' },
   { page: 'members', label: 'Members', icon: 'M16 11a4 4 0 10-8 0M4 20a8 8 0 0116 0' },
+  { page: 'messages', label: 'Messages', icon: 'M4 5h16v11H8l-4 4z' },
   { page: 'activity', label: 'Activity', icon: 'M4 6h16M4 12h16M4 18h10' },
   { page: 'earn', label: 'Earn', icon: 'M4 17l6-6 4 4 6-8' },
   { page: 'board', label: 'Board', icon: 'M4 4h16v12H4zM8 20h8' },
@@ -171,7 +175,7 @@ function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean
 
 function MobileNav({ page }: { page: Page }) {
   const { dao } = useDaoSafe()
-  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'members', 'board'].includes(n.page))
+  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'members', 'messages', 'board'].includes(n.page))
   const count = dao ? openRequests(dao).length : 0
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
@@ -205,13 +209,7 @@ function useDaoSafe() {
 }
 
 function MobileGroupName() {
-  const { dao } = useDaoSafe()
-  if (!dao) return null
-  return (
-    <button onClick={() => openDao(null)} className="flex min-h-11 min-w-0 items-center truncate text-[14px] font-medium" title="Switch community">
-      {prettyName(dao.config.name)}
-    </button>
-  )
+  return <GroupSwitcher variant="phone" />
 }
 
 function GroupCard() {
@@ -252,9 +250,7 @@ function GroupCard() {
         </button>
       )}
       <div className="text-[12px] text-muted">{status}</div>
-      <button onClick={() => openDao(null)} className="mt-3 text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline">
-        Switch community
-      </button>
+      <GroupSwitcher variant="sidebar" />
     </div>
   )
 }

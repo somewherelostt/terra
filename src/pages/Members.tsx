@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useDao } from '../lib/store'
+import { go, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { addMemberProposalTx, can, roleMembers } from '../lib/dao'
 import { isValidAccountId } from '../lib/near'
@@ -63,7 +63,7 @@ export default function Members() {
 
       <div className="mt-4 space-y-2 md:hidden">
         {shown.map((r) => (
-          <MemberCard key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={openProfileSheet} />
+          <MemberCard key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={openProfileSheet} canMessage={!!accountId && memberIds.has(accountId)} />
         ))}
         {shown.length === 0 && <div className="py-6 text-muted">{filter === 'All' ? 'Nobody here yet.' : `No ${filter.toLowerCase()} members yet.`}</div>}
       </div>
@@ -78,7 +78,7 @@ export default function Members() {
             <span className="text-right">Fast lane up to</span>
           </div>
           {shown.map((r) => (
-            <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={openProfileSheet} />
+            <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={openProfileSheet} canMessage={!!accountId && memberIds.has(accountId)} />
           ))}
           {shown.length === 0 && <div className="py-6 text-muted">{filter === 'All' ? 'Nobody here yet.' : `No ${filter.toLowerCase()} members yet.`}</div>}
         </div>
@@ -116,7 +116,7 @@ function memberFacts(r: MemberRecord, nearUsd: number) {
 }
 
 /** Phone layout: one card per member. */
-function MemberCard({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAvatar?: () => void }) {
+function MemberCard({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boolean; onAvatar?: () => void; canMessage?: boolean }) {
   const { nearUsd } = useDao()
   const f = memberFacts(r, nearUsd)
   return (
@@ -132,6 +132,11 @@ function MemberCard({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAva
           {you && (
             <button className="min-h-11 text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={onAvatar}>
               Edit profile
+            </button>
+          )}
+          {!you && canMessage && (
+            <button className="min-h-11 text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={() => go('messages', { with: r.accountId })}>
+              Message
             </button>
           )}
         </div>
@@ -155,7 +160,7 @@ function MemberCard({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAva
   )
 }
 
-function MemberRow({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAvatar?: () => void }) {
+function MemberRow({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boolean; onAvatar?: () => void; canMessage?: boolean }) {
   const { nearUsd } = useDao()
   const s = standingOf(r)
   const badge = {
@@ -178,6 +183,11 @@ function MemberRow({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAvat
             {you && (
               <button className="shrink-0 text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline" onClick={onAvatar}>
                 Edit profile
+              </button>
+            )}
+            {!you && canMessage && (
+              <button className="shrink-0 text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline" onClick={() => go('messages', { with: r.accountId })}>
+                Message
               </button>
             )}
           </span>
