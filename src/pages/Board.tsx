@@ -1,116 +1,163 @@
-import { useDao, openDao } from '../lib/store'
-import { decodeDescription, isNearTransfer } from '../lib/dao'
-import { nanoToDate, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
-import { openRequests } from '../lib/record'
-import { Account, Badge, Card, Empty, Money, SectionTitle, Spinner, TxLink } from '../components/ui'
-import { RecordsTable } from './Members'
+import { openDao, useDao } from '../lib/store'
+import { allMembers, approvalRules, decodeDescription, isNearTransfer } from '../lib/dao'
+import { nanoToDate, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { TIER_LIMITS_USD, openRequests, tierFor } from '../lib/record'
+import { TxLink } from '../components/ui'
 import { prettyName } from '../App'
 
-/** Read-only public board: no sign-in, no buttons. Safe to share with sponsors. */
+const ICON = `${import.meta.env.BASE_URL}favicon.svg`
+
+/** Public, read-only board: no sign-in, no sidebar, no buttons that move money. */
 export default function Board() {
   const { dao, nearUsd, error, activity } = useDao()
-  if (error) return <div className="p-10 text-center text-sm text-bad">{error}</div>
-  if (!dao)
+  if (error)
     return (
-      <div className="flex items-center justify-center gap-2 p-16 text-muted">
-        <Spinner /> Reading the treasury from NEAR…
+      <div className="mx-auto max-w-[560px] px-6 py-24 text-center">
+        <div className="flex items-center justify-center gap-2 text-[13.5px]">
+          <span className="size-1.5 rounded-full bg-bad" />
+          Couldn't find that treasury
+        </div>
+        <p className="mt-2 text-[13px] text-muted">{error}</p>
       </div>
     )
-  const open = openRequests(dao)
-  const payouts = dao.proposals.filter((p) => p.status === 'Approved' && isNearTransfer(p.kind))
-  const paidTotal = payouts.reduce((s, p) => s + (isNearTransfer(p.kind) ? BigInt(p.kind.Transfer.amount) : 0n), 0n)
+
+  const name = dao ? prettyName(dao.config.name) : ''
+  const money = (y: bigint | string) => (isFinite(nearUsd) ? usd(yoctoToNumber(y) * nearUsd) : `${yoctoToNear(y)} NEAR`)
+  const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime()
+  const payouts = dao ? dao.proposals.filter((p) => p.status === 'Approved' && isNearTransfer(p.kind)) : []
+  const payoutItems = (activity?.items ?? []).filter((a) => a.kind === 'payout')
+  const paidThisYear = payoutItems.filter((a) => a.time.getTime() >= yearStart).reduce((s, a) => s + BigInt(a.amount ?? '0'), 0n)
+  const waits = payoutItems
+    .filter((a) => a.txHash && a.proposalId != null)
+    .map((a) => {
+      const p = dao?.proposals.find((x) => x.id === a.proposalId)
+      return p ? (a.time.getTime() - Number(BigInt(p.submission_time) / 1_000_000n)) / 60000 : NaN
+    })
+    .filter((m) => isFinite(m) && m >= 0)
+    .sort((a, b) => a - b)
+  const median = waits.length ? waits[Math.floor(waits.length / 2)] : NaN
+  const open = dao ? openRequests(dao) : []
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 md:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-9 w-9" />
-          <div>
-            <div className="text-xs font-medium uppercase tracking-wide text-muted">Board · read-only</div>
-            <h1 className="text-2xl font-medium tracking-tight">{prettyName(dao.config.name)}</h1>
-          </div>
+    <div className="min-h-screen">
+      <header className="border-b border-line">
+        <div className="mx-auto flex h-14 max-w-[880px] items-center gap-2 px-6 text-[13px]">
+          <img src={ICON} alt="" className="size-6 rounded-[6px]" />
+          <span className="font-medium">terra</span>
+          <span className="ml-3 hidden text-muted sm:inline">Public board · read only</span>
+          {dao && (
+            <button onClick={() => openDao(dao.id, 'home')} className="ml-auto rounded-lg border border-line bg-card px-3 py-1.5 font-medium">
+              Join {name}
+            </button>
+          )}
         </div>
-        <button className="text-sm font-medium text-accent-text hover:underline" onClick={() => openDao(dao.id, 'home')}>
-          Member? Open in Terra →
-        </button>
       </header>
-      {dao.config.purpose && <p className="max-w-2xl text-sm text-muted">{dao.config.purpose}</p>}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <div className="text-sm text-muted">Balance</div>
-          <div className="mt-1"><Money yocto={dao.spendable + dao.staked} nearUsd={nearUsd} size="lg" /></div>
-        </Card>
-        <Card>
-          <div className="text-sm text-muted">Paid out ({payouts.length} payments)</div>
-          <div className="mt-1"><Money yocto={paidTotal} nearUsd={nearUsd} size="lg" /></div>
-        </Card>
-        <Card>
-          <div className="text-sm text-muted">Open requests</div>
-          <div className="mt-1 text-2xl font-medium">{open.length}</div>
-        </Card>
+      <div className="mx-auto max-w-[880px] px-6 py-12 md:py-16">
+        {!dao ? (
+          <div aria-busy>
+            <div className="skeleton h-3 w-48" />
+            <div className="skeleton mt-5 h-12 w-full" />
+            <div className="skeleton mt-3 h-12 w-2/3" />
+          </div>
+        ) : (
+          <>
+            <div className="text-[13px] text-muted">{dao.id}</div>
+            <h1 className="mt-4 text-[34px] leading-[1.02] font-light tracking-[-0.04em] md:text-[48px]">
+              {name} holds <span className="tnum">{money(dao.spendable + dao.staked)}</span> and has paid out{' '}
+              <span className="tnum">{activity ? money(paidThisYear) : '…'}</span> this year.
+            </h1>
+            <p className="mt-4 text-[14.5px] text-muted">Every payout below was approved by members. Each one links to its record on NEAR.</p>
+
+            <div className="mt-10 grid grid-cols-2 border-y border-line md:grid-cols-4">
+              <Stat k="Members" v={String(allMembers(dao.policy).length)} cls="border-r border-line pr-5" />
+              <Stat k="Requests paid" v={String(payouts.length)} cls="border-line px-5 md:border-r" />
+              <Stat k="Median time to pay" v={activity ? (isFinite(median) ? wait(median) : '—') : '…'} cls="border-r border-t border-line pr-5 md:border-t-0 md:px-5" />
+              <Stat k="Earning" v={dao.staked > 0n ? `${yoctoToNear(dao.staked, 0)} NEAR staked` : 'Not yet'} cls="border-t border-line px-5 md:border-t-0" />
+            </div>
+
+            {open.length > 0 && (
+              <div className="mt-10 text-[13.5px]">
+                <div className="border-b border-line pb-2 text-[12px] text-muted">Waiting for approval</div>
+                {open.map((p) => {
+                  const meta = decodeDescription(p.description)
+                  return (
+                    <div key={p.id} className="grid grid-cols-[1fr_auto] items-baseline gap-8 border-b border-line py-4 last:border-0">
+                      <span>
+                        {meta.title} <span className="text-muted">· asked {nanoToDate(p.submission_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                      </span>
+                      <span className="tnum w-24 text-right text-muted">{isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : ''}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <div className="mt-10 overflow-x-auto text-[13.5px]">
+              <div className="min-w-[560px]">
+                <div className="grid grid-cols-[1fr_auto_auto] gap-8 border-b border-line pb-2 text-[12px] text-muted">
+                  <span>Payout</span>
+                  <span>Approved by</span>
+                  <span className="w-24 text-right">Amount</span>
+                </div>
+                {payouts.length === 0 && <div className="py-6 text-muted">No payouts yet.</div>}
+                {payouts.slice(0, 40).map((p) => {
+                  const meta = decodeDescription(p.description)
+                  const t = isNearTransfer(p.kind) ? p.kind.Transfer : null
+                  const item = payoutItems.find((a) => a.proposalId === p.id)
+                  const when = (item?.time ?? nanoToDate(p.submission_time)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                  const yes = Object.values(p.votes).filter((v) => v === 'Approve').length
+                  const amountUsd = t ? yoctoToNumber(t.amount) * nearUsd : NaN
+                  const tier = isFinite(amountUsd) ? tierFor(amountUsd) : null
+                  const council = approvalRules(dao.policy, p.kind).find((r) => r.role === 'council')
+                  const approvedBy =
+                    tier === 'small' && yes <= 1
+                      ? '1 trusted member'
+                      : `${yes} approval${yes === 1 ? '' : 's'}${council && tier === 'large' ? `, of ${council.size} on the council` : ''}`
+                  const wants = meta.wants?.replace(/\s+to\s+\S+$/, '')
+                  return (
+                    <div key={p.id} className="grid grid-cols-[1fr_auto_auto] items-baseline gap-8 border-b border-line py-4 last:border-0">
+                      <span className="min-w-0">
+                        {meta.title}{' '}
+                        <span className="text-muted">
+                          · {wants ?? 'NEAR'} · {when}
+                        </span>{' '}
+                        <TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />
+                      </span>
+                      <span className="text-muted">{approvedBy}</span>
+                      <span className="tnum w-24 text-right">{t ? money(t.amount) : ''}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <p className="mt-8 text-[12px] text-muted">
+              Small payouts (up to ${TIER_LIMITS_USD.small}) can be approved by one trusted member; up to ${TIER_LIMITS_USD.mid} by the council; anything bigger is a full council vote.
+            </p>
+          </>
+        )}
+
+        <div className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[12.5px] text-muted">
+          <span>Powered by terra · built on NEAR</span>
+          <button onClick={() => openDao(null)} className="hover:text-ink">Run your community's treasury with Terra →</button>
+        </div>
       </div>
-
-      <Card>
-        <SectionTitle>Open requests</SectionTitle>
-        {open.length ? (
-          <ul className="divide-y divide-line">
-            {open.map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center gap-3 py-3 text-sm">
-                <span className="w-10 text-xs text-muted">#{p.id}</span>
-                <span className="min-w-0 flex-1">{decodeDescription(p.description).title}</span>
-                {isNearTransfer(p.kind) && <span className="tabular-nums">{fmt(p.kind.Transfer.amount, nearUsd)}</span>}
-                <span className="text-xs text-muted">by <Account id={p.proposer} className="!text-xs" /></span>
-                <Badge tone="warn">Waiting</Badge>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Empty>No open requests.</Empty>
-        )}
-      </Card>
-
-      <Card>
-        <SectionTitle>Payouts</SectionTitle>
-        {payouts.length ? (
-          <ul className="divide-y divide-line">
-            {payouts.slice(0, 30).map((p) => {
-              const meta = decodeDescription(p.description)
-              return (
-                <li key={p.id} className="flex flex-wrap items-center gap-3 py-3 text-sm">
-                  <span className="w-10 text-xs text-muted">#{p.id}</span>
-                  <span className="min-w-0 flex-1">
-                    {meta.title}
-                    {meta.wants && <span className="block text-xs text-muted">Recipient wanted {meta.wants}</span>}
-                  </span>
-                  {isNearTransfer(p.kind) && (
-                    <span className="tabular-nums">
-                      {fmt(p.kind.Transfer.amount, nearUsd)} → <Account id={p.kind.Transfer.receiver_id} />
-                    </span>
-                  )}
-                  <span className="text-xs text-muted">{timeAgo(nanoToDate(p.submission_time))}</span>
-                  <TxLink hash={activity?.payoutTx.get(p.id)} label="tx" />
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          <Empty>No payouts yet.</Empty>
-        )}
-      </Card>
-
-      <section>
-        <SectionTitle>Member records</SectionTitle>
-        <RecordsTable />
-      </section>
-
-      <footer className="pb-6 text-center text-xs text-muted">
-        Read live from the Sputnik DAO <a className="underline" href={`https://testnet.nearblocks.io/address/${dao.id}`} target="_blank" rel="noreferrer">{dao.id}</a> on NEAR testnet. Shown with Terra.
-      </footer>
     </div>
   )
 }
 
-function fmt(amount: string, nearUsd: number) {
-  return isFinite(nearUsd) ? usd(yoctoToNumber(amount) * nearUsd) : `${yoctoToNear(amount)} NEAR`
+function Stat({ k, v, cls }: { k: string; v: string; cls: string }) {
+  return (
+    <div className={`py-5 ${cls}`}>
+      <div className="text-[12px] text-muted">{k}</div>
+      <div className="tnum mt-1.5 text-[20px] font-light md:text-[26px]">{v}</div>
+    </div>
+  )
+}
+
+function wait(min: number): string {
+  if (min < 60) return `${Math.max(1, Math.round(min))} min`
+  if (min < 48 * 60) return `${Math.round(min / 60)} h`
+  return `${Math.round(min / 1440)} days`
 }
