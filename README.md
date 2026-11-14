@@ -31,30 +31,33 @@ Terra is that app. It sits on top of a community's **existing Sputnik DAO** and 
 
 ## See it
 
-<div align="center">
-  <img src="docs/screenshots/pay-live-quote.jpg" alt="Pay with a live NEAR Intents quote" width="720" />
-  <p><b>Request money, paid on any chain.</b><br/>Type a dollar amount and the recipient's Solana address. A live NEAR Intents quote shows exactly what they get, what the treasury sends, the fee and the time, and it's saved with the request.</p>
-</div>
+Real screens from City Club, a demo group on NEAR testnet. They follow your GitHub theme.
 
 <div align="center">
-  <img src="docs/screenshots/approve.jpg" alt="Approve a request" width="720" />
-  <p><b>Approve with context.</b><br/>Each request shows its tier, who asked, their record, the saved quote and a comment thread. When enough members approve, the DAO pays out on its own.</p>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/desktop-home-dark.webp" /><img src="public/shots/desktop-home-light.webp" alt="Terra on desktop: the group home with balance, activity and an open request" width="820" /></picture>
 </div>
 
-<div align="center">
-  <img src="docs/screenshots/members.jpg" alt="Member records" width="720" />
-  <p><b>Records decide the lane.</b><br/>Standing, chip-ins and requests paid, all computed from the DAO's own history. Names come from NEAR Social profiles; the account id always stays visible.</p>
-</div>
+<table align="center">
+  <tr>
+    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-home-dark.webp" /><img src="public/shots/phone-home-light.webp" alt="Home: the group balance with Chip in and Request money" width="180" /></picture></td>
+    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-pay-dark.webp" /><img src="public/shots/phone-pay-light.webp" alt="Request money with a live NEAR Intents quote" width="180" /></picture></td>
+    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-approve-dark.webp" /><img src="public/shots/phone-approve-light.webp" alt="Open requests waiting for approval" width="180" /></picture></td>
+    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-activity-dark.webp" /><img src="public/shots/phone-activity-light.webp" alt="Activity: every payout the group made" width="180" /></picture></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Chip in</b><br/><sub>One balance, in dollars</sub></td>
+    <td align="center"><b>Ask</b><br/><sub>Live quote on any chain</sub></td>
+    <td align="center"><b>Approve</b><br/><sub>Your record sets the lane</sub></td>
+    <td align="center"><b>Paid</b><br/><sub>Every payout is public</sub></td>
+  </tr>
+</table>
 
-<div align="center">
-  <img src="docs/screenshots/board.jpg" alt="Public board" width="720" />
-  <p><b>A public board for sponsors and members.</b><br/>No sign-in and no money buttons: balance, open requests, and every payout with who approved it and a link to its record on NEAR.</p>
-</div>
-
-<div align="center">
-  <img src="docs/screenshots/phone-home.jpg" alt="Terra on a phone" width="300" />
-  <p><b>Made for phones too.</b><br/>A floating frosted tab bar and bottom sheets on the web, plus an <a href="#android-app">Android app</a>.</p>
-</div>
+<table align="center">
+  <tr>
+    <td align="center" width="50%"><img src="docs/screenshots/members.jpg" alt="Member records" width="400" /><br/><sub><b>Records decide the lane.</b> Standing, chip-ins and paid requests, from the DAO's own history.</sub></td>
+    <td align="center" width="50%"><img src="docs/screenshots/board.jpg" alt="Public board" width="400" /><br/><sub><b>A public board.</b> No sign-in: balance, open requests and every payout with a receipt.</sub></td>
+  </tr>
+</table>
 
 ## What it does
 
