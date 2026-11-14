@@ -9,6 +9,7 @@ import { RECORDED_QUOTE, getTokens, quotePayout, type QuoteResult } from '../lib
 import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
 import SiteFooter from '../components/SiteFooter'
+import Faq from '../components/Faq'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 import { formatDate, formatNumber, tr, useT } from '../i18n'
 import { splitUsd } from '../lib/format'
@@ -157,6 +158,27 @@ export default function Landing() {
 
       <ConnectCta />
 
+      {/* FAQ: one story, from the treasury to NEAR Intents payouts to the public record */}
+      <section id="faq" aria-labelledby="faq-h" className="scroll-mt-16 border-t border-line">
+        <div className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
+          <Faq
+            variant="landing"
+            hrefFor={(id) => `#faq-${id}`}
+            intro={
+              <>
+                <h2 id="faq-h" className={H2}>{t('landing.faq.title')}</h2>
+                <p className="mt-4 max-w-[440px] text-[16px] leading-7 text-mute">
+                  {t('landing.faq.lead')}
+                </p>
+                <a href="#/docs?s=faq" className="mt-6 inline-flex min-h-11 items-center gap-1.5 text-[14px] text-mute hover:text-ink">
+                  {t('landing.faq.more')} <span aria-hidden className="inline-block rtl:-scale-x-100">→</span>
+                </a>
+              </>
+            }
+          />
+        </div>
+      </section>
+
       <SiteFooter boardUrl={boardUrl} />
     </div>
   )
@@ -302,7 +324,7 @@ function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay
 }
 
 /** Section ids on the landing; labels are `landing.nav.<id>`. Only "how" shows on the desktop bar below lg. */
-const NAV_IDS = ['how', 'approvals', 'trust'] as const
+const NAV_IDS = ['how', 'approvals', 'trust', 'faq'] as const
 
 /**
  * Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in.
@@ -327,6 +349,7 @@ export function LandingNav({
     how: t('landing.nav.how'),
     approvals: t('landing.nav.approvals'),
     trust: t('landing.nav.trust'),
+    faq: t('landing.nav.faq'),
   }
   const [active, setActive] = useState<string | null>(null)
   const [menu, setMenu] = useState(false)

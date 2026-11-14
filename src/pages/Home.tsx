@@ -134,13 +134,14 @@ export default function Home() {
   )
 }
 
-/** On a phone the bottom bar has room for six pages; the rest live here, under Home. */
+/** On a phone the bottom bar has room for five pages; the rest live here, under Home. */
 function PhoneMore() {
   const t = useT()
   const rows: [Page, string, string][] = [
     ['activity', t('nav.activity'), t('home.more.activity')],
     ['earn', t('nav.earn'), t('home.more.earn')],
     ['allowances', t('nav.allowances'), t('home.more.allowances')],
+    ['board', t('nav.board'), t('home.more.board')],
   ]
   return (
     <nav className="mt-12 md:hidden" aria-label={t('home.more.label')}>

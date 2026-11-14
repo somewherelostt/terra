@@ -24,6 +24,15 @@ export function dicebearUrl(style: string, seed: string): string {
   return `https://api.dicebear.com/9.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}${opts}`
 }
 
+/**
+ * A group's tile: DiceBear "initials" (City Club → CC) on a solid colour picked from the name.
+ * Palette in Terra's colours: terracotta, deep blue, dark lime, plum, slate. No gradients.
+ */
+export function groupAvatarUrl(name: string): string {
+  const opts = 'backgroundColor=e2501f,c2410c,1d4ed8,0b2fa8,3d6b00,6d28d9,334155&textColor=ffffff&fontWeight=500&fontSize=40&chars=2'
+  return `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name)}&${opts}`
+}
+
 export function defaultAvatar(accountId: string): string {
   return dicebearUrl(AVATAR_STYLE, accountId)
 }

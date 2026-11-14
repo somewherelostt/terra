@@ -5,6 +5,8 @@ import { TIER_LIMITS_USD } from '../lib/record'
 import { LandingNav } from './Landing'
 import SiteFooter from '../components/SiteFooter'
 import LanguagePicker from '../components/LanguagePicker'
+import Faq from '../components/Faq'
+import { faqIdFromHash } from '../lib/faq'
 import { formatNumber, t, tr, useLocale, useT } from '../i18n'
 import enCatalog from '../i18n/locales/en.json'
 
@@ -124,7 +126,8 @@ export default function Docs() {
   useEffect(() => {
     const go = (smooth: boolean) => {
       const s = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('s')
-      if (s && IDS.includes(s)) requestAnimationFrame(() => scrollToSection(s, smooth))
+      const q = s === 'faq' ? faqIdFromHash() : null
+      if (s && IDS.includes(s)) requestAnimationFrame(() => scrollToSection(q ? `faq-${q}` : s, smooth))
       else window.scrollTo(0, 0)
     }
     go(false)
@@ -348,8 +351,8 @@ export default function Docs() {
           </Section>
 
           <Section id="faq" title={t('docs.sec.faq.title')}>
-            {/* FAQ slot: the shared <Faq> list (src/components/Faq.tsx) goes here once it's on main. */}
-            <P>{tr('docs.faq.empty', { link: (c) => <A href="https://github.com/somewherelostt/terra/issues" external>{c}</A> })}</P>
+            <P>{t('docs.faq.lead')}</P>
+            <Faq variant="list" hrefFor={(id) => `#/docs?s=faq&q=${id}`} />
           </Section>
         </main>
 
