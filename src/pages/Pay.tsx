@@ -212,7 +212,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
           ? 'The council approves it at its usual threshold.'
           : 'The council votes on it, and every member sees it on the board.'
   const line = 'block border-b border-line pb-2 transition-colors focus-within:border-ink'
-  const bare = 'w-full bg-transparent py-2 outline-none placeholder:text-muted/60'
+  const bare = 'w-full bg-transparent py-3 outline-none placeholder:text-muted/60 sm:py-2'
 
   return (
     <div>

@@ -31,7 +31,7 @@ export default function Approve() {
 
       <div className="mt-10 max-w-[880px]">
         {open.length ? (
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-2">
             {open.map((p) => (
               <RequestCard key={p.id} p={p} />
             ))}
@@ -69,6 +69,30 @@ export default function Approve() {
   )
 }
 
+const KIND_NAMES: Record<string, string> = {
+  AddMemberToRole: 'Add a member',
+  RemoveMemberFromRole: 'Remove a member',
+  ChangePolicy: 'Change the rules',
+  ChangePolicyAddOrUpdateRole: 'Change a role',
+  ChangePolicyUpdateParameters: 'Change the rules',
+  ChangePolicyUpdateDefaultVotePolicy: 'Change voting',
+  ChangePolicyRemoveRole: 'Remove a role',
+  ChangeConfig: 'Change settings',
+  FunctionCall: 'Contract call',
+  Transfer: 'Payout',
+  Vote: 'Poll',
+  AddBounty: 'Add a bounty',
+  BountyDone: 'Bounty done',
+  UpgradeSelf: 'Upgrade',
+  UpgradeRemote: 'Upgrade',
+}
+
+/** A plain name for a request type, e.g. "Add a member" instead of "AddMemberToRole". */
+function requestKind(kind: Proposal['kind']): string {
+  const k = kindName(kind)
+  return KIND_NAMES[k] ?? k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase())
+}
+
 function statusTone(p: Proposal, expired: boolean) {
   if (expired) return { label: 'Expired', tone: 'neutral' as const }
   switch (p.status) {
@@ -101,7 +125,7 @@ function DecidedRow({ p }: { p: Proposal }) {
   let detail: string
   if (paid) detail = meta.wants ? `paid · ${meta.wants.replace(/\s+to\s+\S+$/, '')} requested` : `paid to ${shortName(transfer!.receiver_id)}`
   else if (p.status === 'Rejected') detail = `declined, ${yes} to ${no}`
-  else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${kindName(p.kind)}`)
+  else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${requestKind(p.kind).toLowerCase()}`)
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
       <span className="min-w-0 flex-1" title={meta.title}>
@@ -207,7 +231,7 @@ export function RequestCard({ p }: { p: Proposal }) {
   if (dismissed) return null
   if (track) return <TrackerCard p={p} track={track} hero={route?.effectiveTier === 'small'} onDone={() => setTrack(p.id, null)} />
   const hero = route?.effectiveTier === 'small'
-  const tierWord = route ? { small: 'Small', mid: 'Mid', large: 'Large' }[route.effectiveTier] : kindName(p.kind)
+  const tierWord = route ? { small: 'Small', mid: 'Mid', large: 'Large' }[route.effectiveTier] : requestKind(p.kind)
   const theyGet = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
   const arrives = meta.quote?.match(/about (\d+)s/)?.[1]
   const [dollars, cents] = transfer ? splitUsd(yoctoToNumber(transfer.amount) * nearUsd) : ['', '']
@@ -218,7 +242,7 @@ export function RequestCard({ p }: { p: Proposal }) {
 
   return (
     <article
-      className={`flex flex-col rounded-2xl p-6 transition-[transform,opacity] duration-300 ${snoozing ? 'translate-x-3 opacity-40' : ''} ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}
+      className={`flex min-w-0 flex-col rounded-2xl p-6 transition-[transform,opacity] duration-300 ${snoozing ? 'translate-x-3 opacity-40' : ''} ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}
     >
       <div className={`flex items-center justify-between gap-3 text-[12px] ${sub}`}>
         <span className="flex min-w-0 items-center gap-2 truncate">
@@ -243,7 +267,7 @@ export function RequestCard({ p }: { p: Proposal }) {
           )}
         </div>
       ) : (
-        <div className="mt-6 text-[20px] font-light">{kindName(p.kind)}</div>
+        <div className="mt-6 text-[20px] font-light">{requestKind(p.kind)}</div>
       )}
       <div className="mt-2 break-words text-[14px]">{meta.title}</div>
       {meta.notes && <p className={`mt-1 text-[13px] ${sub}`}>{meta.notes}</p>}

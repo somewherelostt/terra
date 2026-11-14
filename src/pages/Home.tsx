@@ -116,7 +116,7 @@ export default function Home() {
             <CaughtUp />
           )}
           {mine.length > 1 && (
-            <button onClick={() => go('approve')} className="text-[13px] text-muted hover:text-ink">
+            <button onClick={() => go('approve')} className="-mt-2 py-3 text-[13px] text-muted hover:text-ink">
               {mine.length - 1} more waiting in Approve →
             </button>
           )}
