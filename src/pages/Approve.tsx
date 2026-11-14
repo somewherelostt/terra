@@ -270,7 +270,7 @@ export function RequestCard({ p }: { p: Proposal }) {
   const [dollars, cents] = transfer ? splitUsd(yoctoToNumber(transfer.amount) * nearUsd) : ['', '']
   const sub = hero ? 'opacity-60' : 'text-muted'
   const rule = hero ? 'border-[var(--hero-line)]' : 'border-line'
-  // Sputnik marks a transfer it can't afford as Failed, so warn before anyone approves it.
+  // A vote that would execute a transfer the DAO can't afford reverts (LackBalanceForState), so block it.
   const short = transfer ? BigInt(transfer.amount) > dao.spendable : false
   const canVote = !!accountId && !myVote && contractAllows && terraAllows
   const rec = records.get(p.proposer)
@@ -345,7 +345,7 @@ export function RequestCard({ p }: { p: Proposal }) {
         {route && route.tier !== route.effectiveTier && <p className={`mt-2 text-[12px] ${sub}`}>{route.reason}, so the council decides.</p>}
         {short && (
           <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
-            The treasury can spend {yoctoToNear(dao.spendable)} NEAR, less than this request. Chip in first, or the payout fails when it's approved.
+            The treasury can spend {yoctoToNear(dao.spendable)} NEAR, less than this request, so an approval now would bounce. Chip in first, then approve.
           </p>
         )}
         {!hero && (
@@ -376,7 +376,7 @@ export function RequestCard({ p }: { p: Proposal }) {
       ) : hero ? (
         <>
           <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Button disabled={tx.state.status === 'signing'} onClick={() => vote('VoteApprove')}>
+            <Button disabled={tx.state.status === 'signing' || short} onClick={() => vote('VoteApprove')}>
               {tx.state.status === 'signing' && lastAction === 'VoteApprove' ? <span className="spin" /> : 'Approve and pay'}
             </Button>
             <button
@@ -396,7 +396,7 @@ export function RequestCard({ p }: { p: Proposal }) {
         </>
       ) : (
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <button className="rounded-lg bg-ink py-2.5 text-[13.5px] font-medium text-bg disabled:opacity-50" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteApprove')}>Approve</button>
+          <button className="rounded-lg bg-ink py-2.5 text-[13.5px] font-medium text-bg disabled:opacity-50" disabled={tx.state.status === 'signing' || short} onClick={() => vote('VoteApprove')}>Approve</button>
           <Button variant="secondary" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>Decline</Button>
         </div>
       )}

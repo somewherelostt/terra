@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { accountUrl, txUrl } from '../lib/near'
+import { accountUrl, txUrl, viewAccount } from '../lib/near'
 import { useAvatarUrl } from '../lib/avatar'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 
@@ -285,5 +285,35 @@ export function RowText({ main, detail, extra }: { main: ReactNode; detail?: Rea
         </span>
       )}
     </span>
+  )
+}
+
+/**
+ * Terra runs on testnet. A wallet signed in on mainnet hands over an account that doesn't
+ * exist here, and every transaction would fail, so say so before anyone tries.
+ */
+export function WrongNetworkBanner({ accountId, onSignOut }: { accountId: string | null; onSignOut: () => void }) {
+  const [missing, setMissing] = useState(false)
+  useEffect(() => {
+    setMissing(false)
+    if (!accountId) return
+    let alive = true
+    viewAccount(accountId)
+      .then((a) => alive && setMissing(a === null))
+      .catch(() => undefined)
+    return () => {
+      alive = false
+    }
+  }, [accountId])
+  if (!accountId || !missing) return null
+  return (
+    <div className="rounded-xl bg-warn-soft px-4 py-3 text-[13px] text-warn" role="alert">
+      <span className="font-medium">{accountId} isn't on NEAR testnet.</span> Terra runs on testnet, so transactions from this account would fail. Switch your wallet to testnet (a
+      faucet-funded <span className="font-mono">.testnet</span> account), then{' '}
+      <button className="underline underline-offset-2" onClick={onSignOut}>
+        sign in again
+      </button>
+      .
+    </div>
   )
 }

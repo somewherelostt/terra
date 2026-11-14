@@ -7,7 +7,7 @@ import { openDao, shareUrl } from '../lib/store'
 import { wait } from '../lib/motion'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { rememberGroup } from '../lib/groups'
-import { Button, TxStatus, useTx } from '../components/ui'
+import { Button, TxStatus, WrongNetworkBanner, useTx } from '../components/ui'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 
@@ -31,7 +31,7 @@ const MIN_DEPOSIT = 6n * ONE_NEAR
 const GAS_RESERVE = ONE_NEAR / 10n
 
 export default function CreateGroup() {
-  const { accountId, send, signIn } = useWallet()
+  const { accountId, send, signIn, signOut } = useWallet()
   const [step, setStep] = useState(1)
   const [displayName, setDisplayName] = useState('')
   const [slug, setSlug] = useState('')
@@ -130,6 +130,9 @@ export default function CreateGroup() {
         <img src={ICON} alt="" className="size-7 rounded-[7px]" />
         <span className="text-[16px] font-medium tracking-tight">terra</span>
       </button>
+      <div className="mt-8 empty:hidden">
+        <WrongNetworkBanner accountId={accountId} onSignOut={signOut} />
+      </div>
       <div className="mt-12 flex gap-1.5">
         {[1, 2, 3].map((n) => (
           <span key={n} className={`h-[3px] flex-1 rounded-full ${n <= step ? 'bg-ink' : 'bg-line'}`} />

@@ -3,7 +3,7 @@ import { ProfileSheetHost, openProfileSheet } from './components/ProfileSheet'
 import GroupSwitcher from './components/GroupSwitcher'
 import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
-import { Avatar, Button, Spinner } from './components/ui'
+import { Avatar, Button, Spinner, WrongNetworkBanner } from './components/ui'
 import { prefetchProfiles, useNames } from './lib/profile'
 import { isTrusted, openRequests } from './lib/record'
 import { allMembers } from './lib/dao'
@@ -143,12 +143,22 @@ function Shell({ page, daoId, children }: { page: Page; daoId: string | null; ch
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar daoId={daoId} />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 md:px-10 md:pb-12 md:pt-8 xl:px-14">
+          <NetworkCheck />
           <div key={page} className="page-enter">
             {children}
           </div>
         </main>
       </div>
       {daoId && <MobileNav page={page} />}
+    </div>
+  )
+}
+
+function NetworkCheck() {
+  const { accountId, signOut } = useWallet()
+  return (
+    <div className="mb-6 empty:hidden">
+      <WrongNetworkBanner accountId={accountId} onSignOut={signOut} />
     </div>
   )
 }
