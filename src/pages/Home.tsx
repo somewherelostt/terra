@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { go, shareUrl, useDao, useRoute } from '../lib/store'
+import { go, shareUrl, useDao, useRoute, type Page } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { allMembers, chipInTx, decodeDescription } from '../lib/dao'
 import { nearToYocto, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
@@ -127,7 +127,39 @@ export default function Home() {
           )}
         </div>
       </div>
+      <PhoneMore />
     </div>
+  )
+}
+
+/** On a phone the bottom bar has room for six pages; the rest live here, under Home. */
+function PhoneMore() {
+  const rows: [Page, string, string][] = [
+    ['activity', 'Activity', 'Everything in and out'],
+    ['earn', 'Earn', 'Let idle money earn'],
+    ['allowances', 'Allowances', 'Small budgets with hard limits'],
+  ]
+  return (
+    <nav className="mt-12 md:hidden" aria-label="More pages">
+      <div className="mb-1 text-[13px] text-muted">More</div>
+      <div className="border-y border-line">
+        {rows.map(([page, label, detail]) => (
+          <button
+            key={page}
+            onClick={() => go(page)}
+            className="flex min-h-14 w-full items-center justify-between gap-3 border-b border-line py-3 text-left last:border-0"
+          >
+            <span className="min-w-0">
+              <span className="block text-[14px]">{label}</span>
+              <span className="block truncate text-[12px] text-muted">{detail}</span>
+            </span>
+            <span className="text-muted" aria-hidden>
+              ›
+            </span>
+          </button>
+        ))}
+      </div>
+    </nav>
   )
 }
 
