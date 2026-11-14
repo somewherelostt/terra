@@ -215,8 +215,8 @@ export default function Pay({ params }: { params: URLSearchParams }) {
         : effectiveTier === 'mid'
           ? 'The council approves it at its usual threshold.'
           : 'The council votes on it, and every member sees it on the board.'
-  const line = 'block border-b border-line pb-3'
-  const bare = 'mt-1 w-full bg-transparent outline-none placeholder:text-muted/60'
+  const line = 'block border-b border-line pb-2 transition-colors focus-within:border-ink'
+  const bare = 'w-full bg-transparent py-2 outline-none placeholder:text-muted/60'
 
   return (
     <div>
@@ -250,7 +250,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
           </label>
           <div>
             <span className="text-[12px] text-muted">They want</span>
-            <div className="mt-2 flex flex-wrap gap-2 text-[13.5px]">
+            <div className="mt-2 grid grid-cols-2 gap-2 text-[13.5px] sm:flex sm:flex-wrap">
               {quick.map((t) => {
                 const on = mode === 'intents' && tokenId === t.assetId
                 return (
@@ -260,18 +260,18 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                       setMode('intents')
                       setTokenId(t.assetId)
                     }}
-                    className={`rounded-lg border px-4 py-2.5 ${on ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}
+                    className={`min-h-11 rounded-lg border px-3 py-2.5 sm:px-4 ${on ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}
                   >
                     {t.symbol} <span className="text-muted">on {chainName(t.blockchain)}</span>
                   </button>
                 )
               })}
-              <button onClick={() => setMode('near')} className={`rounded-lg border px-4 py-2.5 ${mode === 'near' ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}>
+              <button onClick={() => setMode('near')} className={`min-h-11 rounded-lg border px-3 py-2.5 sm:px-4 ${mode === 'near' ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}>
                 NEAR <span className="text-muted">account</span>
               </button>
               <select
                 aria-label="Other tokens"
-                className={`rounded-lg border bg-transparent px-3 py-2.5 ${mode === 'intents' && token && !quick.includes(token) ? 'border-ink' : 'border-line text-muted'}`}
+                className={`col-span-2 min-h-11 rounded-lg border bg-transparent px-3 py-2.5 ${mode === 'intents' && token && !quick.includes(token) ? 'border-ink' : 'border-line text-muted'}`}
                 value={mode === 'intents' && token && !quick.includes(token) ? tokenId : ''}
                 onChange={(e) => {
                   if (!e.target.value) return
@@ -407,7 +407,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
             </div>
           </div>
           <button
-            className="text-[13px] text-muted hover:text-ink disabled:opacity-50"
+            className="min-h-11 text-left text-[13px] text-muted hover:text-ink disabled:opacity-50 sm:min-h-0"
             disabled={!title.trim() || !amount}
             onClick={() => navigator.clipboard?.writeText(requestLink()).then(() => setCopied(true)).catch(() => setCopied(false))}
           >
