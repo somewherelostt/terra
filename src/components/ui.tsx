@@ -35,9 +35,10 @@ export function Button({
   title?: string
 }) {
   const styles = {
-    primary: 'bg-brand text-on-brand hover:bg-brand-strong',
+    // Every variant carries a 1px border (transparent where unseen) so mixed buttons in a row match in height.
+    primary: 'border border-transparent bg-brand text-on-brand hover:bg-brand-strong',
     secondary: 'border border-line bg-card text-ink hover:bg-soft',
-    ghost: 'text-ink hover:bg-soft',
+    ghost: 'border border-transparent text-ink hover:bg-soft',
     danger: 'border border-line bg-card text-bad hover:bg-bad-soft',
   }[variant]
   return (
