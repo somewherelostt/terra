@@ -199,7 +199,7 @@ function MobileNav({ page }: { page: Page }) {
             key={n.page}
             href={href}
             aria-current={page === n.page ? 'page' : undefined}
-            className={`glass-tab relative flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10.5px] font-medium ${page === n.page ? 'bg-[var(--glass-active)] text-ink' : 'text-muted'}`}
+            className={`glass-tab relative flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10.5px] font-medium ${page === n.page ? 'bg-[var(--glass-active)] text-ink' : 'text-ink/65'}`}
           >
             <Icon d={n.icon} />
             {n.label}

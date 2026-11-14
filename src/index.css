@@ -223,20 +223,26 @@ button:active { transform: scale(.98); }
    the top bar and bottom sheets. Unlayered, so .glass wins over bg-card / border-line.
    No gradients, no shadows: the glass edge is a 1px border, a touch brighter on top. */
 :root {
-  --glass-bg: rgba(24, 24, 27, 0.6);
+  --glass-bg: rgba(24, 24, 27, 0.7);
+  --glass-sheet-bg: rgba(22, 22, 25, 0.84);
+  --glass-sheet-bg-wide: rgba(18, 18, 20, 0.96);
   --glass-edge: rgba(255, 255, 255, 0.08);
   --glass-edge-top: rgba(255, 255, 255, 0.16);
   --glass-active: rgba(255, 255, 255, 0.1);
   --glass-handle: rgba(255, 255, 255, 0.24);
-  --scrim: rgba(0, 0, 0, 0.4);
+  --scrim: rgba(0, 0, 0, 0.45);
+  --scrim-wide: rgba(0, 0, 0, 0.6);
 }
 :root[data-theme="light"] {
-  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg: rgba(255, 255, 255, 0.86);
+  --glass-sheet-bg: rgba(255, 255, 255, 0.88);
+  --glass-sheet-bg-wide: rgba(255, 255, 255, 0.97);
   --glass-edge: rgba(11, 11, 12, 0.08);
   --glass-edge-top: rgba(255, 255, 255, 0.95);
   --glass-active: rgba(11, 11, 12, 0.06);
   --glass-handle: rgba(11, 11, 12, 0.18);
-  --scrim: rgba(11, 11, 12, 0.22);
+  --scrim: rgba(11, 11, 12, 0.3);
+  --scrim-wide: rgba(11, 11, 12, 0.4);
 }
 .glass, .glass-bar {
   background-color: var(--glass-bg);
@@ -249,11 +255,13 @@ button:active { transform: scale(.98); }
 @keyframes scrimIn { from { opacity: 0; } }
 
 /* Sheets: rise from the bottom on a phone with a grab handle; a soft fade-and-lift from sm up. */
-.glass-sheet { animation: sheetUp var(--dur-3) var(--ease-out); }
+.glass-sheet { background-color: var(--glass-sheet-bg); animation: sheetUp var(--dur-3) var(--ease-out); }
 .glass-sheet::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 999px; background: var(--glass-handle); margin: -6px auto 14px; }
 @keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } }
 @media (min-width: 640px) {
-  .glass-sheet { animation-name: sheetIn; }
+  /* Wider screens: sheets are read, not glanced at, so keep them nearly solid. */
+  .glass-sheet { animation-name: sheetIn; background-color: var(--glass-sheet-bg-wide); }
+  .glass-scrim { background-color: var(--scrim-wide); }
   .glass-sheet::before { display: none; }
 }
 @keyframes sheetIn { from { transform: translateY(8px) scale(.985); opacity: 0; } }
