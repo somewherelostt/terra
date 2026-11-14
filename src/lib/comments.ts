@@ -11,8 +11,9 @@
 // Reading one request (or a whole group) is a single wildcard `get`:
 //   */terra/comments/<daoId>/<proposalId>/*   or   */terra/comments/<daoId>/**
 
-import { useEffect, useReducer } from 'react'
-import type { Tx } from './dao'
+import { useContext, useEffect, useReducer } from 'react'
+import { allMembers, type Tx } from './dao'
+import { DaoContext } from './store'
 import { cleanText, readBack, socialGet, socialSetTx, type SocialTree } from './social'
 
 export const COMMENT_MAX = 280
@@ -114,11 +115,20 @@ export function useGroupComments(daoId: string | null | undefined) {
   }, [daoId])
   const g = daoId ? groups.get(daoId) : undefined
   const all = daoId ? [...(g?.list ?? []), ...(pendingByGroup.get(daoId) ?? [])] : []
+  // Anyone can write to SocialDB, so only show comments from group members and the request's
+  // own proposer. Everything else is counted and collapsed, never shown by default.
+  const ctx = useContext(DaoContext)
+  const dao = ctx?.dao && ctx.dao.id === daoId ? ctx.dao : null
+  const members = dao ? new Set(allMembers(dao.policy)) : null
+  const proposerOf = dao ? new Map(dao.proposals.map((p) => [p.id, p.proposer])) : null
+  const trustedAuthor = (c: Comment) => !members || members.has(c.author) || proposerOf?.get(c.proposalId) === c.author
+  const visible = all.filter(trustedAuthor)
   return {
     loading: !g || (g.loading && !g.at),
     error: !!g?.error,
-    forRequest: (proposalId: number) => all.filter((c) => c.proposalId === proposalId),
-    count: (proposalId: number) => all.reduce((n, c) => n + (c.proposalId === proposalId ? 1 : 0), 0),
+    forRequest: (proposalId: number) => visible.filter((c) => c.proposalId === proposalId),
+    count: (proposalId: number) => visible.reduce((n, c) => n + (c.proposalId === proposalId ? 1 : 0), 0),
+    hiddenFor: (proposalId: number) => all.filter((c) => c.proposalId === proposalId && !trustedAuthor(c)),
     refresh: () => (daoId ? loadComments(daoId, true) : Promise.resolve()),
   }
 }

@@ -57,8 +57,10 @@ export function CommentsToggle({ daoId, proposalId, hero = false }: { daoId: str
 }
 
 export function CommentThread({ daoId, proposalId, hero = false, autoFocus = false }: { daoId: string; proposalId: number; hero?: boolean; autoFocus?: boolean }) {
-  const { forRequest, loading, error, refresh } = useGroupComments(daoId)
+  const { forRequest, hiddenFor, loading, error, refresh } = useGroupComments(daoId)
   const list = forRequest(proposalId)
+  const hidden = hiddenFor(proposalId)
+  const [showHidden, setShowHidden] = useState(false)
   const sub = hero ? 'opacity-60' : 'text-muted'
   const rule = hero ? 'border-[var(--hero-line)]' : 'border-line'
   return (
@@ -83,6 +85,20 @@ export function CommentThread({ daoId, proposalId, hero = false, autoFocus = fal
             <CommentRow key={`${c.author}/${c.key}`} c={c} hero={hero} />
           ))}
         </ol>
+      )}
+      {hidden.length > 0 && (
+        <div className="mt-3">
+          <button className={`text-[12px] underline-offset-2 hover:underline ${sub}`} onClick={() => setShowHidden((v) => !v)}>
+            {showHidden ? 'Hide' : 'Show'} {hidden.length} comment{hidden.length === 1 ? '' : 's'} from non-members
+          </button>
+          {showHidden && (
+            <ol className="mt-2 space-y-3 opacity-70">
+              {hidden.map((c) => (
+                <CommentRow key={`${c.author}/${c.key}`} c={c} hero={hero} />
+              ))}
+            </ol>
+          )}
+        </div>
       )}
       <Composer daoId={daoId} proposalId={proposalId} hero={hero} autoFocus={autoFocus} />
     </div>
