@@ -141,10 +141,8 @@ export default function LanguagePicker({ up = false, align = 'start', variant = 
           onClick={() => setOpen((v) => !v)}
           className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-3 text-start text-[14px] hover:bg-soft sm:min-h-10"
         >
-          <span className="flex items-center gap-2">
-            <TranslateIcon className="size-4 text-muted" />
-            {t('lang.label')}
-          </span>
+          {/* No icon here: the other menu rows have none, so labels share one left edge. */}
+          <span>{t('lang.label')}</span>
           <span className="flex items-center gap-1.5 text-[13px] text-muted">
             <span lang={current.code}>{current.name}</span>
             {chevron}

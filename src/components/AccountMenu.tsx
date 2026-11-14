@@ -156,8 +156,15 @@ function AccountHeader({ accountId }: { accountId: string }) {
     <div className="flex items-center gap-3 px-3 py-2.5">
       <Avatar id={accountId} size={36} />
       <div className="min-w-0">
-        <div className="truncate text-[14px] font-medium">{name || middleEllipsis(accountId, 24)}</div>
-        <div className="break-all font-mono text-[11.5px] leading-snug text-muted">{accountId}</div>
+        {/* No name yet: show the account id once, not twice. */}
+        {name ? (
+          <>
+            <div className="truncate text-[14px] font-medium">{name}</div>
+            <div className="break-all font-mono text-[11.5px] leading-snug text-muted">{accountId}</div>
+          </>
+        ) : (
+          <div className="break-all text-[14px] font-medium leading-snug">{accountId}</div>
+        )}
         <div className="mt-1 text-[11.5px] text-muted">{t('account.network', { network: t('common.nearTestnet') })}</div>
       </div>
     </div>
