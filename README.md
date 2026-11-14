@@ -67,12 +67,12 @@ Terra is that app. It sits on top of a community's **existing Sputnik DAO** and 
 - **Activity:** every chip-in, request, vote and payout, linked to NearBlocks.
 - **Earn:** propose staking idle money with a testnet validator; members approve it like any request.
 - **Board:** the public, read-only page described above.
-- **Start a group:** three steps (group, people, review and sign). It keeps council and trusted apart, adds an empty `member` role, needs at least 6 NEAR (about 5.4 NEAR stays locked to store the contract), checks your balance, and confirms the DAO really exists after the factory call. The factory refunds the deposit instead of failing when creation doesn't work.
+- **Start a group:** three steps (group, people, review and sign). It keeps council and trusted apart, adds an empty `member` role, needs at least 6 NEAR (about 5.4 NEAR stays locked to store the contract), checks your balance, and confirms the DAO really exists after the factory call. Group names can use any characters (curly quotes, accents, emoji, Hindi). The factory refunds the deposit instead of failing when creation doesn't work.
 
 **Social layer (NEAR Social, testnet `v1.social08.testnet`)**
 - **Member profiles:** a display name, avatar, short bio and links (X, GitHub, website, Telegram), set in **Edit profile** from the account chip or your own row in Members. They're saved to the member's standard NEAR Social profile (`profile/name`, `profile/description`, `profile/linktree/*`, plus `terra/avatar`), signed by the member. So a profile set in Terra shows in other NEAR apps, and a name set elsewhere shows in Terra. Only changed fields are written. A storage deposit is attached only when the member's SocialDB storage is short (0.05 NEAR on a first write). Names appear everywhere a member does, with the account id kept visible, small and muted. Reads are one batched SocialDB `get` per group, cached.
-- **Comments on requests:** a thread on each Approve card, and a comment count on the Board and under "Recently decided" that opens the request with its thread. Comments are stored at `<author>/terra/comments/<daoId>/<proposalId>/<ms>`, plus the standard `post/comment` and `index/comment`. They're read with one wildcard SocialDB `get`, with no backend or indexer. Plain text, 280 characters max.
-- **Private messages (DMs):** 1-to-1 messages between members of a group, end-to-end encrypted in the browser with tweetnacl `box` (X25519 + XSalsa20-Poly1305). Each member's secret key is made in their browser and never leaves it; the public key is published at `<id>/terra/dmkey`. Messages are stored as ciphertext and nonce at `<sender>/terra/dm/<recipient>/<id>`. See the privacy limits under [What's real and what's simulated](#whats-real-and-whats-simulated).
+- **Comments on requests:** a thread on each Approve card, and a comment count on the Board and under "Recently decided" that opens the request with its thread. Only group members and the request's proposer are shown; comments from anyone else are folded under "Show N comments from non-members". Comments are stored at `<author>/terra/comments/<daoId>/<proposalId>/<ms>`, plus the standard `post/comment` and `index/comment`. They're read with one wildcard SocialDB `get`, with no backend or indexer. Plain text, 280 characters max.
+- **Private messages (DMs):** 1-to-1 messages between members of a group, end-to-end encrypted in the browser with tweetnacl `box` (X25519 + XSalsa20-Poly1305). Each member's secret key is made in their browser and never leaves it; the public key is published at `<id>/terra/dmkey`. Messages are stored as ciphertext and nonce at `<sender>/terra/dm/<recipient>/<id>`. See the privacy limits under [What's real vs. testnet](#whats-real-vs-testnet).
 - **My groups:** a switcher in the sidebar and the phone top bar. Each row shows the group name, balance in dollars, your role and open requests, and switches in one click. It also has "+ Create group" and "Connect a DAO". The list comes from your NEAR Social profile (`<id>/terra/groups`), membership found in each known group's policy, and groups you visited. Signed out, it shows visited groups only.
 
 **Joining**
@@ -95,13 +95,13 @@ Terra is that app. It sits on top of a community's **existing Sputnik DAO** and 
 | The prompt asks for | What Terra does | Where in the code |
 |---|---|---|
 | Use the community's existing DAO or Trezu treasury for custody and approvals; don't build a new multisig | Type any Sputnik DAO account and Terra reads and writes to it. Money only moves through that DAO's own `add_proposal` and `act_proposal`. "Start a group" is for communities with no DAO yet, and it calls the standard testnet factory `sputnikv2.testnet`. | `src/lib/dao.ts`, `src/pages/Landing.tsx`, `src/pages/CreateGroup.tsx` |
-| Reputation tied to named accounts, traceable | Each named account's record (requests, paid, turned down, chipped in, votes) is computed only from the DAO's proposals and its NearBlocks transactions. Every row links to its proposal or transaction. Members can add a NEAR Social profile, but the account id always stays visible. | `src/lib/record.ts`, `src/pages/Members.tsx` |
+| Reputation tied to named accounts, traceable | Each named account's record (requests, paid, turned down, chipped in, votes) is computed only from the DAO's whole proposal history and its NearBlocks transactions. Every row links to its proposal or transaction. Members can add a NEAR Social profile, but the account id always stays visible. | `src/lib/record.ts`, `src/pages/Members.tsx` |
 | Small payouts auto-approve for trusted contributors | **Fast lane** (up to $50, requester has a clean record or a `council`/`trusted` role): one approval from a member of the `trusted` role **other than the requester** executes the payout. In the Terra policy the `trusted` role has a 1-vote threshold for transfers. A first request from someone with no record goes to the council instead. | `routeRequest` in `src/lib/record.ts`, `newGroupPolicy` in `src/lib/dao.ts` |
 | Mid-size payouts need one council member | **Council nod** ($50 to $500): routed to the `council` role at the council's own threshold. That's one council member only when the DAO's council threshold is one vote. Terra's default policy uses a council majority, so a 2-member council means both members. Sputnik approves as soon as any one role reaches its threshold, so Create group keeps council members out of the `trusted` role. Otherwise one council member's vote would also count as a trusted nod and pay out any amount. | `src/lib/record.ts`, `src/pages/CreateGroup.tsx` |
 | Large payouts become a normal DAO proposal | **Full vote** (over $500): the council votes at its normal threshold, and the request stays on the public board while it's open. | `src/lib/record.ts`, `src/pages/Board.tsx` |
 | A public board | `?dao=<dao>#/board`: no sign-in and no buttons that move money. Shows the balance, paid-out total, members, median time to pay, staking, open requests, and each payout with who approved it, a proof link and its comment thread. | `src/pages/Board.tsx` |
 
-The dollar limits of each tier are enforced by the app, not by the contract. See [What's real and what's simulated](#whats-real-and-whats-simulated).
+The dollar limits of each tier are enforced by the app, not by the contract. See [What's real vs. testnet](#whats-real-vs-testnet).
 
 ## How NEAR is used
 
@@ -136,7 +136,7 @@ You need a browser. Steps 1–7 need no account. Steps 8–12 need **two NEAR te
    - an $8 venue deposit;
    - an invite to add a member to the council.
 
-   Each card shows who asked (by profile name, with the account id), its tier and approvals ("Small · 0 of 1"), the requester's record and a comment count. Under **Recently decided**: a paid snacks request, a declined printer-ink request, and the role changes described in What's real.
+   Each card shows who asked (by profile name, with the account id), its tier and approvals ("Small · 0 of 1"), the requester's record and a comment count. Under **Recently decided**: a paid snacks request, a declined printer-ink request, and the role changes described in [What's real vs. testnet](#whats-real-vs-testnet).
 7. Open City Club's **Board** → the open requests, and the $3 snacks payout marked "1 trusted member" (that was the fast lane), each with a comment count that opens the thread.
 
 **Signed flows (two testnet accounts, A and B)**
@@ -220,23 +220,40 @@ terra/
 └── vercel.json             # Vercel build settings
 ```
 
-## What's real and what's simulated
+## What's real vs. testnet
 
-- **Testnet only.** All DAO reads and writes, chip-ins, requests, approvals, payouts, group creation, staking, allowances and NEAR Social writes use NEAR testnet, signed by the member's own wallet.
-- **Cross-chain: live quotes, simulated transfer.** Quotes come from the real mainnet 1Click API with `dry: true`. Nothing is swapped, and **no cross-chain transfer happens**. NEAR Intents has no testnet, so on testnet the treasury pays the quoted NEAR to a NEAR "stand-in" account named on the Pay screen. On mainnet the same proposal would pay the Intents deposit address. A keyless script for one real mainnet payout is in `scripts/intents-payout/`. It hasn't been run yet.
-- **Saved-quote fallback.** If the 1Click API fails, Pay shows a clearly labelled **Sample quote** recorded on 14 Nov 2026 at 13:00 UTC (20 USDC on Solana for about 6.10 NEAR) instead of a live one.
+Terra runs on **NEAR testnet**. Every row below is a real transaction you can open on NearBlocks.
+
+| Feature | Where it runs | Proof link |
+|---|---|---|
+| Create a group (Sputnik factory `create`) | NEAR testnet | [City Club](https://testnet.nearblocks.io/txns/Hy3hR85myJ9UoJ7rHDm9zxkpxTGe9MFP2bpFELSSvDo6) · [nearHack Community](https://testnet.nearblocks.io/txns/9gqdtL16KSqXAVHu6p61ZkkUHWBWZL86j419bRzLGeD9) |
+| Group name with curly quotes, accents and emoji | NEAR testnet | [tx](https://testnet.nearblocks.io/txns/G95bZT12fN9sYhPnoc1rKgr8dD2JbYpPM6GHN11i1NoA) |
+| Chip in (2 NEAR to the DAO) | NEAR testnet | [tx](https://testnet.nearblocks.io/txns/69RC9NxfXLr62Pdr42bowR9P8VtfimSJd6Z1nNPWoB4y) |
+| Request money with a live NEAR Intents quote saved in the proposal | NEAR testnet (quote from the NEAR Intents 1Click API) | [tx](https://testnet.nearblocks.io/txns/6GNyQ3rzFFFkXWquSxdFNXpWUB8JPGqkZTb4HVVuyCJt) |
+| Fast lane: one trusted approval pays out | NEAR testnet | [tx](https://testnet.nearblocks.io/txns/9wyJ8fiLk2AHfAomycQGdwz6w7Za3ijQgihRZDRmHGGL) |
+| Decline a request | NEAR testnet | [tx](https://testnet.nearblocks.io/txns/fRZQgDpxxttVbczcmLFA9G6VA4JrYvEyT4RRByitauL) |
+| Council vote passes a rule change (2 of 2) | NEAR testnet | [tx](https://testnet.nearblocks.io/txns/EeyJXZ6zuQ2bSyqWTuzQqr6Fdbf2gSR9HiQjohFFoTfj) |
+| One council approval alone doesn't pay (stays "1 of 2") | NEAR testnet | [tx](https://testnet.nearblocks.io/txns/212Z1Aidh4PhRUWtQiyDKX3ZrcATx2htiWFqrK3hmEmt) |
+| Ask to join, then the council approves | NEAR testnet | [ask](https://testnet.nearblocks.io/txns/3QFJZ91QJr9Gps92EnXj7L56Cz5C7wtG8cRHswtZ3u6v) · [approve](https://testnet.nearblocks.io/txns/HEtHLgKGjanpdiyhBWNWuVGQ3AUHut9A5a99BQkJux63) |
+| Profile and avatar saved to NEAR Social | NEAR testnet (SocialDB) | [tx](https://testnet.nearblocks.io/txns/HyAutgFa9n3y6fFjUUMo9u7ijNt699xovMoy6GEN8rHQ) |
+| Comment on a request | NEAR testnet (SocialDB) | [tx](https://testnet.nearblocks.io/txns/FkYtqB1poNSpeMCKexaXSTjfE9sv9giaQtdfjH1KPMHT) |
+| Encrypted private message (ciphertext only on chain) | NEAR testnet (SocialDB) | [tx](https://testnet.nearblocks.io/txns/93ptWqwDe2jrSgcDynrjN5sH1TQskEz3FL8XUecCDvTA) |
+| My groups saved to the member's profile | NEAR testnet (SocialDB) | [tx](https://testnet.nearblocks.io/txns/BtpY58wVkoWALaifYApqEhssX1CQDeJHvajSMdMYhwY2) |
+| Allowance: payment inside the budget, no vote | NEAR testnet (allowance contract) | [tx](https://testnet.nearblocks.io/txns/Eeujj7H5v8iHCJzmNb7nyMGpwVFuNJVPs6ocnYGzC4Hf) |
+| Allowance: payment over the per-payment max is refused | NEAR testnet (allowance contract) | [tx](https://testnet.nearblocks.io/txns/4brjmRuvDvfgD9HCNgMLAFZ9H6A25qnpm6E4yTHym8o1) |
+| Allowance: a guardian freezes it instantly | NEAR testnet (allowance contract) | [tx](https://testnet.nearblocks.io/txns/HALjykqpfVmH6a4syhCwHX59uKJSNk4JZULsTbytaykB) |
+| AI helper key (can only call `pay`) is refused over its limit | NEAR testnet (allowance contract) | [tx](https://testnet.nearblocks.io/txns/5SsWRfJTcQRojeP5eif784ztDPEvruj42epnjpLLFLV7) |
+| Cross-chain payout via NEAR Intents | NEAR mainnet | Mainnet quote only (live); payout pending |
+
+**How the pieces fit, and the limits:**
+
+- **Cross-chain.** Quotes are live from the NEAR Intents 1Click API (mainnet) and run with `dry: true`. NEAR Intents has no testnet, so in the app the treasury pays the quoted amount in NEAR to a NEAR testnet account named on the Pay screen. On mainnet the same request pays the Intents deposit address and the recipient gets the token on their chain. `scripts/intents-payout/` makes one real mainnet payout without an API key; the person sends from their own wallet and the script never signs. If the quote API is down, Pay shows a clearly labelled **Sample quote** recorded on 14 Nov 2026 at 13:00 UTC.
 - **Tier limits are checked by Terra, not by the contract.** On chain, one trusted vote can approve a transfer of any size, so keep the trusted list small; allowances (the allowance contract) are the hard, on-chain cap. Sputnik decides approvals by role and proposal kind, not by amount. Terra routes each request to the right role and only offers the vote to the right accounts, but a member of the `trusted` role could still approve a large transfer from another client. A guard contract that checks amounts is the fix (see What's next).
-- **The City Club role fix.** City Club (`terra-demo`) was created before Create group kept the roles apart, so one account was on both its council and its trusted role. A council vote removed that overlap: proposal #6 took the account out of `trusted` (filed in [this tx](https://testnet.nearblocks.io/txns/ExS1ZgYUPkCsuuYZrtbcg2bq9JhRQX3LVEBXwbtwypZ8)) and proposal #7 added a separate trusted member (filed in [this tx](https://testnet.nearblocks.io/txns/CcRzrxnFYdG7jFmkCdTYfdM1znWV2R64Qgn853xBY7iE)). The council approved both. Since then, a council approval alone leaves a request open at "council 1 of 2" ([tx](https://testnet.nearblocks.io/txns/212Z1Aidh4PhRUWtQiyDKX3ZrcATx2htiWFqrK3hmEmt)). Terra also warns a council member who is in both roles that their vote alone would pay out.
-- **Private messages: what's private and what isn't.** Message contents are end-to-end encrypted and the secret key stays in the browser. But:
-  - who messages whom, and when, is public;
-  - the ciphertext stays on chain for good;
-  - there's no forward secrecy;
-  - a new device or browser needs setup again, and messages sent to the old key only open on the old device;
-  - clearing site data loses the key;
-  - every message is one wallet-signed write (the first adds a small storage deposit), up to 500 characters of plain text, and the thread checks for new messages every 10 seconds.
-- **Allowances:** limits are enforced on chain, but dollar amounts and the group-to-contract map are not (see What it does).
-- **Staking rewards accrue per epoch** (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first. Unstaking isn't in the UI.
-- **Dollar amounts** use the NEAR/USD price from the 1Click token list. Payouts on testnet are still in NEAR.
+- **The City Club role fix.** City Club (`terra-demo`) was created before Create group kept the roles apart, so one account was on both its council and its trusted role. A council vote removed that overlap: proposal #6 took the account out of `trusted` (filed in [this tx](https://testnet.nearblocks.io/txns/ExS1ZgYUPkCsuuYZrtbcg2bq9JhRQX3LVEBXwbtwypZ8)) and proposal #7 added a separate trusted member (filed in [this tx](https://testnet.nearblocks.io/txns/CcRzrxnFYdG7jFmkCdTYfdM1znWV2R64Qgn853xBY7iE)). The council approved both, and since then a council approval alone leaves a request open (see the table). Terra also warns a council member who is in both roles that their vote alone would pay out.
+- **Private messages.** Contents are end-to-end encrypted and the secret key stays in the browser. But who messages whom, and when, is public; the ciphertext stays on chain for good; there's no forward secrecy; a new device or browser needs setup again (messages sent to the old key only open on the old device); clearing site data loses the key. Every message is one wallet-signed write (the first adds a small storage deposit), up to 500 characters of plain text, and the thread checks for new messages every 10 seconds.
+- **Allowances.** The daily cap, per-payment max, expiry and freeze are enforced on chain. Dollar amounts and the group-to-contract map are not (see What it does).
+- **Staking rewards** arrive once per epoch (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first. Unstaking isn't in the UI.
+- **Dollar amounts** use the NEAR/USD price from the 1Click token list. Payouts on testnet are in NEAR.
 
 ## Tech stack
 
