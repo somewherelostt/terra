@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { ActivityItem } from '../lib/activity'
 import { go, useDao } from '../lib/store'
-import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { displayName, useNames } from '../lib/profile'
 import { decodeDescription, isExpired, isNearTransfer, type Proposal } from '../lib/dao'
 import { Avatar, Button, EmptyState, RowText, TxLink } from '../components/ui'
 
@@ -51,6 +52,7 @@ function dayLabel(d: Date): string {
 
 /** Rows grouped by day: description · receipt · amount. */
 export function ActivityList({ items, loading }: { items?: ActivityItem[]; loading?: boolean }) {
+  useNames()
   const { dao, nearUsd } = useDao()
   if (loading)
     return (
@@ -109,7 +111,7 @@ function describe(a: ActivityItem, p: Proposal | undefined, money: (y?: string) 
   const meta = p ? decodeDescription(p.description) : undefined
   const title = meta?.title
   const wants = meta?.wants?.replace(/\s+to\s+\S+$/, '')
-  const who = shortName(a.who)
+  const who = displayName(a.who)
   const votes = p ? Object.values(p.votes) : []
   const yes = votes.filter((v) => v === 'Approve').length
   const row = (main: string, detail?: string) => <RowText main={main} detail={detail} />
@@ -117,7 +119,7 @@ function describe(a: ActivityItem, p: Proposal | undefined, money: (y?: string) 
     case 'chip-in':
       return { text: row(`${who} chipped in`, `${yoctoToNear(a.amount ?? '0')} NEAR`), amount: `+${money(a.amount)}`, tone: 'text-good' }
     case 'payout': {
-      const bits = [`paid to ${shortName(a.to ?? '')}`, wants ? `asked for ${wants}` : '', yes ? `${yes} approval${yes === 1 ? '' : 's'}` : ''].filter(Boolean)
+      const bits = [`paid to ${displayName(a.to ?? '')}`, wants ? `asked for ${wants}` : '', yes ? `${yes} approval${yes === 1 ? '' : 's'}` : ''].filter(Boolean)
       return { text: row(title ?? 'Payout', bits.join(' · ')), amount: `−${money(a.amount)}`, tone: '' }
     }
     case 'request': {
