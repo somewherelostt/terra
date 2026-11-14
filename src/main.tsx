@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { applyTheme, getTheme } from './lib/theme'
 import { WalletProvider } from './lib/wallet.tsx'
+import { Toaster } from './components/ui.tsx'
 
 applyTheme(getTheme())
 
@@ -11,6 +12,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <WalletProvider>
       <App />
+      <Toaster />
     </WalletProvider>
   </StrictMode>,
 )

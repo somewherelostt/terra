@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { accountUrl, txUrl } from '../lib/near'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 
@@ -163,6 +163,50 @@ export function TxStatus({ state, doneText }: { state: TxState; doneText: string
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-good-soft px-3 py-2 text-sm text-good">
       <span>{doneText}</span>
       <TxLink hash={state.hash} />
+    </div>
+  )
+}
+
+// ----- Toast: a dark pill at the bottom centre for 4 seconds -----
+
+interface ToastMsg {
+  id: number
+  text: string
+  action?: { label: string; onClick: () => void }
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function showToast(text: string, action?: ToastMsg['action']) {
+  window.dispatchEvent(new CustomEvent<ToastMsg>('terra:toast', { detail: { id: Date.now(), text, action } }))
+}
+
+export function Toaster() {
+  const [msg, setMsg] = useState<ToastMsg | null>(null)
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout>
+    const on = (e: Event) => {
+      setMsg((e as CustomEvent<ToastMsg>).detail)
+      clearTimeout(t)
+      t = setTimeout(() => setMsg(null), 4000)
+    }
+    window.addEventListener('terra:toast', on)
+    return () => {
+      window.removeEventListener('terra:toast', on)
+      clearTimeout(t)
+    }
+  }, [])
+  if (!msg) return null
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex justify-center px-4 md:bottom-8" role="status">
+      <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-hero py-2.5 pl-4 pr-2 text-[13.5px] text-on-hero ring-1 ring-[var(--hero-ring)]">
+        <span className="size-1.5 rounded-full bg-accent" />
+        <span>{msg.text}</span>
+        {msg.action && (
+          <button className="rounded-full bg-white/10 px-3 py-1 text-[12.5px] font-medium" onClick={msg.action.onClick}>
+            {msg.action.label}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

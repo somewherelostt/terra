@@ -6,7 +6,7 @@ import { isValidAccountId, ONE_NEAR } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { POPULAR, RECORDED_QUOTE, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
 import { isTrusted, tierFor, TIER_COPY } from '../lib/record'
-import { Button, Spinner, TxStatus, useTx } from '../components/ui'
+import { Button, Spinner, TxStatus, showToast, useTx } from '../components/ui'
 import { prettyName } from '../App'
 
 type Mode = 'near' | 'intents'
@@ -24,6 +24,8 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const [tokens, setTokens] = useState<IntentsToken[]>([])
   const [quote, setQuote] = useState<QuoteResult | null>(null)
   const [quoteErr, setQuoteErr] = useState<string | null>(null)
+  const [quoteDown, setQuoteDown] = useState(false)
+  const [retry, setRetry] = useState(0)
   const [quoting, setQuoting] = useState(false)
   const [copied, setCopied] = useState(false)
   const tx = useTx()
@@ -59,9 +61,10 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   useEffect(() => {
     setQuote(null)
     setQuoteErr(null)
+    setQuoteDown(false)
     if (mode !== 'intents' || !token || !dao) return
     const units = toUnits(amount, token.decimals)
-    if (!units || address.trim().length < 8) return
+    if (!units || address.trim().length < 8 || addressProblem(token.blockchain, address.trim())) return
     const t = setTimeout(async () => {
       setQuoting(true)
       try {
@@ -70,16 +73,13 @@ export default function Pay({ params }: { params: URLSearchParams }) {
         const msg = e instanceof Error ? e.message : String(e)
         // Address problems are the user's to fix; outages fall back to a labelled sample.
         if (/recipient|address|invalid/i.test(msg)) setQuoteErr(msg)
-        else if (token.symbol === 'USDC' && token.blockchain === 'sol') {
-          setQuote(RECORDED_QUOTE)
-          setQuoteErr(`Live quote unavailable (${msg}). Showing a saved sample.`)
-        } else setQuoteErr(msg)
+        else setQuoteDown(true)
       } finally {
         setQuoting(false)
       }
     }, 500)
     return () => clearTimeout(t)
-  }, [mode, token, amount, address, dao])
+  }, [mode, token, amount, address, dao, retry])
 
   if (!dao) return null
 
@@ -101,17 +101,47 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const canPropose = can(dao.policy, accountId, 'transfer', 'AddProposal')
   const overBalance = yocto != null && yocto > dao.spendable
 
+  const addrErr = mode === 'intents' && token && address.trim() ? addressProblem(token.blockchain, address.trim()) : null
   const errors: string[] = []
   if (!title.trim()) errors.push('Say what the money is for.')
   if (!payTo || !isValidAccountId(payTo)) errors.push(mode === 'near' ? 'Enter a valid NEAR account to pay.' : 'Enter the NEAR account that receives the testnet payout.')
   if (!yocto || yocto <= 0n) errors.push(mode === 'near' ? 'Enter an amount.' : 'Get a quote first.')
   if (overBalance) errors.push("That's more than the treasury holds.")
+  if (addrErr) errors.unshift(addrErr)
 
   function quoteText(): string | undefined {
     if (mode !== 'intents' || !quote || !token) return undefined
     const q = quote.quote
     const t = new Date(quote.timestamp).toISOString().slice(11, 16)
     return `${Number(q.amountInFormatted).toFixed(2)} NEAR -> ${q.amountOutFormatted} ${token.symbol} on ${chainName(token.blockchain)}, about ${q.timeEstimate}s, ${quote.recorded ? 'sample recorded' : 'quoted'} ${t} UTC${quote.correlationId ? ` (${quote.correlationId.slice(0, 8)})` : ''}`
+  }
+
+  const canUseSaved = !!token && token.symbol === 'USDC' && token.blockchain === 'sol' && !!toUnits(amount, 6)
+  function useSavedQuote() {
+    // The saved quote was for 20 USDC; scale it to the amount asked for and label it as saved.
+    const f = Number(amount) / 20
+    const q = RECORDED_QUOTE.quote
+    const inYocto = (BigInt(q.amountIn) * BigInt(Math.round(f * 1e6))) / 1_000_000n
+    setQuote({
+      ...RECORDED_QUOTE,
+      quote: {
+        ...q,
+        amountIn: inYocto.toString(),
+        amountInFormatted: String(Number(q.amountInFormatted) * f),
+        amountInUsd: String(Number(q.amountInUsd) * f),
+        amountOut: toUnits(amount, 6) ?? q.amountOut,
+        amountOutFormatted: amount,
+        amountOutUsd: String(Number(q.amountOutUsd) * f),
+      },
+    })
+    setQuoteDown(false)
+  }
+
+  function approverCount(kind: 'small' | 'council'): number {
+    const roles = dao!.policy.roles.filter((r) => (kind === 'small' ? ['trusted', 'council'] : ['council']).includes(r.name))
+    const set = new Set(roles.flatMap((r) => (typeof r.kind === 'object' && 'Group' in r.kind ? r.kind.Group : [])))
+    if (accountId) set.delete(accountId)
+    return set.size
   }
 
   async function submit() {
@@ -122,7 +152,12 @@ export default function Pay({ params }: { params: URLSearchParams }) {
       quote: quoteText(),
       tier: effectiveTier ? TIER_COPY[effectiveTier].label : undefined,
     }
-    await tx.run(() => send(addTransferProposalTx(dao, payTo, yocto!, meta)), refresh)
+    const hash = await tx.run(() => send(addTransferProposalTx(dao, payTo, yocto!, meta)), refresh)
+    if (hash) {
+      const n = effectiveTier === 'small' ? approverCount('small') : approverCount('council')
+      showToast(`Request sent. ${n} member${n === 1 ? '' : 's'} can approve it.`, { label: 'View', onClick: () => go('approve') })
+      go('approve')
+    }
   }
 
   function requestLink(): string {
@@ -256,8 +291,22 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                   <Line k="Fees" v={quote ? usd(Math.max(0, Number(quote.quote.amountInUsd) - Number(quote.quote.amountOutUsd))) : '—'} />
                 </div>
                 {quoting && <div className="mt-2 flex items-center gap-2 text-[12px] text-muted"><Spinner /> Asking NEAR Intents solvers…</div>}
-                {!quote && !quoting && !quoteErr && <div className="mt-2 text-[12px] text-muted">Add their address and an amount to get a live quote.</div>}
+                {!quote && !quoting && !quoteErr && !quoteDown && !addrErr && <div className="mt-2 text-[12px] text-muted">Add their address and an amount to get a live quote.</div>}
+                {addrErr && <p className="mt-2 text-[12px] text-bad">{addrErr}</p>}
                 {quoteErr && <p className="mt-2 text-[12px] text-bad">{quoteErr}</p>}
+                {quoteDown && (
+                  <div className="mt-3 rounded-xl bg-soft px-4 py-3 text-[13px]">
+                    <div className="flex items-center gap-2">
+                      <span className="size-1.5 rounded-full bg-warn" />
+                      <span>Live quote is unavailable right now</span>
+                    </div>
+                    <p className="mt-1 text-[12px] text-muted">NEAR Intents didn't answer. Try again, or use the quote saved on 14 Nov 13:00 UTC. You can still send the request.</p>
+                    <div className="mt-3 flex gap-2">
+                      <Button variant="secondary" className="!py-1.5 !text-[12.5px]" onClick={() => setRetry((r) => r + 1)}>Try again</Button>
+                      {canUseSaved && <Button variant="secondary" className="!py-1.5 !text-[12.5px]" onClick={useSavedQuote}>Use saved quote</Button>}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -319,4 +368,15 @@ function Line({ k, v }: { k: string; v: string }) {
       <span className="tnum text-right">{v}</span>
     </div>
   )
+}
+
+const EVM = new Set(['eth', 'base', 'arb', 'op', 'pol', 'bsc', 'avax', 'gnosis', 'bera', 'monad', 'scroll', 'xlayer', 'plasma', 'adi'])
+
+/** A light format check per chain, so obvious typos are caught before asking for a quote. */
+function addressProblem(chain: string, a: string): string | null {
+  if (chain === 'sol' && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a)) return "That doesn't look like a Solana address."
+  if (EVM.has(chain) && !/^0x[0-9a-fA-F]{40}$/.test(a)) return 'That should be a 0x address with 40 hex characters.'
+  if (chain === 'near' && !isValidAccountId(a)) return "That doesn't look like a NEAR account."
+  if (chain === 'btc' && !/^(bc1[a-z0-9]{25,62}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(a)) return "That doesn't look like a Bitcoin address."
+  return null
 }
