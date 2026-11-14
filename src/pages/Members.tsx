@@ -5,8 +5,8 @@ import { addMemberProposalTx, can, roleMembers } from '../lib/dao'
 import { isValidAccountId } from '../lib/near'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, isTrusted, type MemberRecord } from '../lib/record'
-import { Avatar, Button, EmptyState, TxStatus, useTx } from '../components/ui'
-import { AddNameNudge, MemberName, openProfileSheet } from '../components/ProfileSheet'
+import { Account, Avatar, Button, EmptyState, TxStatus, useTx } from '../components/ui'
+import { AvatarPicker } from '../components/AvatarPicker'
 
 type Standing = 'Council' | 'Trusted' | 'New'
 type Filter = 'All' | Standing
@@ -23,6 +23,7 @@ export default function Members() {
   const { accountId } = useWallet()
   const [filter, setFilter] = useState<Filter>('All')
   const [inviting, setInviting] = useState(false)
+  const [picking, setPicking] = useState(false)
   if (!dao) return null
   // Members are accounts in a role; anyone else with history is a contributor, not listed here.
   const memberIds = new Set(dao.policy.roles.flatMap(roleMembers))
@@ -36,6 +37,7 @@ export default function Members() {
   return (
     <div>
       {inviting && <InviteDialog onClose={() => setInviting(false)} />}
+      {picking && <AvatarPicker onClose={() => setPicking(false)} />}
       <div className="text-[13px] text-muted">Members</div>
       <div className="mt-3 flex items-end justify-between gap-4">
         <h1 className="text-[32px] font-light tracking-[-0.03em]">
@@ -44,7 +46,6 @@ export default function Members() {
         <Button variant="secondary" onClick={() => setInviting(true)}>Invite</Button>
       </div>
       <p className="mt-1 text-[13.5px] text-muted">A member's record decides how much approval their requests need.</p>
-      {accountId && memberIds.has(accountId) && <AddNameNudge className="mt-5 max-w-sm" />}
 
       <div className="mt-8 flex flex-wrap gap-1 text-[13px]">
         {(['All', 'Council', 'Trusted', 'New'] as Filter[]).map((f) => (
@@ -60,7 +61,7 @@ export default function Members() {
 
       <div className="mt-4 space-y-2 md:hidden">
         {shown.map((r) => (
-          <MemberCard key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={openProfileSheet} />
+          <MemberCard key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={() => setPicking(true)} />
         ))}
         {shown.length === 0 && <div className="py-6 text-muted">{filter === 'All' ? 'Nobody here yet.' : `No ${filter.toLowerCase()} members yet.`}</div>}
       </div>
@@ -75,7 +76,7 @@ export default function Members() {
             <span className="text-right">Fast lane up to</span>
           </div>
           {shown.map((r) => (
-            <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={openProfileSheet} />
+            <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={() => setPicking(true)} />
           ))}
           {shown.length === 0 && <div className="py-6 text-muted">{filter === 'All' ? 'Nobody here yet.' : `No ${filter.toLowerCase()} members yet.`}</div>}
         </div>
@@ -122,13 +123,12 @@ function MemberCard({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAva
         <Avatar id={r.accountId} size={40} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px]">
-            <MemberName id={r.accountId} card />
+            <Account id={r.accountId} className="!font-normal" />
             {you && <span className="text-muted"> · you</span>}
           </div>
-          <div className="truncate font-mono text-[11.5px] text-muted">{r.accountId}</div>
           {you && (
-            <button className="min-h-8 text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={onAvatar}>
-              Edit profile
+            <button className="text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={onAvatar}>
+              Change avatar
             </button>
           )}
         </div>
@@ -165,19 +165,16 @@ function MemberRow({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAvat
     <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr_1fr] items-center border-b border-line py-3.5 last:border-0">
       <span className="flex min-w-0 items-center gap-3">
         <Avatar id={r.accountId} size={28} />
-        <span className="min-w-0">
-          <span className="block truncate">
-            <MemberName id={r.accountId} card />
-            {you && <span className="text-muted"> · you</span>}
-          </span>
-          <span className="flex min-w-0 items-baseline gap-2">
-            <span className="truncate font-mono text-[11px] text-muted">{r.accountId}</span>
-            {you && (
-              <button className="shrink-0 text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline" onClick={onAvatar}>
-                Edit profile
+        <span className="truncate">
+          <Account id={r.accountId} className="!font-normal" />
+          {you && (
+            <>
+              <span className="text-muted"> · you · </span>
+              <button className="text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline" onClick={onAvatar}>
+                change avatar
               </button>
-            )}
-          </span>
+            </>
+          )}
         </span>
       </span>
       <span>

@@ -1,9 +1,9 @@
-import { type ReactNode } from 'react'
-import { ProfileSheetHost, openProfileSheet } from './components/ProfileSheet'
+import { useState, type ReactNode } from 'react'
+import { AvatarPicker } from './components/AvatarPicker'
 import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner } from './components/ui'
-import { prefetchProfiles, useNames } from './lib/profile'
+import { shortName } from './lib/format'
 import { isTrusted, openRequests } from './lib/record'
 import { allMembers } from './lib/dao'
 import Landing from './pages/Landing'
@@ -211,10 +211,8 @@ function GroupCard() {
   const dao = ctx.dao
   const records = 'records' in ctx ? ctx.records : new Map()
   const { accountId } = useWallet()
-  const name = useNames()
   if (!dao) return <div className="mt-auto" />
   const members = allMembers(dao.policy)
-  prefetchProfiles(members) // one batched NEAR Social read for the whole group
   const mine = accountId ? records.get(accountId) : undefined
   const status = !accountId
     ? 'Viewing as a guest'
@@ -229,7 +227,7 @@ function GroupCard() {
     <div className="mt-auto rounded-2xl bg-soft p-4">
       <div className="flex -space-x-1.5">
         {members.slice(0, 3).map((m) => (
-          <span key={m} className="rounded-full ring-2 ring-[var(--sand)]" title={`${name(m)} · ${m}`}>
+          <span key={m} className="rounded-full ring-2 ring-[var(--sand)]">
             <Avatar id={m} size={24} shape="circle" />
           </span>
         ))}
@@ -238,11 +236,6 @@ function GroupCard() {
         )}
       </div>
       <div className="mt-3 truncate text-[13.5px] font-medium" title={dao.id}>{prettyName(dao.config.name)}</div>
-      {accountId && (
-        <button onClick={openProfileSheet} className="block max-w-full truncate text-left text-[12px] text-muted hover:text-ink" title={`${accountId} · Edit profile`}>
-          {name(accountId)}
-        </button>
-      )}
       <div className="text-[12px] text-muted">{status}</div>
       <button onClick={() => openDao(null)} className="mt-3 text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline">
         Switch community
@@ -260,7 +253,7 @@ export function prettyName(name: string): string {
 
 function TopBar({ daoId }: { daoId: string | null }) {
   const { accountId, signIn, signOut, ready } = useWallet()
-  const name = useNames()
+  const [picking, setPicking] = useState(false)
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:px-8">
       <div className="-ml-2.5 flex min-w-0 items-center md:hidden">
@@ -276,14 +269,14 @@ function TopBar({ daoId }: { daoId: string | null }) {
           <Spinner />
         ) : accountId ? (
           <>
-            <ProfileSheetHost />
+            {picking && <AvatarPicker onClose={() => setPicking(false)} />}
             <button
-              onClick={openProfileSheet}
-              title={`${accountId} · Edit profile`}
+              onClick={() => setPicking(true)}
+              title="Change avatar"
               className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-sm hover:bg-soft"
             >
               <Avatar id={accountId} size={26} />
-              <span className="hidden max-w-40 truncate font-medium sm:inline">{name(accountId)}</span>
+              <span className="hidden max-w-40 truncate font-medium sm:inline">{shortName(accountId)}</span>
             </button>
             <Button variant="ghost" onClick={signOut}>
               Sign out

@@ -21,8 +21,8 @@ function slugify(s: string): string {
     .slice(0, 40)
 }
 
-const line = 'block border-b border-line pb-3'
-const bare = 'mt-1 w-full bg-transparent outline-none placeholder:text-muted/60'
+const line = 'block border-b border-line pb-2 transition-colors focus-within:border-ink'
+const bare = 'w-full bg-transparent py-3 outline-none placeholder:text-muted/60 sm:py-2'
 
 export default function CreateGroup() {
   const { accountId, send, signIn } = useWallet()
@@ -101,7 +101,7 @@ export default function CreateGroup() {
           <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Set up your group</h1>
           <p className="mt-2 text-[14px] text-muted">
             Already have a Sputnik DAO?{' '}
-            <button className="text-ink underline underline-offset-2" onClick={() => openDao(null)}>
+            <button className="-my-3 inline-block py-3 text-ink underline underline-offset-2" onClick={() => openDao(null)}>
               Connect it instead.
             </button>
           </p>
@@ -114,7 +114,7 @@ export default function CreateGroup() {
               <span className="text-[12px] text-muted">Treasury address</span>
               <div className="mt-1 flex items-baseline font-mono text-[14px]">
                 <input
-                  className="min-w-0 bg-transparent outline-none placeholder:text-muted/60"
+                  className="min-w-0 bg-transparent py-3 outline-none placeholder:text-muted/60 sm:py-2"
                   style={{ width: `${Math.max(8, slug.length + 1)}ch` }}
                   value={slug}
                   onChange={(e) => {

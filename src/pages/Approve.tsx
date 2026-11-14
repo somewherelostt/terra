@@ -6,8 +6,7 @@ import type { Track, TrackStep } from '../lib/store'
 import { go, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
-import { nanoToDate, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
-import { displayName, useNames } from '../lib/profile'
+import { nanoToDate, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests, routeRequest } from '../lib/record'
 import { Avatar, Button, EmptyState, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 
@@ -112,7 +111,6 @@ function statusTone(p: Proposal, expired: boolean) {
 }
 
 function DecidedRow({ p }: { p: Proposal }) {
-  useNames()
   const { dao, nearUsd, activity } = useDao()
   const meta = decodeDescription(p.description)
   const expired = isExpired(p, dao!.policy)
@@ -125,7 +123,7 @@ function DecidedRow({ p }: { p: Proposal }) {
   const no = counts.filter((v) => v === 'Reject').length
   const amount = transfer ? (isFinite(nearUsd) ? usd(yoctoToNumber(transfer.amount) * nearUsd) : `${yoctoToNear(transfer.amount)} NEAR`) : null
   let detail: string
-  if (paid) detail = meta.wants ? `paid · ${meta.wants.replace(/\s+to\s+\S+$/, '')} requested` : `paid to ${displayName(transfer!.receiver_id)}`
+  if (paid) detail = meta.wants ? `paid · ${meta.wants.replace(/\s+to\s+\S+$/, '')} requested` : `paid to ${shortName(transfer!.receiver_id)}`
   else if (p.status === 'Rejected') detail = `declined, ${yes} to ${no}`
   else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${requestKind(p.kind).toLowerCase()}`)
   return (
@@ -142,7 +140,6 @@ function DecidedRow({ p }: { p: Proposal }) {
 }
 
 export function RequestCard({ p }: { p: Proposal }) {
-  useNames()
   const { dao, nearUsd, records, refresh, activity, tracks, setTrack } = useDao()
   const { accountId, send, signIn } = useWallet()
   const tx = useTx()
@@ -185,7 +182,7 @@ export function RequestCard({ p }: { p: Proposal }) {
       return s < 60 ? `+${s}s` : `+${Math.floor(s / 60)}m ${s % 60}s`
     }
     const group = prettyName(dao!.config.name)
-    const to = transfer ? displayName(transfer.receiver_id) : ''
+    const to = transfer ? shortName(transfer.receiver_id) : ''
     const steps: TrackStep[] = [{ label: 'Approved by you', done: true, at: 'now', hash }]
     const wantsLine = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
     const base = { eta: transfer ? 'checking…' : '', finished: false, paid: false }
@@ -250,7 +247,7 @@ export function RequestCard({ p }: { p: Proposal }) {
       <div className={`flex items-center justify-between gap-3 text-[12px] ${sub}`}>
         <span className="flex min-w-0 items-center gap-2 truncate">
           <Avatar id={p.proposer} size={20} />
-          {displayName(p.proposer)} is asking · {timeAgo(nanoToDate(p.submission_time))}
+          {shortName(p.proposer)} is asking · {timeAgo(nanoToDate(p.submission_time))}
           {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ' · new member' : ''}
         </span>
         <span className="shrink-0">
@@ -284,7 +281,7 @@ export function RequestCard({ p }: { p: Proposal }) {
         ) : transfer ? (
           <div className="flex items-baseline justify-between gap-3">
             <span className={`shrink-0 ${sub}`}>Paid to</span>
-            <span className="tnum min-w-0 truncate">{yoctoToNear(transfer.amount)} NEAR · {displayName(transfer.receiver_id)}</span>
+            <span className="tnum min-w-0 truncate">{yoctoToNear(transfer.amount)} NEAR · {shortName(transfer.receiver_id)}</span>
           </div>
         ) : null}
         {arrives && (
@@ -295,7 +292,7 @@ export function RequestCard({ p }: { p: Proposal }) {
         )}
         {rec && (
           <div className="mt-2 flex items-baseline justify-between gap-3">
-            <span className={sub}>{displayName(p.proposer)}'s record</span>
+            <span className={sub}>{shortName(p.proposer)}'s record</span>
             <span className="tnum">{rec.approved} paid · {rec.rejected} turned down</span>
           </div>
         )}
@@ -305,7 +302,7 @@ export function RequestCard({ p }: { p: Proposal }) {
               <div className="h-[3px] rounded-full bg-ink transition-all" style={{ width: `${Math.min(100, (approvals / Math.max(needed, 1)) * 100)}%` }} />
             </div>
             <div className="mt-2 text-[12px] text-muted">
-              {voters.filter((v) => p.votes[v] === 'Approve').map(displayName).join(', ') || 'No approvals yet'}
+              {voters.filter((v) => p.votes[v] === 'Approve').map(shortName).join(', ') || 'No approvals yet'}
               {approvals < needed ? ` · needs ${needed - approvals} more ${route?.effectiveTier === 'small' ? 'trusted member' : 'council member'}${needed - approvals === 1 ? '' : 's'}` : ''}
               {rejects ? ` · ${rejects} declined` : ''}
             </div>
@@ -362,7 +359,6 @@ export function RequestCard({ p }: { p: Proposal }) {
 }
 
 function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; hero: boolean; onDone: () => void }) {
-  useNames()
   const { nearUsd } = useDao()
   const meta = decodeDescription(p.description)
   const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
@@ -374,7 +370,7 @@ function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; he
   return (
     <article className={`relative flex flex-col overflow-hidden rounded-2xl p-6 ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}>
       <div className="flex items-center justify-between text-[12px]">
-        <span className={sub}>{track.paid ? 'Paid' : transfer ? `Paying ${transfer ? displayName(transfer.receiver_id) : ''}` : 'Applying'}</span>
+        <span className={sub}>{track.paid ? 'Paid' : transfer ? `Paying ${transfer ? shortName(transfer.receiver_id) : ''}` : 'Applying'}</span>
         {track.eta && (
           <span className="flex items-center gap-1.5">
             {!track.finished && <span className="live size-1.5 rounded-full bg-accent" />}
