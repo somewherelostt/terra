@@ -1,14 +1,21 @@
 import { ONE_NEAR } from './near'
+import { formatDate, formatRelative, getLocale } from '../i18n'
 
-export function yoctoToNear(yocto: string | bigint, digits = 2): string {
+/**
+ * Display a yoctoNEAR amount, grouped and with the decimal mark of the current language.
+ * Pass `onChain = true` for text that is written to the chain (proposal descriptions): that stays en-US.
+ */
+export function yoctoToNear(yocto: string | bigint, digits = 2, onChain = false): string {
   const v = typeof yocto === 'bigint' ? yocto : BigInt(yocto || '0')
   const neg = v < 0n
   const abs = neg ? -v : v
   const whole = abs / ONE_NEAR
   const frac = abs % ONE_NEAR
   const fracStr = frac.toString().padStart(24, '0').slice(0, digits)
-  const wholeStr = whole.toLocaleString('en-US')
-  const out = digits > 0 ? `${wholeStr}.${fracStr}` : wholeStr
+  const lang = onChain ? 'en-US' : getLocale()
+  const wholeStr = whole.toLocaleString(lang)
+  const dec = onChain ? '.' : (new Intl.NumberFormat(lang).formatToParts(1.5).find((p) => p.type === 'decimal')?.value ?? '.')
+  const out = digits > 0 ? `${wholeStr}${dec}${fracStr}` : wholeStr
   return (neg ? '-' : '') + out
 }
 
@@ -27,23 +34,24 @@ export function nearToYocto(input: string): bigint | null {
 
 export function usd(n: number): string {
   if (!isFinite(n)) return '$—'
-  return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: n >= 1000 ? 0 : 2 })
+  return n.toLocaleString(getLocale(), { style: 'currency', currency: 'USD', maximumFractionDigits: n >= 1000 ? 0 : 2 })
 }
 
 export function nanoToDate(ns: string | number): Date {
   return new Date(Number(BigInt(ns) / 1_000_000n))
 }
 
+/** "just now", "3 min ago", "vor 3 Min." … then a short date after 30 days. */
 export function timeAgo(d: Date): string {
   const s = Math.round((Date.now() - d.getTime()) / 1000)
-  if (s < 60) return 'just now'
+  if (s < 60) return formatRelative(0, 'second')
   const m = Math.round(s / 60)
-  if (m < 60) return `${m} min ago`
+  if (m < 60) return formatRelative(-m, 'minute')
   const h = Math.round(m / 60)
-  if (h < 24) return `${h} h ago`
+  if (h < 24) return formatRelative(-h, 'hour')
   const days = Math.round(h / 24)
-  if (days < 30) return `${days} d ago`
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  if (days < 30) return formatRelative(-days, 'day')
+  return formatDate(d)
 }
 
 /** "noor.grapevine-hq.testnet" -> "noor" for display; full id stays in title attributes. */
@@ -52,11 +60,12 @@ export function shortName(accountId: string): string {
   return accountId.split('.')[0]
 }
 
-/** "$1,240.00" → ["$1,240", ".00"], so cents can be muted. */
+/** "$1,240.00" → ["$1,240", ".00"] (or "1.240" / ",00 $" in German), so cents can be muted. */
 export function splitUsd(n: number): [string, string] {
   if (!isFinite(n)) return ['$—', '']
-  const s = n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const i = s.lastIndexOf('.')
-  return i < 0 ? [s, ''] : [s.slice(0, i), s.slice(i)]
+  const parts = new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).formatToParts(n)
+  const i = parts.findIndex((p) => p.type === 'decimal')
+  if (i < 0) return [parts.map((p) => p.value).join(''), '']
+  return [parts.slice(0, i).map((p) => p.value).join(''), parts.slice(i).map((p) => p.value).join('')]
 }
 

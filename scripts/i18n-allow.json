@@ -1,0 +1,38 @@
+{
+  "comment": "Text the i18n check lets through untranslated: brand and product names, protocol names, tickers and code-like tokens. Add exact strings or regex patterns; keep it short.",
+  "exact": [
+    "terra",
+    "Terra",
+    "NEAR",
+    "NEAR Intents",
+    "Sputnik DAO",
+    "Sputnik",
+    "GitHub",
+    "USDC",
+    "USDT",
+    "ETH",
+    "BTC",
+    "SOL",
+    "wNEAR",
+    "yoctoNEAR",
+    "Geist",
+    "testnet",
+    "mainnet",
+    "OK",
+    "QR",
+    "APK",
+    "Android",
+    "iOS",
+    "⌘K",
+    "Ctrl K",
+    "Esc"
+  ],
+  "patterns": [
+    "^[A-Z0-9]{2,6}$",
+    "^[a-z0-9_.-]+\\.(testnet|near|sputnikv2\\.testnet)$",
+    "^(https?://|mailto:)",
+    "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*$",
+    "^#/[a-z]",
+    "^v?\\d+(\\.\\d+)*$"
+  ]
+}

@@ -10,6 +10,8 @@ import { lastDao, openDao } from '../lib/store'
 import { Avatar } from './ui'
 import { GroupList } from './GroupSwitcher'
 import { ProfileSheetHost, openProfileSheet } from './ProfileSheet'
+import LanguagePicker from './LanguagePicker'
+import { useT } from '../i18n'
 
 /** "maaaaaaaaaaaaaaaaaz.testnet" → "maaaaaa…z.testnet": keeps the start and the end, never wider than `max`. */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -53,8 +55,9 @@ function Svg({ d, className = 'size-[18px]' }: { d: string; className?: string }
 
 /** 40px icon button: sun in dark mode (switch to light), moon in light mode. */
 export function ThemeButton({ className = '' }: { className?: string }) {
+  const t = useT()
   const [theme, toggle] = useTheme()
-  const label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+  const label = theme === 'dark' ? t('account.toLight') : t('account.toDark')
   return (
     <button type="button" onClick={toggle} aria-label={label} title={label} className={`grid size-10 place-items-center rounded-lg text-muted hover:bg-soft hover:text-ink ${className}`}>
       <Svg d={theme === 'dark' ? SUN : MOON} />
@@ -78,6 +81,7 @@ export function openTerra() {
 }
 
 function MyGroupsSheetHost() {
+  const t = useT()
   const [open, setOpen] = useState(false)
   useEffect(() => {
     const on = () => setOpen(true)
@@ -92,7 +96,7 @@ function MyGroupsSheetHost() {
   }, [open])
   if (!open) return null
   return createPortal(
-    <div className="fixed inset-0 z-50 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={() => setOpen(false)} role="dialog" aria-modal aria-label="My groups">
+    <div className="fixed inset-0 z-50 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={() => setOpen(false)} role="dialog" aria-modal aria-label={t('account.myGroups')}>
       <div
         className="max-h-[85vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-2 pb-[max(env(safe-area-inset-bottom),8px)] text-ink sm:max-w-[440px] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -124,26 +128,29 @@ function useAccountLabel(accountId: string) {
 
 /** The menu's rows: used by the dropdown and by the landing's phone sheet. */
 export function AccountMenuItems({ onDone }: { onDone: () => void }) {
+  const t = useT()
   const { accountId, signOut } = useWallet()
   const [theme, toggle] = useTheme()
   if (!accountId) return null
-  const row = 'flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-3 text-left text-[14px] hover:bg-soft sm:min-h-10'
+  const row = 'flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-3 text-start text-[14px] hover:bg-soft sm:min-h-10'
   return (
-    <div role="menu" aria-label="Account">
+    <div role="menu" aria-label={t('account.label')}>
       <AccountHeader accountId={accountId} />
       <div className="my-1 h-px bg-line" />
-      <button role="menuitem" className={row} onClick={() => (onDone(), openMyGroups())}>My groups</button>
-      <button role="menuitem" className={row} onClick={() => (onDone(), openProfileSheet())}>Edit profile</button>
+      <button role="menuitem" className={row} onClick={() => (onDone(), openMyGroups())}>{t('account.myGroups')}</button>
+      <button role="menuitem" className={row} onClick={() => (onDone(), openProfileSheet())}>{t('account.editProfile')}</button>
       <button role="menuitem" className={row} onClick={toggle}>
-        Theme <span className="text-[13px] text-muted">{theme === 'dark' ? 'Dark' : 'Light'}</span>
+        {t('account.theme')} <span className="text-[13px] text-muted">{theme === 'dark' ? t('account.dark') : t('account.light')}</span>
       </button>
+      <LanguagePicker variant="row" />
       <div className="my-1 h-px bg-line" />
-      <button role="menuitem" className={`${row} text-muted hover:text-ink`} onClick={() => (onDone(), signOut())}>Sign out</button>
+      <button role="menuitem" className={`${row} text-muted hover:text-ink`} onClick={() => (onDone(), signOut())}>{t('account.signOut')}</button>
     </div>
   )
 }
 
 function AccountHeader({ accountId }: { accountId: string }) {
+  const t = useT()
   const { name } = useAccountLabel(accountId)
   return (
     <div className="flex items-center gap-3 px-3 py-2.5">
@@ -151,7 +158,7 @@ function AccountHeader({ accountId }: { accountId: string }) {
       <div className="min-w-0">
         <div className="truncate text-[14px] font-medium">{name || middleEllipsis(accountId, 24)}</div>
         <div className="break-all font-mono text-[11.5px] leading-snug text-muted">{accountId}</div>
-        <div className="mt-1 text-[11.5px] text-muted">Network · NEAR testnet</div>
+        <div className="mt-1 text-[11.5px] text-muted">{t('account.network', { network: t('common.nearTestnet') })}</div>
       </div>
     </div>
   )
@@ -190,7 +197,7 @@ export function AccountChip() {
         <Svg d="M6 9l6 6 6-6" className={`size-4 text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="glass glass-menu absolute right-0 top-[calc(100%+8px)] z-50 w-[min(300px,calc(100vw-24px))] rounded-2xl p-1.5 text-ink">
+        <div className="glass glass-menu absolute end-0 top-[calc(100%+8px)] z-50 w-[min(300px,calc(100vw-24px))] rounded-2xl p-1.5 text-ink">
           <AccountMenuItems onDone={() => setOpen(false)} />
         </div>
       )}

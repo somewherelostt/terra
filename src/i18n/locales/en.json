@@ -1,0 +1,23 @@
+{
+  "common.nearTestnet": "NEAR testnet",
+  "lang.label": "Language",
+  "lang.choose": "Language: {name}. Choose another",
+  "footer.how": "How it works",
+  "footer.board": "Live board",
+  "footer.docs": "Docs",
+  "footer.homeLabel": "Terra home",
+  "footer.tagline": "The members' app for community treasuries.",
+  "footer.navLabel": "Footer",
+  "footer.github": "Terra on GitHub",
+  "footer.copyright": "© {year} Terra · Open source, built on NEAR",
+  "account.toLight": "Switch to light theme",
+  "account.toDark": "Switch to dark theme",
+  "account.myGroups": "My groups",
+  "account.label": "Account",
+  "account.editProfile": "Edit profile",
+  "account.theme": "Theme",
+  "account.dark": "Dark",
+  "account.light": "Light",
+  "account.signOut": "Sign out",
+  "account.network": "Network · {network}"
+}
