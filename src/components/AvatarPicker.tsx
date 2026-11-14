@@ -51,7 +51,7 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
         // NEAR Social writes can show as "failed" (CodeDoesNotExist) even though the data lands,
         // so only trust a read-back.
         const msg = e instanceof Error ? e.message : String(e)
-        if (/reject|cancel|closed|denied/i.test(msg)) throw e
+        if (!/CodeDoesNotExist/i.test(msg)) throw e
       }
       setHash(h)
       setStatus('checking')
