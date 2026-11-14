@@ -310,7 +310,7 @@ function ProductPreview() {
 function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay: number; title: string; text: string }) {
   return (
     <div
-      className={`pointer-events-none absolute z-10 hidden xl:block ${side === 'left' ? '-left-28 top-6' : '-right-20 top-56'}`}
+      className={`pointer-events-none absolute z-10 hidden xl:block ${side === 'left' ? '-left-40 top-[300px]' : '-right-20 top-56'}`}
       aria-hidden
     >
       <div className="pop" style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
