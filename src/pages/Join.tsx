@@ -142,7 +142,7 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
             </button>
             <p className="mt-3 text-center text-[12.5px] text-muted">
               No NEAR account?{' '}
-              <a href={NEW_ACCOUNT_URL} target="_blank" rel="noreferrer" className="text-ink underline underline-offset-2">
+              <a href={NEW_ACCOUNT_URL} target="_blank" rel="noreferrer" className="relative text-ink underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']">
                 Create a free testnet one
               </a>
               , then come back to this page.

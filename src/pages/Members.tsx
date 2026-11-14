@@ -210,22 +210,22 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
   const id = member.trim().toLowerCase()
   const valid = isValidAccountId(id)
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4" onClick={onClose} role="dialog" aria-modal aria-label="Invite a member">
-      <div className="w-full max-w-[440px] rounded-2xl border border-line bg-card p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-40 grid items-end bg-black/60 sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Invite a member">
+      <div className="w-full rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[440px] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between text-[12px] text-muted">
           <span>Invite a member</span>
-          <button onClick={onClose} className="hover:text-ink">Close</button>
+          <button onClick={onClose} className="-my-3 py-3 pl-4 hover:text-ink">Close</button>
         </div>
         <p className="mt-1 text-[13.5px] text-muted">This files a request to add them. The council approves it like any other change.</p>
-        <label className="mt-6 block border-b border-line pb-3">
+        <label className="mt-6 block border-b border-line pb-2 transition-colors focus-within:border-ink">
           <span className="text-[12px] text-muted">Their NEAR account</span>
-          <input autoFocus className="mt-1 w-full bg-transparent font-mono text-[15px] outline-none" value={member} onChange={(e) => setMember(e.target.value)} placeholder="friend.testnet" spellCheck={false} />
+          <input autoFocus className="w-full bg-transparent py-3 font-mono text-[15px] outline-none sm:py-2" value={member} onChange={(e) => setMember(e.target.value)} placeholder="friend.testnet" spellCheck={false} />
         </label>
         <div className="mt-5">
           <span className="text-[12px] text-muted">Role</span>
           <div className="mt-2 flex flex-wrap gap-2 text-[13.5px]">
             {roles.map((r) => (
-              <button key={r} onClick={() => setRole(r)} className={`rounded-lg border px-4 py-2 ${role === r ? 'border-ink' : 'border-line text-muted'}`}>{r}</button>
+              <button key={r} onClick={() => setRole(r)} className={`min-h-11 rounded-lg border px-4 py-2 sm:min-h-0 ${role === r ? 'border-ink' : 'border-line text-muted'}`}>{r}</button>
             ))}
           </div>
         </div>
