@@ -99,7 +99,7 @@ body {
 
 @keyframes terra-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
 .skeleton { background: var(--sand); border-radius: 6px; animation: terra-pulse 1.4s ease-in-out infinite; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scrollbar-gutter: stable; }
 
 /* ---------- Motion (design/MOTION.md) ---------- */
 /* Terra motion system. Tokens: */
