@@ -218,13 +218,16 @@ export interface ActivityResult {
  * then rows from the indexer, then the same rows enriched as transactions are decoded.
  */
 export async function loadActivity(dao: Dao, onUpdate?: (r: ActivityResult) => void): Promise<ActivityResult> {
-  onUpdate?.(buildActivity(dao, [], [], 'nearblocks'))
+  // First paint: what we already have (cached rows after a write), else payouts straight from the DAO.
+  const cached = txnsCache.get(dao.id)?.txns ?? []
+  onUpdate?.(buildActivity(dao, cached, cached.map((t) => decodeCache.get(t.transaction_hash) ?? readStored(t.transaction_hash) ?? null), 'nearblocks'))
   let txns: NbTxn[] = []
   let source: ActivityResult['source'] = 'nearblocks'
   try {
     txns = await fetchTxns(dao.id)
   } catch {
-    source = 'proposals-only'
+    txns = cached
+    if (!cached.length) source = 'proposals-only'
   }
   const decoded: (DecodedCall | null)[] = txns.map((t) => decodeCache.get(t.transaction_hash) ?? readStored(t.transaction_hash) ?? null)
   onUpdate?.(buildActivity(dao, txns, decoded, source))
