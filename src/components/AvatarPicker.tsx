@@ -8,7 +8,6 @@ import { Button, TxLink } from './ui'
 export function AvatarPicker({ onClose }: { onClose: () => void }) {
   const { accountId, send } = useWallet()
   const [style, setStyle] = useState(AVATAR_STYLE)
-  const [round, setRound] = useState(0)
   const [picked, setPicked] = useState<AvatarChoice | null>(null)
   const [status, setStatus] = useState<'idle' | 'signing' | 'checking' | 'saved' | 'error'>('idle')
   const [hash, setHash] = useState<string | undefined>()
@@ -29,11 +28,6 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
-
-  const seeds = useMemo(() => {
-    if (!accountId) return []
-    return Array.from({ length: 8 }, (_, i) => (round === 0 && i === 0 ? accountId : `${accountId}#${round * 8 + i}`))
-  }, [accountId, round])
 
   if (!accountId) return null
   const current = picked ?? { style, seed: accountId }
@@ -105,25 +99,7 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <div className="mt-5 flex items-center justify-between text-[12px] text-muted">
-          <span>Pick one</span>
-          <button className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => setRound((r) => r + 1)}>Shuffle ↻</button>
-        </div>
-        <div className="mt-2 grid grid-cols-4 gap-2">
-          {seeds.map((seed) => {
-            const on = current.seed === seed && current.style === style
-            return (
-              <button
-                key={seed}
-                onClick={() => setPicked({ style, seed })}
-                className={`grid aspect-square place-items-center rounded-xl border ${on ? 'border-ink bg-soft' : 'border-line hover:bg-soft'}`}
-                aria-label={`Avatar option ${seed}`}
-              >
-                <img src={dicebearUrl(style, seed)} alt="" className="size-12 rounded-[10px]" loading="lazy" />
-              </button>
-            )
-          })}
-        </div>
+        <AvatarGrid accountId={accountId} style={style} value={current} onChange={setPicked} />
 
         <div className="mt-6 flex items-center gap-3">
           <Button className="flex-1 !py-3" disabled={status === 'signing' || status === 'checking'} onClick={save}>
@@ -145,5 +121,39 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
         {error && <p className="mt-2 text-[12px] text-bad">{error}</p>}
       </div>
     </div>
+  )
+}
+
+/** The "Pick one" grid with Shuffle. Shared by Change avatar and Edit profile. */
+export function AvatarGrid({ accountId, style = AVATAR_STYLE, value, onChange }: { accountId: string; style?: string; value: AvatarChoice; onChange: (c: AvatarChoice) => void }) {
+  const [round, setRound] = useState(0)
+  const seeds = useMemo(
+    () => Array.from({ length: 8 }, (_, i) => (round === 0 && i === 0 ? accountId : `${accountId}#${round * 8 + i}`)),
+    [accountId, round],
+  )
+  return (
+    <>
+      <div className="mt-5 flex items-center justify-between text-[12px] text-muted">
+        <span>Pick one</span>
+        <button type="button" className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => setRound((r) => r + 1)}>Shuffle ↻</button>
+      </div>
+      <div className="mt-2 grid grid-cols-4 gap-2">
+        {seeds.map((seed) => {
+          const on = value.seed === seed && value.style === style
+          return (
+            <button
+              type="button"
+              key={seed}
+              onClick={() => onChange({ style, seed })}
+              className={`grid aspect-square place-items-center rounded-xl border ${on ? 'border-ink bg-soft' : 'border-line hover:bg-soft'}`}
+              aria-label={`Avatar option ${seed}`}
+              aria-pressed={on}
+            >
+              <img src={dicebearUrl(style, seed)} alt="" className="size-12 rounded-[10px]" loading="lazy" />
+            </button>
+          )
+        })}
+      </div>
+    </>
   )
 }
