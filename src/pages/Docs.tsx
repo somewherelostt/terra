@@ -171,8 +171,8 @@ export default function Docs() {
 
   return (
     <div className="relative isolate min-h-screen overflow-x-clip">
-      {/* The landing's deep blue, as a soft glow behind the top of the docs, over a faint dot grid. */}
-      <div aria-hidden className="docs-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[620px]" />
+      {/* The landing's look: near-black above, a deep blue horizon rising from the bottom of the screen. */}
+      <div aria-hidden className="docs-glow pointer-events-none fixed inset-0 -z-10" />
       <LandingNav boardUrl={boardUrl} home="./" current="docs" />
       <PhonePicker active={active} onPick={pick} onSearch={() => setSearch(true)} />
 
