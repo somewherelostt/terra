@@ -18,10 +18,8 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
     if (!accountId) return
     readSavedChoice(accountId)
       .then((c) => {
-        if (c) {
-          setStyle(c.style)
-          setPicked(c)
-        }
+        // Older saves may use another style; they still display, but new saves are thumbs (T3).
+        if (c && c.style === AVATAR_STYLE) setPicked(c)
       })
       .catch(() => undefined)
   }, [accountId])
@@ -34,7 +32,7 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
 
   const seeds = useMemo(() => {
     if (!accountId) return []
-    return Array.from({ length: 8 }, (_, i) => (round === 0 && i === 0 ? accountId : `${accountId}-${round}-${i}`))
+    return Array.from({ length: 8 }, (_, i) => (round === 0 && i === 0 ? accountId : `${accountId}#${round * 8 + i}`))
   }, [accountId, round])
 
   if (!accountId) return null
@@ -84,15 +82,15 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="mt-5 flex items-center gap-4">
-          <img src={dicebearUrl(current.style, current.seed)} alt="" className="size-16 rounded-full bg-soft" />
+          <img src={dicebearUrl(current.style, current.seed)} alt="" className="size-16 rounded-xl" />
           <div className="min-w-0 text-[13px]">
             <div className="truncate font-medium">{accountId}</div>
             <div className="text-muted">Saved to your NEAR Social profile, so other apps can show it too.</div>
           </div>
         </div>
 
-        <div className="mt-6 text-[12px] text-muted">Style</div>
-        <div className="mt-2 flex flex-wrap gap-1.5 text-[12.5px]">
+        {AVATAR_STYLES.length > 1 && <div className="mt-6 text-[12px] text-muted">Style</div>}
+        <div className={`mt-2 flex-wrap gap-1.5 text-[12.5px] ${AVATAR_STYLES.length > 1 ? 'flex' : 'hidden'}`}>
           {AVATAR_STYLES.map((st) => (
             <button
               key={st}
@@ -121,7 +119,7 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
                 className={`grid aspect-square place-items-center rounded-xl border ${on ? 'border-ink bg-soft' : 'border-line hover:bg-soft'}`}
                 aria-label={`Avatar option ${seed}`}
               >
-                <img src={dicebearUrl(style, seed)} alt="" className="size-12 rounded-full" loading="lazy" />
+                <img src={dicebearUrl(style, seed)} alt="" className="size-12 rounded-[10px]" loading="lazy" />
               </button>
             )
           })}

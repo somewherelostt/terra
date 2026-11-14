@@ -201,7 +201,7 @@ function GroupCard() {
       <div className="flex -space-x-1.5">
         {members.slice(0, 3).map((m) => (
           <span key={m} className="rounded-full ring-2 ring-[var(--sand)]">
-            <Avatar id={m} size={24} />
+            <Avatar id={m} size={24} shape="circle" />
           </span>
         ))}
         {members.length > 3 && (

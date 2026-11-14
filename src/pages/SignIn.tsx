@@ -75,7 +75,7 @@ export default function SignIn({ daoId }: { daoId: string | null }) {
             <div className="mt-8 flex -space-x-2">
               {members.slice(0, 6).map((m) => (
                 <span key={m} className="rounded-full ring-2 ring-[var(--panel)]">
-                  <Avatar id={m} size={36} />
+                  <Avatar id={m} size={36} shape="circle" />
                 </span>
               ))}
             </div>

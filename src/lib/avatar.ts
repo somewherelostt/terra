@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react'
 import { TGAS, ONE_NEAR, view } from './near'
 import type { Tx } from './dao'
 
-/** The default DiceBear style. One place to change it. */
-export const AVATAR_STYLE = 'notionists-neutral'
-/** Styles offered in the "Change avatar" picker. */
-export const AVATAR_STYLES = ['notionists-neutral', 'glass', 'shapes', 'thumbs', 'lorelei-neutral', 'identicon']
+/** The DiceBear style and colourway (thumbs, T3: warm faces on near-black). One place to change them. */
+export const AVATAR_STYLE = 'thumbs'
+export const AVATAR_OPTIONS = 'backgroundColor=1a1a1d&shapeColor=ff8a4c,e2501f,f6b38a,fff1e6&eyesColor=1a1a1d&mouthColor=1a1a1d'
+/** Styles offered in the "Change avatar" picker (just one: members shuffle the seed). */
+export const AVATAR_STYLES = [AVATAR_STYLE]
 
 /** NEAR Social (SocialDB) on testnet. Mainnet is social.near. */
 export const SOCIAL_CONTRACT = 'v1.social08.testnet'
@@ -19,7 +20,8 @@ export interface AvatarChoice {
 }
 
 export function dicebearUrl(style: string, seed: string): string {
-  return `https://api.dicebear.com/9.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}`
+  const opts = style === AVATAR_STYLE ? `&${AVATAR_OPTIONS}` : ''
+  return `https://api.dicebear.com/9.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}${opts}`
 }
 
 export function defaultAvatar(accountId: string): string {

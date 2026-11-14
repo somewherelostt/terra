@@ -60,16 +60,18 @@ export function Account({ id, className = '' }: { id: string; className?: string
   )
 }
 
-export function Avatar({ id, size = 32 }: { id: string; size?: number }) {
+export function Avatar({ id, size = 32, shape = 'square' }: { id: string; size?: number; shape?: 'square' | 'circle' }) {
   const url = useAvatarUrl(id)
   const [failed, setFailed] = useState(false)
+  // Rounded squares (about 12/64) everywhere; circles only in small overlapping stacks.
+  const radius = shape === 'circle' ? 9999 : Math.round(size * 0.19)
   let h = 0
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360
   if (failed)
     return (
       <span
-        className="inline-flex shrink-0 items-center justify-center rounded-full font-medium uppercase text-white"
-        style={{ width: size, height: size, background: `hsl(${h} 45% 42%)`, fontSize: size * 0.42 }}
+        className="inline-flex shrink-0 items-center justify-center font-medium uppercase text-white"
+        style={{ width: size, height: size, background: `hsl(${h} 45% 42%)`, fontSize: size * 0.42, borderRadius: radius }}
         title={id}
       >
         {shortName(id).slice(0, 1)}
@@ -84,8 +86,8 @@ export function Avatar({ id, size = 32 }: { id: string; size?: number }) {
       height={size}
       loading="lazy"
       onError={() => setFailed(true)}
-      className="inline-block shrink-0 rounded-full bg-soft object-cover"
-      style={{ width: size, height: size }}
+      className="inline-block shrink-0 object-cover"
+      style={{ width: size, height: size, borderRadius: radius, background: '#1a1a1d' }}
     />
   )
 }
