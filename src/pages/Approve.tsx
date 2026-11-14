@@ -11,6 +11,7 @@ import { displayName, useNames } from '../lib/profile'
 import { openRequests, routeRequest } from '../lib/record'
 import { joinRequestOf } from '../lib/join'
 import { Avatar, Button, EmptyState, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
+import { CommentCount, CommentsToggle, RequestSheetHost, openRequestSheet } from '../components/Comments'
 
 export default function Approve() {
   const { dao, accountId, tracks } = { ...useDao(), ...useWallet() }
@@ -25,6 +26,7 @@ export default function Approve() {
 
   return (
     <div>
+      <RequestSheetHost />
       <div className="text-[13px] text-muted">Approve</div>
       <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">
         {needYou.length === 0 ? 'Nothing needs you' : needYou.length === 1 ? '1 request needs you' : `${needYou.length} requests need you`}
@@ -136,6 +138,13 @@ function DecidedRow({ p }: { p: Proposal }) {
         <RowText main={meta.title} detail={detail} />
       </span>
       <span className="flex shrink-0 items-baseline gap-4">
+        <button
+          className="-my-3 py-3 text-[12px] text-muted hover:text-ink"
+          title="Comments"
+          onClick={() => openRequestSheet({ daoId: dao!.id, proposalId: p.id, title: meta.title, detail, amount: amount ?? undefined })}
+        >
+          <CommentCount daoId={dao!.id} proposalId={p.id} />
+        </button>
         {payout && <TxLink hash={payout} label="Receipt" />}
         {amount && <span className={`tnum ${paid ? '' : 'text-muted'}`}>{amount}</span>}
       </span>
@@ -328,6 +337,8 @@ export function RequestCard({ p }: { p: Proposal }) {
           </div>
         )}
       </div>
+
+      <CommentsToggle daoId={dao.id} proposalId={p.id} hero={hero} />
 
       <div className="mt-6 flex-1" />
       {!accountId ? (

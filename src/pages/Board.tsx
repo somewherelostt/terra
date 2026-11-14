@@ -4,6 +4,7 @@ import { nanoToDate, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, openRequests, tierFor } from '../lib/record'
 import { Avatar, RowText, TxLink } from '../components/ui'
 import { MemberName } from '../components/ProfileSheet'
+import { CommentCount, RequestSheetHost, openRequestSheet } from '../components/Comments'
 import { prettyName } from '../App'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -41,6 +42,7 @@ export default function Board() {
 
   return (
     <div className="min-h-screen">
+      <RequestSheetHost />
       <header className="border-b border-line">
         <div className="mx-auto flex h-14 max-w-[880px] items-center gap-2 px-6 text-[13px]">
           <img src={ICON} alt="" className="size-6 rounded-[6px]" />
@@ -92,7 +94,24 @@ export default function Board() {
                           </>
                         }
                       />
-                      <span className="tnum text-right text-muted sm:w-24">{isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : ''}</span>
+                      <span className="flex items-baseline justify-end gap-4">
+                        <button
+                          className="-my-3 py-3 text-[12px] text-muted hover:text-ink"
+                          title="Comments"
+                          onClick={() =>
+                            openRequestSheet({
+                              daoId: dao.id,
+                              proposalId: p.id,
+                              title: meta.title,
+                              detail: <>Waiting for approval · <MemberName id={p.proposer} /> asked</>,
+                              amount: isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : undefined,
+                            })
+                          }
+                        >
+                          <CommentCount daoId={dao.id} proposalId={p.id} />
+                        </button>
+                        <span className="tnum text-right text-muted sm:w-24">{isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : ''}</span>
+                      </span>
                     </div>
                   )
                 })}
@@ -141,7 +160,20 @@ export default function Board() {
                               {`${wants ?? 'NEAR'} · ${when}`}
                             </>
                           }
-                          extra={<TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />}
+                          extra={
+                            <>
+                              <TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />
+                              <button
+                                className="ml-3 text-[12px] text-muted hover:text-ink"
+                                title="Comments"
+                                onClick={() =>
+                                  openRequestSheet({ daoId: dao.id, proposalId: p.id, title: meta.title, detail: `Paid · ${when}`, amount: t ? money(t.amount) : undefined })
+                                }
+                              >
+                                <CommentCount daoId={dao.id} proposalId={p.id} />
+                              </button>
+                            </>
+                          }
                         />
                       </span>
                       <span className="order-3 col-span-2 pl-8 text-[12px] text-muted md:order-none md:col-span-1 md:pl-0 md:text-[13.5px]">{approvedBy}</span>
