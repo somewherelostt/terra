@@ -7,6 +7,7 @@ import { openRequests } from '../lib/record'
 import type { ActivityItem } from '../lib/activity'
 import { Avatar, Button, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
+import { useCountUp, useDelta } from '../lib/motion'
 import { RequestCard } from './Approve'
 
 export default function Home() {
@@ -18,7 +19,7 @@ export default function Home() {
   const open = openRequests(dao)
   const members = allMembers(dao.policy)
   const total = dao.spendable + dao.staked
-  const [dollars, cents] = splitUsd(yoctoToNumber(total) * nearUsd)
+  const balanceUsd = yoctoToNumber(total) * nearUsd
   const name = prettyName(dao.config.name)
   const empty = total === 0n
   const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime()
@@ -53,10 +54,7 @@ export default function Home() {
       </div>
 
       <div className="mt-10 text-[13px] text-muted">{name} holds</div>
-      <div className={`tnum mt-3 text-[64px] font-light leading-[0.88] tracking-[-0.055em] sm:text-[96px] lg:text-[112px] ${empty ? 'text-muted' : ''}`}>
-        {dollars}
-        <span className="text-muted">{cents}</span>
-      </div>
+      <Balance usd={balanceUsd} muted={empty} />
       {empty && <p className="mt-4 max-w-md text-[14px] text-muted">Your treasury is ready. Be the first to chip in, then invite the others.</p>}
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-muted">
         <span className="tnum">{yoctoToNear(total)} NEAR</span>
@@ -80,10 +78,10 @@ export default function Home() {
       </div>
 
       <div className="mt-12 grid grid-cols-3 border-y border-line">
-        <Stat label="Members" value={String(members.length)} className="border-r border-line pr-5" />
+        <Stat label="Members" value={<CountNumber value={members.length} format={(n) => String(Math.round(n))} />} className="border-r border-line pr-5" />
         <Stat
           label="Paid out this year"
-          value={activity ? (isFinite(nearUsd) ? usd(yoctoToNumber(paidThisYear) * nearUsd) : `${yoctoToNear(paidThisYear, 0)} NEAR`) : null}
+          value={activity ? (isFinite(nearUsd) ? <CountNumber value={yoctoToNumber(paidThisYear) * nearUsd} format={usd} /> : `${yoctoToNear(paidThisYear, 0)} NEAR`) : null}
           className="border-r border-line px-5"
         />
         <Stat label="Median time to pay" value={activity ? (isFinite(median) ? formatWait(median) : '—') : null} className="px-5" />
@@ -110,7 +108,31 @@ export default function Home() {
   )
 }
 
-function Stat({ label, value, className = '' }: { label: string; value: string | null; className?: string }) {
+/** The big balance: counts up on first load, rolls on change, with a floating delta. */
+function Balance({ usd: value, muted }: { usd: number; muted: boolean }) {
+  const shown = useCountUp(value)
+  const d = useDelta(value)
+  const [dollars, cents] = splitUsd(shown)
+  return (
+    <div className={`tnum relative mt-3 inline-block text-[64px] font-light leading-[0.88] tracking-[-0.055em] sm:text-[96px] lg:text-[112px] ${muted ? 'text-muted' : ''}`}>
+      {dollars}
+      <span className="text-muted">{cents}</span>
+      {d && (
+        <span key={d.key} className="delta left-full top-2 ml-4 text-[22px] tracking-normal" style={d.delta < 0 ? { color: 'var(--mute)' } : undefined}>
+          {d.delta > 0 ? '+' : '−'}
+          {usd(Math.abs(d.delta))}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function CountNumber({ value, format }: { value: number; format: (n: number) => string }) {
+  const shown = useCountUp(value, 800, 800)
+  return <>{format(shown)}</>
+}
+
+function Stat({ label, value, className = '' }: { label: string; value: React.ReactNode | null; className?: string }) {
   return (
     <div className={`py-5 ${className}`}>
       <div className="text-[12px] text-muted">{label}</div>

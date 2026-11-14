@@ -9,16 +9,19 @@ const ease = (t: number) => 1 - Math.pow(1 - t, 3)
  */
 export function useCountUp(value: number, duration = 800, firstDuration = 1000): number {
   const [shown, setShown] = useState(reduceMotion || !isFinite(value) ? value : 0)
-  const from = useRef<number | null>(null)
+  // Start each tween from what is on screen, so a re-run (or React's dev double-run) never skips it.
+  const current = useRef(0)
+  const started = useRef(false)
   useEffect(() => {
     if (!isFinite(value)) {
       setShown(value)
       return
     }
-    const start = from.current ?? 0
-    const dur = from.current == null ? firstDuration : duration
-    from.current = value
+    const start = current.current
+    const dur = started.current ? duration : firstDuration
     if (reduceMotion || start === value) {
+      current.current = value
+      started.current = true
       setShown(value)
       return
     }
@@ -26,11 +29,24 @@ export function useCountUp(value: number, duration = 800, firstDuration = 1000):
     const t0 = performance.now()
     const step = (now: number) => {
       const t = Math.min(1, (now - t0) / dur)
-      setShown(start + (value - start) * ease(t))
+      const v = start + (value - start) * ease(t)
+      current.current = v
+      setShown(v)
       if (t < 1) raf = requestAnimationFrame(step)
+      else started.current = true
     }
     raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
+    // Background tabs pause animation frames; never leave a wrong number on screen.
+    const done = setTimeout(() => {
+      cancelAnimationFrame(raf)
+      current.current = value
+      started.current = true
+      setShown(value)
+    }, dur + 150)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(done)
+    }
   }, [value, duration, firstDuration])
   return shown
 }
