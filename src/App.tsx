@@ -58,11 +58,20 @@ function DaoGate({ children }: { children: ReactNode }) {
   if (error)
     return (
       <div className="mx-auto max-w-lg py-16 text-center">
-        <h1 className="text-xl font-medium">We couldn't open that treasury</h1>
-        <p className="mt-2 text-sm text-muted">{error}</p>
-        <Button className="mt-6" onClick={() => openDao(null)}>
-          Pick another community
-        </Button>
+        <h1 className="text-[24px] font-light tracking-[-0.02em]">
+          {/fetch|network|timeout|429|502|503/i.test(error) ? "We couldn't reach NEAR" : "We couldn't open that treasury"}
+        </h1>
+        <p className="mt-2 text-[13.5px] text-muted">
+          {/fetch|network|timeout|429|502|503/i.test(error)
+            ? "The testnet RPC didn't answer. This is usually brief, so try again in a moment."
+            : error}
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <Button onClick={() => window.location.reload()}>Try again</Button>
+          <Button variant="secondary" onClick={() => openDao(null)}>
+            Pick another community
+          </Button>
+        </div>
       </div>
     )
   if (!dao)
