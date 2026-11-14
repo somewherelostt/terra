@@ -49,7 +49,7 @@ export default function App() {
 }
 
 function DaoGate({ children }: { children: ReactNode }) {
-  const { dao, loading, error } = useDao()
+  const { dao, error } = useDao()
   if (error)
     return (
       <div className="mx-auto max-w-lg py-16 text-center">
@@ -60,10 +60,27 @@ function DaoGate({ children }: { children: ReactNode }) {
         </Button>
       </div>
     )
-  if (!dao || loading && !dao)
+  if (!dao)
     return (
-      <div className="flex items-center gap-2 py-16 text-muted">
-        <Spinner /> Reading the treasury from NEAR…
+      <div aria-busy="true" aria-label="Reading the treasury from NEAR">
+        <div className="skeleton h-3 w-16" />
+        <div className="skeleton mt-12 h-3 w-32" />
+        <div className="skeleton mt-4 h-20 w-80 max-w-full" />
+        <div className="skeleton mt-6 h-3 w-48" />
+        <div className="mt-8 flex gap-2">
+          <div className="skeleton h-10 w-24" />
+          <div className="skeleton h-10 w-32" />
+        </div>
+        <div className="mt-12 grid grid-cols-3 gap-5 border-y border-line py-5">
+          <div className="skeleton h-8" />
+          <div className="skeleton h-8" />
+          <div className="skeleton h-8" />
+        </div>
+        <div className="mt-8 space-y-4">
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-5/6" />
+          <div className="skeleton h-4 w-4/6" />
+        </div>
       </div>
     )
   return <>{children}</>

@@ -5,7 +5,7 @@ import { allMembers, chipInTx, decodeDescription } from '../lib/dao'
 import { nearToYocto, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests } from '../lib/record'
 import type { ActivityItem } from '../lib/activity'
-import { Avatar, Button, Spinner, TxLink, TxStatus, useTx } from '../components/ui'
+import { Avatar, Button, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
 import { RequestCard } from './Approve'
 
@@ -133,7 +133,7 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
   if (loading)
     return (
       <div className="flex items-center gap-2 py-6 text-[13px] text-muted">
-        <Spinner /> Loading history…
+        <span className="skeleton block h-4 w-full" />
       </div>
     )
   if (!items?.length) return <div className="border-b border-line py-6 text-[13.5px] text-muted">Nothing yet. Chip in or request money to get things going.</div>
