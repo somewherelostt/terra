@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { STAKING_POOL, go, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { addFunctionCallProposalTx, can, decodeDescription, kindName } from '../lib/dao'
@@ -29,10 +29,12 @@ export default function Earn() {
       .catch(() => setPool(null))
   }, [])
 
+  // Suggest half the treasury once, when the group loads. Not again when the field is cleared, so it can be retyped.
+  const suggested = useRef(false)
   useEffect(() => {
-    if (dao && !amount) {
-      const half = dao.spendable / 2n
-      setAmount(String(Math.floor(yoctoToNumber(half))))
+    if (dao && !suggested.current) {
+      suggested.current = true
+      if (!amount) setAmount(String(Math.floor(yoctoToNumber(dao.spendable / 2n))))
     }
   }, [dao, amount])
 
