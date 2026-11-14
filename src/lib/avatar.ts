@@ -7,7 +7,8 @@ import type { Tx } from './dao'
 
 /** The DiceBear style and colourway (thumbs, T3: warm faces on near-black). One place to change them. */
 export const AVATAR_STYLE = 'thumbs'
-export const AVATAR_OPTIONS = 'backgroundColor=1a1a1d&shapeColor=ff8a4c,e2501f,f6b38a,fff1e6&eyesColor=1a1a1d&mouthColor=1a1a1d'
+// Offsets and tilt pinned to 0: the default random ones push the figure off-centre and crop it in small tiles.
+export const AVATAR_OPTIONS = 'backgroundColor=1a1a1d&shapeColor=ff8a4c,e2501f,f6b38a,fff1e6&eyesColor=1a1a1d&mouthColor=1a1a1d&shapeOffsetX=0&shapeOffsetY=0&shapeRotation=0&faceOffsetX=0&faceOffsetY=0&faceRotation=0'
 /** Styles offered in the "Change avatar" picker (just one: members shuffle the seed). */
 export const AVATAR_STYLES = [AVATAR_STYLE]
 

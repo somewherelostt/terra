@@ -87,7 +87,7 @@ export function Avatar({ id, size = 32, shape = 'square' }: { id: string; size?:
       height={size}
       loading="lazy"
       onError={() => setFailed(true)}
-      className="inline-block shrink-0 object-cover"
+      className="block shrink-0 object-cover outline outline-1 -outline-offset-1 outline-line"
       style={{ width: size, height: size, borderRadius: radius, background: '#1a1a1d' }}
     />
   )
