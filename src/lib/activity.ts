@@ -4,7 +4,7 @@
 import { isNearTransfer, type Dao } from './dao'
 
 const NEARBLOCKS_API = 'https://api-testnet.nearblocks.io/v1'
-const TX_RPCS = ['https://test.rpc.fastnear.com', 'https://archival-rpc.testnet.fastnear.com']
+const TX_RPCS = ['https://test.rpc.fastnear.com', 'https://near-testnet.drpc.org', 'https://archival-rpc.testnet.fastnear.com']
 
 export type ActivityKind = 'chip-in' | 'request' | 'approve' | 'reject' | 'vote' | 'payout' | 'other'
 
@@ -51,7 +51,7 @@ const decodeCache = new Map<string, DecodedCall | null>()
 let active = 0
 const queue: (() => void)[] = []
 async function limited<T>(fn: () => Promise<T>): Promise<T> {
-  if (active >= 6) await new Promise<void>((r) => queue.push(r))
+  if (active >= 4) await new Promise<void>((r) => queue.push(r))
   active++
   try {
     return await fn()
@@ -150,8 +150,20 @@ const txnsCache = new Map<string, { at: number; txns: NbTxn[] }>()
 const inflight = new Map<string, Promise<NbTxn[]>>()
 
 function fetchTxns(daoId: string): Promise<NbTxn[]> {
-  const hit = txnsCache.get(daoId)
-  if (hit && Date.now() - hit.at < 20_000) return Promise.resolve(hit.txns)
+  let hit = txnsCache.get(daoId)
+  if (!hit) {
+    // Survive reloads for a minute, so refreshing the page doesn't refetch everything.
+    try {
+      const raw = sessionStorage.getItem('terra:txns:' + daoId)
+      if (raw) {
+        hit = JSON.parse(raw) as { at: number; txns: NbTxn[] }
+        txnsCache.set(daoId, hit)
+      }
+    } catch {
+      /* storage unavailable */
+    }
+  }
+  if (hit && Date.now() - hit.at < 60_000) return Promise.resolve(hit.txns)
   let p = inflight.get(daoId)
   if (!p) {
     p = fetchTxnsNow(daoId).finally(() => inflight.delete(daoId))
@@ -167,6 +179,11 @@ async function fetchTxnsNow(daoId: string): Promise<NbTxn[]> {
     if (res.ok) {
       const txns = ((await res.json()).txns ?? []) as NbTxn[]
       txnsCache.set(daoId, { at: Date.now(), txns })
+      try {
+        sessionStorage.setItem('terra:txns:' + daoId, JSON.stringify({ at: Date.now(), txns }))
+      } catch {
+        /* storage full or unavailable */
+      }
       return txns
     }
     if (res.status !== 429) throw new Error(String(res.status))
@@ -180,6 +197,11 @@ async function fetchTxnsNow(daoId: string): Promise<NbTxn[]> {
 export function invalidateActivity(daoId: string) {
   const hit = txnsCache.get(daoId)
   if (hit) hit.at = 0
+  try {
+    sessionStorage.removeItem('terra:txns:' + daoId)
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 export interface ActivityResult {

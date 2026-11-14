@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { loadDao, type Dao } from './dao'
 import { invalidateActivity, loadActivity, type ActivityResult } from './activity'
 import { getNearUsdPrice } from './intents'
@@ -120,11 +120,14 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
     getNearUsdPrice().then(setNearUsd).catch(() => setNearUsd(NaN))
   }, [])
 
+  const loadedFor = useRef<string | null>(null)
   const refresh = useCallback(async () => {
     if (!daoId) return
     setLoading(true)
     setError(null)
-    invalidateActivity(daoId)
+    // The first load may use the short-lived cache; later refreshes follow a transaction.
+    if (loadedFor.current === daoId) invalidateActivity(daoId)
+    loadedFor.current = daoId
     try {
       const d = await loadDao(daoId, STAKING_POOL)
       setDao(d)
