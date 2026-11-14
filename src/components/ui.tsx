@@ -141,6 +141,41 @@ export function Empty({ children }: { children: ReactNode }) {
   return <div className="rounded-xl border border-dashed border-line px-4 py-8 text-center text-sm text-muted">{children}</div>
 }
 
+const EMPTY_ICONS = {
+  check: 'M5 12l4 4 10-10',
+  plus: 'M12 5v14M5 12h14',
+  list: 'M4 6h16M4 12h16M4 18h10',
+  people: 'M16 11a4 4 0 10-8 0M4 20a8 8 0 0116 0',
+}
+
+/** The one empty state: a small icon in a ring, a title, one line of help and at most a couple of actions. */
+export function EmptyState({
+  icon = 'check',
+  title,
+  text,
+  children,
+  className = '',
+}: {
+  icon?: keyof typeof EMPTY_ICONS
+  title: ReactNode
+  text?: ReactNode
+  children?: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={`rounded-2xl border border-line px-6 py-10 text-center ${className}`}>
+      <div className="mx-auto grid size-12 place-items-center rounded-full border border-line">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d={EMPTY_ICONS[icon]} />
+        </svg>
+      </div>
+      <div className="mt-4 text-[15px]">{title}</div>
+      {text && <p className="mx-auto mt-1 max-w-sm text-[13px] text-muted">{text}</p>}
+      {children && <div className="mt-5 flex flex-wrap justify-center gap-2">{children}</div>}
+    </div>
+  )
+}
+
 export function Spinner() {
   return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-label="Loading" />
 }
