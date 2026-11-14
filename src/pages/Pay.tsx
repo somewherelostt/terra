@@ -4,7 +4,7 @@ import { useWallet } from '../lib/wallet'
 import { addTransferProposalTx, can, isRole, roleMembers } from '../lib/dao'
 import { isValidAccountId, ONE_NEAR } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
-import { POPULAR, RECORDED_QUOTE, isDeprecated, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
+import { FALLBACK_TOKENS, POPULAR, RECORDED_QUOTE, isDeprecated, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
 import { isTrusted, tierFor, TIER_COPY } from '../lib/record'
 import { Button, Spinner, TxStatus, showToast, useTx } from '../components/ui'
 import { prettyName } from '../App'
@@ -44,7 +44,10 @@ export default function Pay({ params }: { params: URLSearchParams }) {
           if (usdcSol) setTokenId(usdcSol.assetId)
         }
       })
-      .catch(() => setTokens([]))
+      .catch(() => {
+        setTokens(FALLBACK_TOKENS)
+        if (!tokenId) setTokenId(FALLBACK_TOKENS[0].assetId)
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

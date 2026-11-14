@@ -17,6 +17,18 @@ export interface IntentsToken {
 
 let tokensCache: Promise<IntentsToken[]> | null = null
 
+/** If the token list can't load, Pay still offers USDC on Solana so the saved quote can be used. */
+export const FALLBACK_TOKENS: IntentsToken[] = [
+  {
+    assetId: 'nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near',
+    decimals: 6,
+    blockchain: 'sol',
+    symbol: 'USDC',
+    price: 1,
+    priceUpdatedAt: '2026-11-14T13:00:00.000Z',
+  },
+]
+
 export function getTokens(): Promise<IntentsToken[]> {
   if (!tokensCache) {
     tokensCache = fetch(`${BASE}/tokens`)
