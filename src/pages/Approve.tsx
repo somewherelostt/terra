@@ -29,7 +29,7 @@ export default function Approve() {
             ))}
           </div>
         ) : (
-          <Empty>No open requests. Anyone in the group can ask for money.</Empty>
+          <Empty>No open requests. Anyone in the group can request money.</Empty>
         )}
       </section>
       <section>

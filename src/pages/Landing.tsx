@@ -55,7 +55,7 @@ export default function Landing() {
           Your community's money, in every member's hands.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted">
-          Terra is the members' app for a community treasury. Chip in, ask for money and approve it from your
+          Terra is the members' app for a community treasury. Chip in, request money and approve it from your
           browser. A member's track record decides how many approvals a request needs, and the treasury can pay
           anyone, on any chain.
         </p>

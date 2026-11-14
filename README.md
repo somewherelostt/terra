@@ -1,6 +1,6 @@
 # Terra
 
-**The members' app for a community treasury.** Your community already has a treasury on NEAR. Terra lets every member chip in, ask for money and approve it. A member's track record decides how many approvals a request needs, and the treasury can pay anyone, on any chain.
+**The members' app for a community treasury.** Your community already has a treasury on NEAR. Terra lets every member chip in, request money and approve it. A member's track record decides how many approvals a request needs, and the treasury can pay anyone, on any chain.
 
 Built for the NEAR Hackathon (Nov 2026), track **Social Money**, also **Open Innovation**.
 
@@ -9,7 +9,7 @@ Built for the NEAR Hackathon (Nov 2026), track **Social Money**, also **Open Inn
 
 ## Why
 
-Groups that share money pick between two bad options: one person holds it and everyone trusts them, or a multisig built for crypto people (proposals, bonds, gas, raw token amounts). Trezu and NEAR Business already give admins and finance teams a good treasury dashboard. What's missing is the **member side**: the people who chip in, ask for money and decide.
+Groups that share money pick between two bad options: one person holds it and everyone trusts them, or a multisig built for crypto people (proposals, bonds, gas, raw token amounts). Trezu and NEAR Business already give admins and finance teams a good treasury dashboard. What's missing is the **member side**: the people who chip in, request money and decide.
 
 Terra sits on top of a community's **existing Sputnik DAO** (the contract Trezu uses too). It never deploys a new multisig and never holds the money.
 
@@ -18,14 +18,14 @@ Terra sits on top of a community's **existing Sputnik DAO** (the contract Trezu 
 | Screen | What a member can do |
 |---|---|
 | **Home** | See the treasury in dollars (NEAR underneath), members, open requests and recent activity. Chip in NEAR. |
-| **Ask for money** | "Pay [account] [amount] for [reason]". For a recipient on another chain, pick the token and chain (230+ tokens on 30+ chains) and get a live **NEAR Intents** quote: "the treasury sends about 6.10 NEAR, they get 20.00 USDC on Solana". The quote is saved in the request so voters see it. |
+| **Request money** | "Pay [account] [amount] for [reason]". For a recipient on another chain, pick the token and chain (230+ tokens on 30+ chains) and get a live **NEAR Intents** quote: "the treasury sends about 6.10 NEAR, they get 20.00 USDC on Solana". The quote is saved in the request so voters see it. |
 | **Approve** | Request cards with the tier, the quote, who asked, and approvals so far. Approve or reject; when the threshold is met the DAO pays out on its own. |
 | **Members** | Each member's record, computed from the DAO's own history: requests, approved, rejected, amounts, chip-ins, votes. A clean record earns the fast lane. |
 | **Activity** | Every chip-in, request, approval and payout, each linking to its transaction on NearBlocks. |
 | **Earn** | Propose staking idle money with a testnet validator; members approve it like any request. |
-| **Public board** | A read-only link for sponsors: balance, open requests, payouts and records. No sign-in, no buttons. |
+| **Board** | A read-only link for sponsors: balance, open requests, payouts and records. No sign-in, no buttons. |
 | **Start a group** | For communities without a DAO: creates a standard Sputnik DAO with a Terra-shaped policy through the official testnet factory. |
-| **Request links** | Share a link that opens "Ask for money" already filled in. |
+| **Request links** | Share a link that opens "Request money" already filled in. |
 
 ## How it maps to the Social Money prompt
 
@@ -51,10 +51,10 @@ You need a browser. Signing needs a NEAR **testnet** account (Meteor Wallet → 
 
 1. Open the live demo and click **Try the demo community** → you see the treasury balance in USD, members and recent payouts, read live from a testnet DAO.
 2. Go to **Activity** → every payout, request and approval, each with a NearBlocks link.
-3. Go to **Ask for money** → pick **Someone on another chain**, keep "USDC on Solana", paste any Solana address, type `20` → a live NEAR Intents quote appears (about 6 NEAR, about 20 seconds).
-4. Open **Public board** → the same data with no sign-in and no buttons. Share this link with a sponsor.
+3. Go to **Request money** → pick **Someone on another chain**, keep "USDC on Solana", paste any Solana address, type `20` → a live NEAR Intents quote appears (about 6 NEAR, about 20 seconds).
+4. Open **Board** → the same data with no sign-in and no buttons. Share this link with a sponsor.
 5. With a testnet account: **Start a new group** (or open a DAO you're a member of) → **Chip in** 1 NEAR on Home → the balance and activity update.
-6. **Ask for money** → pay a NEAR account 0.5 NEAR → sign → the request appears in **Approve**.
+6. **Request money** → pay a NEAR account 0.5 NEAR → sign → the request appears in **Approve**.
 7. Sign in with a second member account → **Approve** → once the threshold is met the DAO pays out; the payout shows in Activity with its transaction.
 
 ## What's real and what's simulated

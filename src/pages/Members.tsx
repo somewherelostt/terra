@@ -64,7 +64,7 @@ export function RecordsTable({ readOnly }: { readOnly?: boolean }) {
             <th className="px-3 py-3 font-medium">Roles</th>
             <th className="px-3 py-3 text-right font-medium">Asked</th>
             <th className="px-3 py-3 text-right font-medium">Approved</th>
-            <th className="px-3 py-3 text-right font-medium">Rejected</th>
+            <th className="px-3 py-3 text-right font-medium">Declined</th>
             <th className="px-3 py-3 text-right font-medium">Approved total</th>
             <th className="px-3 py-3 text-right font-medium">Chipped in</th>
             <th className="px-3 py-3 text-right font-medium">Votes</th>

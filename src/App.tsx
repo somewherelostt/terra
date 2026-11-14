@@ -77,12 +77,12 @@ function DaoGate({ children }: { children: ReactNode }) {
 
 const NAV: { page: Page; label: string; icon: string }[] = [
   { page: 'home', label: 'Home', icon: 'M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z' },
-  { page: 'pay', label: 'Ask for money', icon: 'M12 5v14M5 12h14' },
+  { page: 'pay', label: 'Pay', icon: 'M12 5v14M5 12h14' },
   { page: 'approve', label: 'Approve', icon: 'M5 13l4 4L19 7' },
   { page: 'members', label: 'Members', icon: 'M16 11a4 4 0 10-8 0M4 20a8 8 0 0116 0' },
   { page: 'activity', label: 'Activity', icon: 'M4 6h16M4 12h16M4 18h10' },
   { page: 'earn', label: 'Earn', icon: 'M4 17l6-6 4 4 6-8' },
-  { page: 'board', label: 'Public board', icon: 'M4 4h16v12H4zM8 20h8' },
+  { page: 'board', label: 'Board', icon: 'M4 4h16v12H4zM8 20h8' },
 ]
 
 function Shell({ page, daoId, children }: { page: Page; daoId: string | null; children: ReactNode }) {
@@ -138,7 +138,7 @@ function MobileNav({ page }: { page: Page }) {
           className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${page === n.page ? 'text-accent-text' : 'text-muted'}`}
         >
           <Icon d={n.icon} />
-          {n.label === 'Ask for money' ? 'Ask' : n.label}
+          {n.label}
         </a>
       ))}
     </nav>
@@ -155,7 +155,9 @@ function useDaoSafe() {
 }
 
 function GroupCard() {
-  const { dao, records } = useDao()
+  const ctx = useDaoSafe()
+  const dao = ctx.dao
+  const records = 'records' in ctx ? ctx.records : new Map()
   const { accountId } = useWallet()
   if (!dao) return <div className="mt-auto" />
   const members = allMembers(dao.policy)
@@ -168,7 +170,7 @@ function GroupCard() {
         ? "You're a trusted member"
         : members.includes(accountId)
           ? "You're a member"
-          : 'You can ask for money here'
+          : 'You can request money here'
   return (
     <div className="mt-auto rounded-2xl bg-soft p-4">
       <div className="flex -space-x-1.5">

@@ -28,7 +28,7 @@ export function ActivityList({ items, loading, full }: { items?: ActivityItem[];
         <Spinner /> Loading history…
       </div>
     )
-  if (!items?.length) return <Empty>Nothing yet. Chip in or ask for money to get things going.</Empty>
+  if (!items?.length) return <Empty>Nothing yet. Chip in or request money to get things going.</Empty>
   const byId = new Map(dao?.proposals.map((p) => [p.id, p]))
   return (
     <ul className="divide-y divide-line">
@@ -42,13 +42,13 @@ export function ActivityList({ items, loading, full }: { items?: ActivityItem[];
             text = <><Account id={a.who} /> chipped in <b>{amt}</b></>
             break
           case 'request':
-            text = <><Account id={a.who} /> asked for {a.amount ? <b>{amt}</b> : 'a change'}{title ? <> · <span className="text-muted">{title}</span></> : null}</>
+            text = <><Account id={a.who} /> is asking for {a.amount ? <b>{amt}</b> : 'a change'}{title ? <> · <span className="text-muted">{title}</span></> : null}</>
             break
           case 'approve':
             text = <><Account id={a.who} /> approved {a.proposalId != null ? `request #${a.proposalId}` : 'a request'}{title ? <> · <span className="text-muted">{title}</span></> : null}</>
             break
           case 'reject':
-            text = <><Account id={a.who} /> rejected {a.proposalId != null ? `request #${a.proposalId}` : 'a request'}{title ? <> · <span className="text-muted">{title}</span></> : null}</>
+            text = <><Account id={a.who} /> declined {a.proposalId != null ? `request #${a.proposalId}` : 'a request'}{title ? <> · <span className="text-muted">{title}</span></> : null}</>
             break
           case 'payout':
             text = <>The treasury paid <b>{amt}</b> to <Account id={a.to!} />{title ? <> · <span className="text-muted">{title}</span></> : null}</>

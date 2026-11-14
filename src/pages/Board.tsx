@@ -26,7 +26,7 @@ export default function Board() {
         <div className="flex items-center gap-3">
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-9 w-9" />
           <div>
-            <div className="text-xs font-medium uppercase tracking-wide text-muted">Public board · read-only</div>
+            <div className="text-xs font-medium uppercase tracking-wide text-muted">Board · read-only</div>
             <h1 className="text-2xl font-medium tracking-tight">{prettyName(dao.config.name)}</h1>
           </div>
         </div>

@@ -76,7 +76,7 @@ export default function CreateGroup() {
         <SectionTitle>Policy Terra will set</SectionTitle>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted">
           <li><b className="text-ink">council</b>: every permission; transfers and changes need more than half the council.</li>
-          <li><b className="text-ink">trusted</b>: can ask for money and approve transfers; one approval is enough (Terra only offers it for small requests).</li>
+          <li><b className="text-ink">trusted</b>: can request money and approve transfers; one approval is enough (Terra only offers it for small requests).</li>
           <li><b className="text-ink">anyone</b>: can file a payment request.</li>
           <li>Request bond 0.01 NEAR, returned when the request is decided. Requests stay open for 7 days.</li>
         </ul>
