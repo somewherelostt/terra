@@ -161,15 +161,15 @@ export default function Allowances() {
                       <dl className="mt-3 grid grid-cols-3 gap-3 text-[12px]">
                         <div>
                           <dt className="text-muted">Left today</dt>
-                          <dd className="tnum mt-0.5 text-[13.5px] text-ink">{money(a.left_today, nearUsd)}</dd>
+                          <dd className="tnum mt-0.5 text-[13.5px] text-ink"><GridMoney yocto={a.left_today} nearUsd={nearUsd} /></dd>
                         </div>
                         <div>
                           <dt className="text-muted">Daily cap</dt>
-                          <dd className="tnum mt-0.5 text-[13.5px]">{money(a.daily_cap, nearUsd)}</dd>
+                          <dd className="tnum mt-0.5 text-[13.5px]"><GridMoney yocto={a.daily_cap} nearUsd={nearUsd} /></dd>
                         </div>
                         <div>
                           <dt className="text-muted">Per payment</dt>
-                          <dd className="tnum mt-0.5 text-[13.5px]">{money(a.per_payment_max, nearUsd)}</dd>
+                          <dd className="tnum mt-0.5 text-[13.5px]"><GridMoney yocto={a.per_payment_max} nearUsd={nearUsd} /></dd>
                         </div>
                       </dl>
                       {isCouncil && (
@@ -223,12 +223,23 @@ export default function Allowances() {
 type Send = ReturnType<typeof useWallet>['send']
 type DaoT = NonNullable<ReturnType<typeof useDao>['dao']>
 
+/** A budget amount: dollars on top, the NEAR figure on its own muted line, so neither wraps mid-value. */
+function GridMoney({ yocto, nearUsd }: { yocto: string | bigint; nearUsd: number }) {
+  if (!isFinite(nearUsd)) return <>{yoctoToNear(yocto, 3)} NEAR</>
+  return (
+    <>
+      <span className="block">{usd(yoctoToNumber(yocto) * nearUsd)}</span>
+      <span className="block text-[11.5px] text-muted">{yoctoToNear(yocto, 3)} NEAR</span>
+    </>
+  )
+}
+
 function RemoveButton({ run, onDone }: { run: () => Promise<string>; onDone: () => Promise<void> }) {
   const tx = useTx()
   return (
     <div className="mt-2">
       {tx.state.status === 'idle' ? (
-        <button className="-my-2 py-3 text-xs text-muted hover:text-bad hover:underline sm:py-2" onClick={() => tx.run(run, onDone)}>Propose ending this allowance</button>
+        <button className="-my-2 min-h-11 text-xs text-muted hover:text-bad hover:underline sm:min-h-0 sm:py-2" onClick={() => tx.run(run, onDone)}>Propose ending this allowance</button>
       ) : (
         <TxStatus state={tx.state} doneText="Request filed. Approve it in Approve." />
       )}
