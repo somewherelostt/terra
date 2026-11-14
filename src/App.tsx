@@ -104,7 +104,7 @@ const NAV: { page: Page; label: string; icon: string }[] = [
 function Shell({ page, daoId, children }: { page: Page; daoId: string | null; children: ReactNode }) {
   return (
     <div className="min-h-screen md:flex">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line px-4 py-6 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-52 shrink-0 lg:w-60 flex-col border-r border-line px-4 py-6 md:flex">
         <Logo />
         <nav className="mt-8 flex flex-col gap-px">
           {daoId &&
@@ -191,7 +191,7 @@ function MobileGroupName() {
   const { dao } = useDaoSafe()
   if (!dao) return null
   return (
-    <button onClick={() => openDao(null)} className="min-w-0 truncate text-[14px] font-medium" title="Switch community">
+    <button onClick={() => openDao(null)} className="flex min-h-11 min-w-0 items-center truncate text-[14px] font-medium" title="Switch community">
       {prettyName(dao.config.name)}
     </button>
   )
@@ -247,7 +247,7 @@ function TopBar({ daoId }: { daoId: string | null }) {
   const [picking, setPicking] = useState(false)
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:px-8">
-      <div className="flex min-w-0 items-center gap-2 md:hidden">
+      <div className="-ml-2.5 flex min-w-0 items-center md:hidden">
         <Logo compact />
         <MobileGroupName />
       </div>
@@ -274,7 +274,7 @@ function TopBar({ daoId }: { daoId: string | null }) {
             </Button>
           </>
         ) : (
-          <Button onClick={signIn}>Sign in</Button>
+          <Button variant="secondary" onClick={signIn}>Sign in</Button>
         )}
       </div>
     </header>
@@ -289,7 +289,7 @@ export function Logo({ compact }: { compact?: boolean }) {
         e.preventDefault()
         openDao(null)
       }}
-      className="flex items-center gap-2.5"
+      className={`flex items-center gap-2.5 ${compact ? 'min-h-11 min-w-11 justify-center' : ''}`}
       title="Terra home"
     >
       <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-6 w-6" />
