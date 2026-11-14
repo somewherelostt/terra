@@ -88,8 +88,8 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
                   {text}
                   {!a.ok && <span className="shrink-0 text-[12px] text-bad">failed</span>}
                 </span>
-                {a.txHash ? <TxLink hash={a.txHash} label="Receipt" /> : <span />}
-                <span className={`tnum w-24 text-right ${tone}`}>{amount}</span>
+                <span className="hidden sm:inline">{a.txHash ? <TxLink hash={a.txHash} label="Receipt" /> : null}</span>
+                <span className={`tnum w-20 text-right sm:w-24 ${tone}`}>{amount}</span>
               </div>
             )
           })}

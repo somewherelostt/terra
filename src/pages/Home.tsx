@@ -194,11 +194,13 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
             <span className="flex min-w-0 items-center gap-2.5">
               <Avatar id={a.kind === 'payout' ? (a.to ?? a.who) : a.who} size={22} />
               {label}
-              <span className="shrink-0 text-[12px] text-muted">{timeAgo(a.time)}</span>
+              <span className="hidden shrink-0 text-[12px] text-muted sm:inline">{timeAgo(a.time)}</span>
             </span>
             <span className="tnum flex shrink-0 items-baseline gap-3">
               {amount}
-              <TxLink hash={a.txHash} label="tx" />
+              <span className="hidden sm:inline">
+                <TxLink hash={a.txHash} label="tx" />
+              </span>
             </span>
           </div>
         )
