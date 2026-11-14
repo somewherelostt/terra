@@ -21,12 +21,14 @@ import CreateGroup from './pages/CreateGroup'
 import SignIn from './pages/SignIn'
 import Join from './pages/Join'
 import Messages from './pages/Messages'
+import Docs from './pages/Docs'
 
 export default function App() {
   const route = useRoute()
   const { accountId } = useWallet()
 
 
+  if (route.page === 'docs') return <Docs />
   if (route.page === 'create') return <CreateGroup />
   if (route.page === 'signin') {
     return route.daoId ? (

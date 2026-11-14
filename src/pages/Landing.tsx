@@ -322,7 +322,7 @@ export function LandingNav({
 }: {
   boardUrl: string
   home?: string
-  current?: 'board'
+  current?: 'board' | 'docs'
   joinCta?: { label: string; onClick: () => void }
 }) {
   const { accountId } = useWallet()
@@ -405,6 +405,14 @@ export function LandingNav({
             Live board
             {current === 'board' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
           </a>
+          <a
+            href={`${home}#/docs`}
+            aria-current={current === 'docs' ? 'page' : undefined}
+            className={`relative flex h-10 items-center rounded-lg px-3 ${current === 'docs' ? 'text-ink' : 'text-mute hover:text-ink'}`}
+          >
+            Docs
+            {current === 'docs' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
+          </a>
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
@@ -448,6 +456,7 @@ export function LandingNav({
                 </a>
               ))}
               <a href={boardUrl} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">Live board</a>
+              <a href={`${home}#/docs`} onClick={() => setMenu(false)} aria-current={current === 'docs' ? 'page' : undefined} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">Docs</a>
             </nav>
             <div className="my-2 h-px bg-line" />
             {accountId ? (
