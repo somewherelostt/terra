@@ -580,7 +580,7 @@ function LiveQuoteDemo() {
       .then((tokens) => {
         const usdc = tokens.find((t) => t.symbol === 'USDC' && t.blockchain === 'sol')
         if (!usdc) throw new Error('no token')
-        return quotePayout({ destinationAsset: usdc.assetId, amountOutUnits: '20000000', recipient: DEMO_SOL_ADDRESS, refundTo: 'demo.near' })
+        return quotePayout({ destinationAsset: usdc.assetId, amountOutUnits: '20000000', recipient: DEMO_SOL_ADDRESS })
       })
       .then((r) => alive && setQ(r))
       .catch(() => alive && setQ(RECORDED_QUOTE))

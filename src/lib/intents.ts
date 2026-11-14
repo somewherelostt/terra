@@ -137,14 +137,29 @@ export function toUnits(amount: string, decimals: number): string | null {
 }
 
 /**
+ * The all-zero implicit account: no one holds its key, so it is nobody's account. Only used for
+ * dry quotes, which never move funds.
+ */
+const DRY_QUOTE_REFUND = '0'.repeat(64)
+
+function dryRefundTo(account?: string): string {
+  if (!account || account.endsWith('.testnet')) return DRY_QUOTE_REFUND
+  return account
+}
+
+/**
  * "The recipient should get exactly X of token T on chain C; how much NEAR does the group send?"
- * `refundTo` must be a NEAR account (the DAO). `recipient` is the address on the destination chain.
+ * `refundTo` should be the group's own account (the DAO). `recipient` is the address on the destination chain.
+ *
+ * 1Click only accepts mainnet NEAR accounts here, and these are dry quotes: nothing is deposited, so
+ * nothing can be refunded. When the DAO lives on testnet we send a neutral placeholder instead of
+ * anyone's real account (see DRY_QUOTE_REFUND).
  */
 export async function quotePayout(opts: {
   destinationAsset: string
   amountOutUnits: string
   recipient: string
-  refundTo: string
+  refundTo?: string
 }): Promise<QuoteResult> {
   const body = {
     dry: true,
@@ -154,7 +169,7 @@ export async function quotePayout(opts: {
     depositType: 'ORIGIN_CHAIN',
     destinationAsset: opts.destinationAsset,
     amount: opts.amountOutUnits,
-    refundTo: opts.refundTo,
+    refundTo: dryRefundTo(opts.refundTo),
     refundType: 'ORIGIN_CHAIN',
     recipient: opts.recipient,
     recipientType: 'DESTINATION_CHAIN',

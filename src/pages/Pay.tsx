@@ -84,7 +84,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     const t = setTimeout(async () => {
       setQuoting(true)
       try {
-        const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: 'demo.near' })
+        const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: dao.id })
         if (stale()) return
         setQuote(q)
       } catch (e) {
@@ -114,7 +114,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     let cancelled = false
     const t = setTimeout(async () => {
       try {
-        const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: 'demo.near' })
+        const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: dao?.id })
         // Inputs changed while this refresh was in flight: drop it.
         if (cancelled || mine !== quoteSeq.current) return
         setQuote(q)
