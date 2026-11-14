@@ -260,6 +260,15 @@ button:active { transform: scale(.98); }
     radial-gradient(70% 24% at 88% 73.6%, rgba(207, 225, 255, 0.35), transparent 70%);
 }
 :root[data-theme="light"] .site-footer::after { opacity: 0.05; mix-blend-mode: multiply; }
+.site-footer-mark {
+  margin-top: 1.5rem; margin-bottom: -0.2em;
+  font-size: clamp(112px, 25vw, 320px); font-weight: 300; line-height: 0.82; letter-spacing: -0.065em;
+  color: color-mix(in srgb, var(--ink) 9%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 95%);
+          mask-image: linear-gradient(180deg, #000 30%, transparent 95%);
+  pointer-events: none; user-select: none; white-space: nowrap;
+}
+:root[data-theme="light"] .site-footer-mark { color: color-mix(in srgb, var(--ink) 7%, transparent); }
 
 /* ---------- Glass (phone chrome and sheets) ----------
    Frosted, translucent surfaces for things that float over content: the phone tab bar,
