@@ -353,7 +353,7 @@ export interface NewGroupInput {
  *  - council: can do everything, transfers need a majority of the council;
  *  - trusted: members with a clean record; can request money and give the one
  *    approval that small requests need (threshold 1 for transfers only);
- *  - all: anyone can file a payment request.
+ *  - all: anyone can file a payment request or ask to join (add_member_to_role).
  * Amount limits for each tier are enforced in the app (see README).
  */
 export function newGroupPolicy(input: NewGroupInput): Policy {
@@ -374,7 +374,7 @@ export function newGroupPolicy(input: NewGroupInput): Policy {
       {
         name: 'all',
         kind: 'Everyone',
-        permissions: ['transfer:AddProposal'],
+        permissions: ['transfer:AddProposal', 'add_member_to_role:AddProposal'],
         vote_policy: {},
       },
     ],
