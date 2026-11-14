@@ -256,7 +256,8 @@ function SpendCard({ info, accountId, nearUsd, send, onDone }: { info: Allowance
   const max = spendableNow(info, mine)
   const yocto = usdToYocto(Number(amount), nearUsd)
   const frozen = info.state.frozen
-  const valid = !frozen && isValidAccountId(to.trim()) && yocto != null && yocto > 0n
+  // The contract refuses anything over the per-payment max, today's cap or the pool, so don't ask for a signature it would reject.
+  const valid = !frozen && isValidAccountId(to.trim()) && yocto != null && yocto > 0n && yocto <= max
   return (
     <Card>
       <div className="mb-1 text-[13.5px] font-medium">{t('allowances.spend.title')}</div>
