@@ -341,6 +341,7 @@ export function actProposalTx(daoId: string, p: Proposal, action: VoteAction): T
 }
 
 export interface NewGroupInput {
+  displayName?: string // shown in the app, e.g. "Riverside Club"
   name: string // sub-account name, e.g. "riverside-club"
   purpose: string
   council: string[]
@@ -388,7 +389,7 @@ export function newGroupPolicy(input: NewGroupInput): Policy {
 
 export function createGroupTx(input: NewGroupInput): Tx {
   const args = {
-    config: { name: input.name, purpose: input.purpose, metadata: '' },
+    config: { name: input.displayName?.trim() || input.name, purpose: input.purpose, metadata: '' },
     policy: newGroupPolicy(input),
   }
   return {

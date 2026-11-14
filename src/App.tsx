@@ -20,13 +20,7 @@ export default function App() {
   const route = useRoute()
 
 
-  if (route.page === 'create') {
-    return (
-      <Shell page="create" daoId={null}>
-        <CreateGroup />
-      </Shell>
-    )
-  }
+  if (route.page === 'create') return <CreateGroup />
   if (route.page === 'signin') {
     return route.daoId ? (
       <DaoProvider daoId={route.daoId}>

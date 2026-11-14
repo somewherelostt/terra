@@ -3,98 +3,258 @@ import { useWallet } from '../lib/wallet'
 import { createGroupTx, isDao } from '../lib/dao'
 import { FACTORY, isValidAccountId, viewAccount } from '../lib/near'
 import { nearToYocto } from '../lib/format'
-import { openDao } from '../lib/store'
-import { Button, Card, Field, SectionTitle, TxStatus, inputCls, useTx } from '../components/ui'
+import { openDao, shareUrl } from '../lib/store'
+import { TIER_LIMITS_USD } from '../lib/record'
+import { Button, TxStatus, useTx } from '../components/ui'
+
+const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 
 function parseList(s: string): string[] {
   return [...new Set(s.split(/[\s,]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))]
 }
 
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+}
+
+const line = 'block border-b border-line pb-3'
+const bare = 'mt-1 w-full bg-transparent outline-none placeholder:text-muted/60'
+
 export default function CreateGroup() {
   const { accountId, send, signIn } = useWallet()
-  const [name, setName] = useState('')
+  const [step, setStep] = useState(1)
+  const [displayName, setDisplayName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [slugTouched, setSlugTouched] = useState(false)
   const [purpose, setPurpose] = useState('')
   const [council, setCouncil] = useState('')
   const [trusted, setTrusted] = useState('')
   const [deposit, setDeposit] = useState('6')
   const [taken, setTaken] = useState<boolean | null>(null)
+  const [copied, setCopied] = useState(false)
   const tx = useTx()
 
   useEffect(() => {
     if (accountId && !council) setCouncil(accountId)
   }, [accountId, council])
+  useEffect(() => {
+    if (!slugTouched) setSlug(slugify(displayName))
+  }, [displayName, slugTouched])
 
-  const daoId = name ? `${name}.${FACTORY}` : ''
+  const daoId = slug ? `${slug}.${FACTORY}` : ''
   useEffect(() => {
     setTaken(null)
-    if (!name || !isValidAccountId(daoId)) return
+    if (!slug || !isValidAccountId(daoId)) return
     const t = setTimeout(() => viewAccount(daoId).then((a) => setTaken(!!a)).catch(() => setTaken(null)), 400)
     return () => clearTimeout(t)
-  }, [name, daoId])
+  }, [slug, daoId])
 
   const councilList = parseList(council)
   const trustedList = parseList(trusted)
   const yocto = nearToYocto(deposit)
-  const errors: string[] = []
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name) || name.length < 3 || name.length > 40) errors.push('Pick a short name: lowercase letters, numbers and dashes.')
-  if (taken) errors.push('That name is taken.')
-  if (!councilList.length || councilList.some((a) => !isValidAccountId(a))) errors.push('Add at least one valid council account.')
-  if (trustedList.some((a) => !isValidAccountId(a))) errors.push('One of the trusted accounts is not valid.')
-  if (!yocto || yocto < 5n * 10n ** 24n) errors.push('The factory needs at least about 5 NEAR to store the DAO contract.')
+
+  const step1Error =
+    displayName.trim().length < 2
+      ? 'Give the group a name.'
+      : !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3
+        ? 'The treasury address needs 3+ lowercase letters, numbers or dashes.'
+        : taken
+          ? 'That treasury address is taken.'
+          : null
+  const step2Error = !councilList.length
+    ? 'Add at least one council member.'
+    : councilList.some((a) => !isValidAccountId(a))
+      ? 'One of the council accounts is not valid.'
+      : trustedList.some((a) => !isValidAccountId(a))
+        ? 'One of the trusted accounts is not valid.'
+        : null
+  const step3Error = !yocto || yocto < 5n * 10n ** 24n ? 'The factory needs at least about 5 NEAR to store the DAO contract.' : null
 
   async function create() {
-    if (errors.length || !yocto) return
-    await tx.run(() => send(createGroupTx({ name, purpose, council: councilList, trusted: trustedList, deposit: yocto })))
+    if (step1Error || step2Error || step3Error || !yocto) return
+    await tx.run(() => send(createGroupTx({ displayName, name: slug, purpose, council: councilList, trusted: trustedList, deposit: yocto })))
   }
 
+  const titles = ['Your group', 'Invite members', 'Review and create']
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight">Start a new group</h1>
-        <p className="mt-1 text-sm text-muted">
-          Already have a DAO? <button className="font-medium text-accent-text hover:underline" onClick={() => openDao(null)}>Open it instead</button>. Otherwise Terra creates a standard Sputnik DAO for you through the official testnet factory. You own it; Terra never does.
-        </p>
+    <div className="mx-auto max-w-[560px] px-6 py-10 md:py-14">
+      <button onClick={() => openDao(null)} className="flex items-center gap-2">
+        <img src={ICON} alt="" className="size-7 rounded-[7px]" />
+        <span className="text-[16px] font-medium tracking-tight">terra</span>
+      </button>
+      <div className="mt-12 flex gap-1.5">
+        {[1, 2, 3].map((n) => (
+          <span key={n} className={`h-[3px] flex-1 rounded-full ${n <= step ? 'bg-ink' : 'bg-line'}`} />
+        ))}
       </div>
-      <Card className="space-y-5">
-        <Field label="Group name" hint={daoId ? <>Your treasury will be <b>{daoId}</b>{taken === false ? ' · available' : taken ? ' · taken' : ''}</> : 'For example riverside-club'}>
-          <input className={inputCls} value={name} onChange={(e) => setName(e.target.value.toLowerCase())} placeholder="riverside-club" />
-        </Field>
-        <Field label="What is it for?">
-          <input className={inputCls} value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="A city community that runs meetups and pays local contributors" maxLength={200} />
-        </Field>
-        <Field label="Council (approves mid and large requests by majority)" hint="NEAR accounts, separated by commas or spaces.">
-          <textarea className={inputCls} rows={2} value={council} onChange={(e) => setCouncil(e.target.value)} placeholder="alice.testnet, bob.testnet" />
-        </Field>
-        <Field label="Trusted members (one of them can approve a small request)" hint="Optional. If empty, the council is trusted too.">
-          <textarea className={inputCls} rows={2} value={trusted} onChange={(e) => setTrusted(e.target.value)} placeholder="carol.testnet" />
-        </Field>
-        <Field label="Starting deposit (NEAR)" hint="Pays for the DAO's storage (about 5 NEAR); the rest becomes the treasury balance.">
-          <input className={inputCls} inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
-        </Field>
-      </Card>
-      <Card>
-        <SectionTitle>Policy Terra will set</SectionTitle>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-muted">
-          <li><b className="text-ink">council</b>: every permission; transfers and changes need more than half the council.</li>
-          <li><b className="text-ink">trusted</b>: can request money and approve transfers; one approval is enough (Terra only offers it for small requests).</li>
-          <li><b className="text-ink">anyone</b>: can file a payment request.</li>
-          <li>Request bond 0.01 NEAR, returned when the request is decided. Requests stay open for 7 days.</li>
-        </ul>
-        <div className="mt-5">
-          {!accountId ? (
-            <Button onClick={signIn}>Sign in to create</Button>
+      <div className="mt-3 text-[12px] text-muted">
+        Step {step} of 3 · {titles[step - 1]}
+      </div>
+
+      {step === 1 && (
+        <>
+          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Set up your group</h1>
+          <p className="mt-2 text-[14px] text-muted">
+            Already have a Sputnik DAO?{' '}
+            <button className="text-ink underline underline-offset-2" onClick={() => openDao(null)}>
+              Connect it instead.
+            </button>
+          </p>
+          <div className="mt-10 space-y-8">
+            <label className={line}>
+              <span className="text-[12px] text-muted">Group name</span>
+              <input autoFocus className={bare + ' text-[22px] font-light'} value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Riverside Club" maxLength={60} />
+            </label>
+            <label className={line}>
+              <span className="text-[12px] text-muted">Treasury address</span>
+              <div className="mt-1 flex items-baseline font-mono text-[14px]">
+                <input
+                  className="min-w-0 bg-transparent outline-none placeholder:text-muted/60"
+                  style={{ width: `${Math.max(8, slug.length + 1)}ch` }}
+                  value={slug}
+                  onChange={(e) => {
+                    setSlugTouched(true)
+                    setSlug(e.target.value.toLowerCase())
+                  }}
+                  placeholder="riverside-club"
+                  spellCheck={false}
+                />
+                <span className="text-muted">.{FACTORY}</span>
+              </div>
+              <span className="mt-1 block text-[12px] text-muted">{taken === false ? 'Available' : taken ? 'Taken' : 'A standard Sputnik DAO from the official testnet factory. You own it, not Terra.'}</span>
+            </label>
+            <label className={line}>
+              <span className="text-[12px] text-muted">What is it for? (optional)</span>
+              <input className={bare + ' text-[15px]'} value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="A city community that runs meetups and pays local contributors" maxLength={200} />
+            </label>
+            <div>
+              <span className="text-[12px] text-muted">Approval levels</span>
+              <div className="mt-2 divide-y divide-line rounded-xl border border-line text-[13.5px]">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span>Small</span>
+                  <span className="text-muted">
+                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.small}</span> · 1 trusted member
+                  </span>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span>Mid</span>
+                  <span className="text-muted">
+                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.mid}</span> · the council
+                  </span>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span>Large</span>
+                  <span className="text-muted">over ${TIER_LIMITS_USD.mid} · full council vote</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Invite members</h1>
+          <p className="mt-2 text-[14px] text-muted">Add NEAR accounts now; you can invite more later from Members.</p>
+          <div className="mt-10 space-y-8">
+            <label className={line}>
+              <span className="text-[12px] text-muted">Council · approves mid and large requests by majority</span>
+              <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={council} onChange={(e) => setCouncil(e.target.value)} placeholder="you.testnet, ana.testnet" spellCheck={false} />
+              <span className="mt-1 block text-[12px] text-muted">{councilList.length} account{councilList.length === 1 ? '' : 's'} · separate with commas or spaces</span>
+            </label>
+            <label className={line}>
+              <span className="text-[12px] text-muted">Trusted members · one of them can approve a small request</span>
+              <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={trusted} onChange={(e) => setTrusted(e.target.value)} placeholder="ben.testnet" spellCheck={false} />
+              <span className="mt-1 block text-[12px] text-muted">Optional. If empty, the council is trusted too.</span>
+            </label>
+            {daoId && (
+              <div className="rounded-xl bg-soft px-4 py-3 text-[13px]">
+                <div className="text-muted">Link to share once the group exists</div>
+                <div className="mt-1 flex items-center justify-between gap-3">
+                  <span className="truncate font-mono text-[12.5px]">{shareUrl(daoId, 'signin')}</span>
+                  <button
+                    className="shrink-0 text-[12.5px] font-medium"
+                    onClick={() => navigator.clipboard?.writeText(shareUrl(daoId, 'signin')).then(() => setCopied(true)).catch(() => setCopied(false))}
+                  >
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {step === 3 && (
+        <>
+          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Review and create</h1>
+          <p className="mt-2 text-[14px] text-muted">You sign one transaction. The factory creates the DAO and the deposit becomes its first balance.</p>
+          <div className="mt-8 text-[13.5px]">
+            <Row k="Group" v={displayName} />
+            <Row k="Treasury" v={daoId} mono />
+            <Row k="Council" v={councilList.join(', ')} mono />
+            <Row k="Trusted" v={trustedList.length ? trustedList.join(', ') : 'Same as the council'} mono={!!trustedList.length} />
+            <Row k="Request bond" v="0.01 NEAR, returned when decided" />
+            <Row k="Requests stay open" v="7 days" />
+          </div>
+          <label className={line + ' mt-8'}>
+            <span className="text-[12px] text-muted">Starting deposit</span>
+            <div className="mt-1 flex items-baseline gap-2">
+              <input className="tnum w-full bg-transparent text-[40px] font-light leading-none tracking-[-0.04em] outline-none" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+              <span className="text-[15px] text-muted">NEAR</span>
+            </div>
+            <span className="mt-1 block text-[12px] text-muted">About 5 NEAR pays for the contract's storage; the rest is the treasury's balance.</span>
+          </label>
+          <div className="mt-4">
+            <TxStatus state={tx.state} doneText="Your group's treasury is live." />
+          </div>
+        </>
+      )}
+
+      <div className="mt-10 flex items-center justify-between gap-3 text-[14px] font-medium">
+        <button className="rounded-lg px-4 py-3 text-muted hover:text-ink" onClick={() => (step === 1 ? openDao(null) : setStep(step - 1))}>
+          Back
+        </button>
+        <div className="flex flex-col items-end gap-2">
+          {step < 3 ? (
+            <Button className="!px-6 !py-3" disabled={!!(step === 1 ? step1Error : step2Error)} onClick={() => setStep(step + 1)}>
+              {step === 1 ? 'Next: invite members' : 'Next: review'}
+            </Button>
+          ) : tx.state.status === 'done' ? (
+            <Button
+              className="!px-6 !py-3"
+              onClick={async () => {
+                if (await isDao(daoId)) openDao(daoId)
+              }}
+            >
+              Open {displayName}
+            </Button>
+          ) : !accountId ? (
+            <Button className="!px-6 !py-3" onClick={signIn}>Sign in to create</Button>
           ) : (
-            <Button disabled={errors.length > 0 || tx.state.status === 'signing'} onClick={create}>Create group</Button>
+            <Button className="!px-6 !py-3" disabled={!!step3Error || tx.state.status === 'signing'} onClick={create}>
+              Create group
+            </Button>
           )}
-          {accountId && errors.length > 0 && <p className="mt-2 text-xs text-muted">{errors[0]}</p>}
-        </div>
-        <div className="mt-3">
-          <TxStatus state={tx.state} doneText="Your group's treasury is live." />
-          {tx.state.status === 'done' && (
-            <Button className="mt-3" onClick={async () => { if (await isDao(daoId)) openDao(daoId) }}>Open {name}</Button>
+          {(step === 1 ? step1Error : step === 2 ? step2Error : step3Error) && (displayName || step > 1) && (
+            <span className="text-[12px] font-normal text-muted">{step === 1 ? step1Error : step === 2 ? step2Error : step3Error}</span>
           )}
         </div>
-      </Card>
+      </div>
+    </div>
+  )
+}
+
+function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
+  return (
+    <div className="flex justify-between gap-6 border-t border-line py-3">
+      <span className="shrink-0 text-muted">{k}</span>
+      <span className={`min-w-0 break-all text-right ${mono ? 'font-mono text-[12.5px]' : ''}`}>{v}</span>
     </div>
   )
 }
