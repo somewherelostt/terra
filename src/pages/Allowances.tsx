@@ -84,7 +84,7 @@ export default function Allowances() {
   return (
     <div>
       <div className="text-[13px] text-muted">Allowances</div>
-      <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">Small budgets, hard limits</h1>
+      <h1 className="mt-3 text-[32px] leading-[1.1] font-light tracking-[-0.03em]">Small budgets, hard limits</h1>
       <p className="mt-1 max-w-2xl text-[13.5px] text-muted">
         The group gives a member or an AI helper a small budget: a daily cap, a most-per-payment and an end date. Payments inside it skip the vote. The limits live in a contract the group owns, so nobody can go over them, and any council member can freeze it instantly.
       </p>
@@ -108,21 +108,21 @@ export default function Allowances() {
             <div className="grid grid-cols-2 border-y border-line">
               <div className="border-r border-line py-5 pr-5">
                 <div className="text-[12px] text-muted">In the allowance pool</div>
-                <div className="mt-1.5 text-[22px] font-light">{isFinite(nearUsd) ? usd(yoctoToNumber(info.state.balance) * nearUsd) : `${yoctoToNear(info.state.balance)} NEAR`}</div>
-                <div className="text-xs text-muted">{yoctoToNear(info.state.balance, 3)} NEAR</div>
+                <div className="tnum mt-1.5 text-[22px] font-light">{isFinite(nearUsd) ? usd(yoctoToNumber(info.state.balance) * nearUsd) : `${yoctoToNear(info.state.balance)} NEAR`}</div>
+                <div className="tnum text-xs text-muted">{yoctoToNear(info.state.balance, 3)} NEAR</div>
               </div>
               <div className="py-5 pl-5">
                 <div className="text-[12px] text-muted">Status</div>
                 <div className="mt-2">{info.state.frozen ? <Badge tone="bad">Frozen</Badge> : <Badge tone="good">Open</Badge>}</div>
-                <div className="mt-2 text-xs text-muted">
-                  Contract <a className="font-mono text-accent-text hover:underline" href={accountUrl(info.contractId)} target="_blank" rel="noreferrer">{info.contractId}</a>
+                <div className="mt-2 min-w-0 text-xs text-muted">
+                  Contract <a className="block truncate font-mono text-accent-text hover:underline" href={accountUrl(info.contractId)} target="_blank" rel="noreferrer">{info.contractId}</a>
                 </div>
               </div>
             </div>
 
             <div className="mt-8 text-[13.5px] font-medium">Budgets</div>
             {info.allowances.length === 0 ? (
-              <p className="mt-2 text-sm text-muted">No allowances yet. Council members can propose one.</p>
+              <p className="mt-2 border-y border-line py-6 text-[13.5px] text-muted">No allowances yet. Council members can propose one from the panel here.</p>
             ) : (
               <ul className="mt-2 divide-y divide-line border-y border-line">
                 {info.allowances.map((a) => {
