@@ -573,7 +573,7 @@ function ConnectCta() {
                 </button>{' '}
                 Or{' '}
                 <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => openDao(DEMO_DAO)}>
-                  try the demo community
+                  look around nearHack Community
                 </button>
                 .
               </p>

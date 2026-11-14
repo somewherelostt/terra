@@ -4,7 +4,7 @@ import { invalidateActivity, loadActivity, type ActivityResult } from './activit
 import { getNearUsdPrice } from './intents'
 import { computeRecords, type MemberRecord } from './record'
 
-export const DEMO_DAO = import.meta.env.VITE_DEMO_DAO || 'terra-demo.sputnikv2.testnet'
+export const DEMO_DAO = import.meta.env.VITE_DEMO_DAO || 'nearhack-community.sputnikv2.testnet'
 export const STAKING_POOL = import.meta.env.VITE_STAKING_POOL || 'aurora.pool.f863973.m0'
 
 // ---------- tiny router: ?dao=<id>#/<page> ----------
