@@ -19,7 +19,7 @@ import {
   HELPER_GAS_ALLOWANCE,
   type AllowanceInfo,
 } from '../lib/allowance'
-import { Account, Badge, Button, Card, Field, Spinner, TxStatus, inputCls, useTx } from '../components/ui'
+import { Account, Badge, Button, Card, EmptyState, Field, Spinner, TxStatus, inputCls, useTx } from '../components/ui'
 
 function useAllowances() {
   const { dao } = useDao()
@@ -94,12 +94,19 @@ export default function Allowances() {
       )}
       {error && <div className="mt-10 rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">Couldn't read the allowance contract: {error}</div>}
       {info === null && !error && (
-        <Card className="mt-10 max-w-2xl">
-          <div className="text-[13.5px] font-medium">Not set up for this group yet</div>
-          <p className="mt-2 text-[13.5px] text-muted">
-            Allowances need a small contract that this group owns. It's deployed once per group; see <span className="font-mono text-[12.5px]">contracts/allowance</span> in the repo. Until then, every payment goes through a normal request.
-          </p>
-        </Card>
+        <EmptyState
+          icon="plus"
+          className="mt-10 max-w-2xl"
+          title="Not set up for this group yet"
+          text={
+            <>
+              Allowances need a small contract that this group owns. It's deployed once per group; see <span className="font-mono text-[12.5px]">contracts/allowance</span> in
+              the repo. Until then, every payment goes through a normal request.
+            </>
+          }
+        >
+          <Button variant="secondary" onClick={() => go('pay')}>Request money instead</Button>
+        </EmptyState>
       )}
 
       {info && (
@@ -122,7 +129,18 @@ export default function Allowances() {
 
             <div className="mt-8 text-[13.5px] font-medium">Budgets</div>
             {info.allowances.length === 0 ? (
-              <p className="mt-2 border-y border-line py-6 text-[13.5px] text-muted">No allowances yet. Council members can propose one from the panel here.</p>
+              <EmptyState
+                icon="plus"
+                className="mt-2"
+                title="No allowances yet"
+                text={isCouncil ? 'Give a member or a helper a small budget that skips the vote.' : 'Council members can propose one.'}
+              >
+                {isCouncil && accountId && (
+                  <Button variant="secondary" onClick={() => document.getElementById('propose-allowance')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
+                    Propose an allowance
+                  </Button>
+                )}
+              </EmptyState>
             ) : (
               <ul className="mt-2 divide-y divide-line border-y border-line">
                 {info.allowances.map((a) => {
@@ -140,11 +158,20 @@ export default function Allowances() {
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-soft">
                         <div className="h-full bg-brand" style={{ width: `${Math.min(100, used)}%` }} />
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                        <span>Left today: <b className="text-ink">{money(a.left_today, nearUsd)}</b></span>
-                        <span>Daily cap: {money(a.daily_cap, nearUsd)}</span>
-                        <span>Per payment: {money(a.per_payment_max, nearUsd)}</span>
-                      </div>
+                      <dl className="mt-3 grid grid-cols-3 gap-3 text-[12px]">
+                        <div>
+                          <dt className="text-muted">Left today</dt>
+                          <dd className="tnum mt-0.5 text-[13.5px] text-ink">{money(a.left_today, nearUsd)}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted">Daily cap</dt>
+                          <dd className="tnum mt-0.5 text-[13.5px]">{money(a.daily_cap, nearUsd)}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-muted">Per payment</dt>
+                          <dd className="tnum mt-0.5 text-[13.5px]">{money(a.per_payment_max, nearUsd)}</dd>
+                        </div>
+                      </dl>
                       {isCouncil && (
                         <RemoveButton onDone={after} run={() => send(removeAllowanceProposalTx(dao, info.contractId, a.account_id))} />
                       )}
@@ -161,7 +188,7 @@ export default function Allowances() {
                   {pending.map((p) => (
                     <li key={p.id}>
                       #{p.id} {decodeDescription(p.description).title} ·{' '}
-                      <button className="text-accent-text hover:underline" onClick={() => go('approve')}>approve</button>
+                      <button className="-my-3 py-3 text-accent-text hover:underline" onClick={() => go('approve')}>approve</button>
                     </li>
                   ))}
                 </ul>
@@ -180,7 +207,9 @@ export default function Allowances() {
               <>
                 <SpendCard info={info} accountId={accountId} nearUsd={nearUsd} send={send} onDone={after} />
                 <FreezeCard info={info} accountId={accountId} isCouncil={isCouncil} send={send} dao={dao} onDone={after} />
-                {isCouncil && <CreateCard info={info} nearUsd={nearUsd} send={send} dao={dao} onDone={after} />}
+                {isCouncil && (
+                  <CreateCard info={info} nearUsd={nearUsd} send={send} dao={dao} onDone={after} primary={!info.allowances.some((a) => a.account_id === accountId)} />
+                )}
                 <HelperKeyCard info={info} accountId={accountId} send={send} />
               </>
             )}
@@ -199,7 +228,7 @@ function RemoveButton({ run, onDone }: { run: () => Promise<string>; onDone: () 
   return (
     <div className="mt-2">
       {tx.state.status === 'idle' ? (
-        <button className="text-xs text-muted hover:text-bad hover:underline" onClick={() => tx.run(run, onDone)}>Propose ending this allowance</button>
+        <button className="-my-2 py-3 text-xs text-muted hover:text-bad hover:underline sm:py-2" onClick={() => tx.run(run, onDone)}>Propose ending this allowance</button>
       ) : (
         <TxStatus state={tx.state} doneText="Request filed. Approve it in Approve." />
       )}
@@ -267,7 +296,8 @@ function FreezeCard({ info, accountId, isCouncil, send, dao, onDone }: { info: A
   )
 }
 
-function CreateCard({ info, nearUsd, send, dao, onDone }: { info: AllowanceInfo; nearUsd: number; send: Send; dao: DaoT; onDone: () => Promise<void> }) {
+/** `primary` is false when the viewer also holds an allowance, so Pay now stays the one accent button. */
+function CreateCard({ info, nearUsd, send, dao, onDone, primary }: { info: AllowanceInfo; nearUsd: number; send: Send; dao: DaoT; onDone: () => Promise<void>; primary: boolean }) {
   const [who, setWho] = useState('')
   const [cap, setCap] = useState('5')
   const [per, setPer] = useState('2')
@@ -299,6 +329,7 @@ function CreateCard({ info, nearUsd, send, dao, onDone }: { info: AllowanceInfo;
     )
   }
   return (
+    <div id="propose-allowance" className="scroll-mt-24">
     <Card>
       <div className="mb-1 text-[13.5px] font-medium">Propose an allowance</div>
       <p className="mb-4 text-xs text-muted">Filed as a request; it starts once the group approves it.</p>
@@ -314,9 +345,10 @@ function CreateCard({ info, nearUsd, send, dao, onDone }: { info: AllowanceInfo;
       {capY && perY && perY > capY && <p className="mt-2 text-xs text-bad">Per payment can't be above the daily cap.</p>}
       {fundY != null && fundY >= dao.spendable && <p className="mt-2 text-xs text-bad">The treasury can spend {yoctoToNear(dao.spendable, 3)} NEAR; lower “Add to pool” (0 is fine).</p>}
       {capY && <p className="mt-2 text-xs text-muted">Daily cap ≈ {yoctoToNear(capY, 3)} NEAR at today's price.</p>}
-      <Button className="mt-4 w-full" disabled={!valid || tx.state.status === 'signing'} onClick={propose}>Propose allowance</Button>
+      <Button className="mt-4 w-full" variant={primary ? 'primary' : 'secondary'} disabled={!valid || tx.state.status === 'signing'} onClick={propose}>Propose allowance</Button>
       <div className="mt-3"><TxStatus state={tx.state} doneText="Allowance request filed. Approve it in Approve." /></div>
     </Card>
+    </div>
   )
 }
 
