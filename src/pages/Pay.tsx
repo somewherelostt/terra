@@ -8,6 +8,7 @@ import { POPULAR, RECORDED_QUOTE, chainName, getTokens, quotePayout, toUnits, ty
 import { isTrusted, tierFor, TIER_COPY } from '../lib/record'
 import { Button, Spinner, TxStatus, showToast, useTx } from '../components/ui'
 import { prettyName } from '../App'
+import { useCountUp } from '../lib/motion'
 
 type Mode = 'near' | 'intents'
 
@@ -26,6 +27,8 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const [quoteErr, setQuoteErr] = useState<string | null>(null)
   const [quoteDown, setQuoteDown] = useState(false)
   const [retry, setRetry] = useState(0)
+  const [countdown, setCountdown] = useState(5)
+  const [flash, setFlash] = useState(0)
   const [quoting, setQuoting] = useState(false)
   const [copied, setCopied] = useState(false)
   const tx = useTx()
@@ -80,6 +83,29 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     }, 500)
     return () => clearTimeout(t)
   }, [mode, token, amount, address, dao, retry])
+
+  // Live quotes refresh every 5 s (the ring drains), keeping the old quote on screen meanwhile.
+  useEffect(() => {
+    if (!quote || quote.recorded || mode !== 'intents' || !token) return
+    const units = toUnits(amount, token.decimals)
+    if (!units) return
+    setCountdown(5)
+    const iv = setInterval(() => setCountdown((c) => (c <= 1 ? 1 : c - 1)), 1000)
+    const t = setTimeout(async () => {
+      try {
+        const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: 'demo.near' })
+        setQuote(q)
+        setFlash(Date.now())
+      } catch {
+        setCountdown(5)
+      }
+    }, 5000)
+    return () => {
+      clearInterval(iv)
+      clearTimeout(t)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quote])
 
   if (!dao) return null
 
@@ -274,19 +300,37 @@ export default function Pay({ params }: { params: URLSearchParams }) {
               <>
                 <div className="flex items-center justify-between text-[12px] text-muted">
                   <span>{quote?.recorded ? 'Sample quote' : 'Live quote · NEAR Intents'}</span>
-                  {quote && (
+                  {quote && quote.recorded && (
                     <span className="flex items-center gap-1.5">
-                      <span className={`size-1.5 rounded-full ${quote.recorded ? 'bg-warn' : 'animate-pulse bg-good'}`} />
-                      {new Date(quote.timestamp).toISOString().slice(11, 16)} UTC
+                      <span className="size-1.5 rounded-full bg-warn" />
+                      recorded {new Date(quote.timestamp).toISOString().slice(11, 16)} UTC
+                    </span>
+                  )}
+                  {quote && !quote.recorded && (
+                    <span className="flex items-center gap-1.5">
+                      <svg key={quote.timestamp} className="ring-count" width="14" height="14" viewBox="0 0 16 16" aria-hidden>
+                        <circle cx="8" cy="8" r="7" fill="none" stroke="var(--line)" strokeWidth="2" />
+                        <circle className="p" cx="8" cy="8" r="7" fill="none" stroke="var(--accent)" strokeWidth="2" transform="rotate(-90 8 8)" />
+                      </svg>
+                      Refreshes in <span className="tnum">{countdown}</span>s
                     </span>
                   )}
                 </div>
                 <div className="mt-5 text-[12px] text-muted">They get exactly</div>
                 <div className="tnum mt-1 text-[44px] font-light leading-none tracking-[-0.045em]">
-                  {quote ? Number(quote.quote.amountOutFormatted).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: token && token.decimals > 6 ? 6 : 2 }) : amount || '0'} <span className="text-[18px] tracking-normal text-muted">{token?.symbol ?? ''}</span>
+                  {quote ? (
+                    <Rolling value={Number(quote.quote.amountOutFormatted)} format={(n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: token && token.decimals > 6 ? 6 : 2 })} />
+                  ) : (
+                    amount || '0'
+                  )} <span className="text-[18px] tracking-normal text-muted">{token?.symbol ?? ''}</span>
                 </div>
                 <div className="mt-6 text-[13.5px]">
-                  <Line k={`${name} sends`} v={quoting ? '…' : quote ? `${Number(quote.quote.amountInFormatted).toFixed(2)} NEAR · ${usd(Number(quote.quote.amountInUsd))}` : '—'} />
+                  <Line
+                    key={flash}
+                    flash={flash > 0}
+                    k={`${name} sends`}
+                    v={quoting && !quote ? '…' : quote ? <Rolling value={Number(quote.quote.amountInFormatted)} format={(n) => `${n.toFixed(2)} NEAR · ${usd(n * (Number(quote.quote.amountInUsd) / Number(quote.quote.amountInFormatted)))}`} /> : '—'}
+                  />
                   <Line k="Arrives" v={quote ? `about ${quote.quote.timeEstimate} seconds` : '—'} />
                   <Line k="Fees" v={quote ? usd(Math.max(0, Number(quote.quote.amountInUsd) - Number(quote.quote.amountOutUsd))) : '—'} />
                 </div>
@@ -361,9 +405,14 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   )
 }
 
-function Line({ k, v }: { k: string; v: string }) {
+function Rolling({ value, format }: { value: number; format: (n: number) => string }) {
+  const shown = useCountUp(value, 700, 700)
+  return <>{format(shown)}</>
+}
+
+function Line({ k, v, flash }: { k: string; v: React.ReactNode; flash?: boolean }) {
   return (
-    <div className="flex justify-between gap-3 border-t border-line py-3">
+    <div className={`flex justify-between gap-3 border-t border-line py-3 ${flash ? 'row-in' : ''}`}>
       <span className="text-muted">{k}</span>
       <span className="tnum text-right">{v}</span>
     </div>
