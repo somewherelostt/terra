@@ -5,14 +5,17 @@ import App from './App.tsx'
 import { applyTheme, getTheme } from './lib/theme'
 import { WalletProvider } from './lib/wallet.tsx'
 import { Toaster } from './components/ui.tsx'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 applyTheme(getTheme())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <WalletProvider>
-      <App />
-      <Toaster />
-    </WalletProvider>
+    <ErrorBoundary>
+      <WalletProvider>
+        <App />
+        <Toaster />
+      </WalletProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )
