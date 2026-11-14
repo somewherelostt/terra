@@ -68,7 +68,7 @@ export default function App() {
 
 function DaoGate({ children }: { children: ReactNode }) {
   const { dao, error } = useDao()
-  if (error)
+  if (error && !dao)
     return (
       <div className="mx-auto max-w-lg py-16 text-center">
         <h1 className="text-[24px] font-light tracking-[-0.02em]">

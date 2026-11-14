@@ -70,6 +70,13 @@ export function shareUrl(daoId: string, page: Page = 'board', query?: Record<str
 
 // ---------- DAO data ----------
 
+/** RPC errors in plain words for someone who typed or followed a treasury link. */
+function friendlyLoadError(daoId: string, msg: string): string {
+  if (/does not exist|UNKNOWN_ACCOUNT|not found/i.test(msg)) return `There's no account called ${daoId} on NEAR testnet. Check the name, or start a new group.`
+  if (/CodeDoesNotExist|MethodNotFound|MethodResolveError/i.test(msg)) return `${daoId} is a NEAR account, but not a Sputnik DAO, so it has no treasury to open.`
+  return msg
+}
+
 /** Live payout tracker shown on a request card after "Approve and pay". */
 export interface TrackStep {
   label: string
@@ -134,7 +141,7 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
       setLoading(false)
       loadActivity(d, setActivity).catch(() => undefined)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyLoadError(daoId, e instanceof Error ? e.message : String(e)))
       setLoading(false)
     }
   }, [daoId])
