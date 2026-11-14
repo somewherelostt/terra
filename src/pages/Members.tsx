@@ -107,7 +107,7 @@ function MemberRow({ r, you }: { r: MemberRecord; you: boolean }) {
       </span>
       <span className="tnum">{money}</span>
       <span className="tnum">{r.requested ? `${r.approved} of ${r.requested}` : '—'}</span>
-      <span className="tnum text-right">{s === 'New' ? <span className="text-muted">Council decides</span> : `$${TIER_LIMITS_USD.small}`}</span>
+      <span className="tnum text-right">{s === 'New' ? <span className="text-muted">Council decides</span> : s === 'Council' ? `$${TIER_LIMITS_USD.mid}` : `$${TIER_LIMITS_USD.small}`}</span>
     </div>
   )
 }

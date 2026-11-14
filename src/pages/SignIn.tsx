@@ -22,7 +22,7 @@ export default function SignIn({ daoId }: { daoId: string | null }) {
   const name = dao ? prettyName(dao.config.name) : null
   const members = dao ? allMembers(dao.policy) : []
   const paid = dao ? dao.proposals.filter((p) => p.status === 'Approved' && isNearTransfer(p.kind)).length : 0
-  const [dollars] = dao && ctx ? splitUsd(yoctoToNumber(dao.spendable + dao.staked) * ctx.nearUsd) : ['']
+  const [dollars, cents] = dao && ctx ? splitUsd(yoctoToNumber(dao.spendable + dao.staked) * ctx.nearUsd) : ['', '']
 
   return (
     <div className="grid min-h-screen md:grid-cols-2">
@@ -61,7 +61,14 @@ export default function SignIn({ daoId }: { daoId: string | null }) {
         {daoId ? (
           <div className="w-full max-w-[420px]">
             <div className="text-[12px] text-muted">{daoId}</div>
-            <div className="tnum mt-2 text-[56px] leading-[0.9] font-light tracking-[-0.055em] md:text-[72px]">{dao ? dollars : <span className="skeleton inline-block h-14 w-56" />}</div>
+            <div className="tnum mt-2 text-[56px] leading-[0.9] font-light tracking-[-0.055em] md:text-[72px]">{dao ? (
+                <>
+                  {dollars}
+                  <span className="text-muted">{cents}</span>
+                </>
+              ) : (
+                <span className="skeleton inline-block h-14 w-56" />
+              )}</div>
             <div className="mt-3 text-[13px] text-muted">
               held by {members.length} member{members.length === 1 ? '' : 's'} · {paid} request{paid === 1 ? '' : 's'} paid
             </div>
