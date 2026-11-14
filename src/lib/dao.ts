@@ -73,9 +73,9 @@ export function isTransfer(kind: ProposalKind): kind is TransferKind {
   return typeof kind === 'object' && kind !== null && 'Transfer' in kind
 }
 
-/** Native NEAR transfers only; token transfers are shown but not summed. */
+/** Native NEAR transfers only (Sputnik's empty token_id); token transfers are shown but not summed. */
 export function isNearTransfer(kind: ProposalKind): kind is TransferKind {
-  return isTransfer(kind) && (kind.Transfer.token_id === '' || kind.Transfer.token_id === 'near')
+  return isTransfer(kind) && !kind.Transfer.token_id
 }
 
 // Policy label used by Sputnik for each proposal kind (permissions look like "transfer:VoteApprove").
