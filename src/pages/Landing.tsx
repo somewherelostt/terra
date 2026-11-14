@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { reduceMotion } from '../lib/motion'
 import { DEMO_DAO, go, openDao, shareUrl } from '../lib/store'
 import { isDao } from '../lib/dao'
 import { FACTORY, isValidAccountId } from '../lib/near'
@@ -17,6 +18,7 @@ export default function Landing() {
   const { accountId, signOut } = useWallet()
   const [theme, setTheme] = useState<Theme>(getTheme)
   const boardUrl = shareUrl(DEMO_DAO, 'board')
+  useReveal()
 
   return (
     <div className="min-h-screen">
@@ -59,18 +61,18 @@ export default function Landing() {
       {/* Hero */}
       <section className="mx-auto max-w-[1200px] px-6 pt-16 text-center md:pt-24">
         <div className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-[12.5px] text-mute">
-          <span className="size-1.5 rounded-full bg-accent" />
+          <span className="live size-1.5 rounded-full bg-accent" />
           Works with any Sputnik DAO or Trezu treasury on NEAR
         </div>
         <h1 className="mx-auto mt-7 max-w-[900px] text-[44px] leading-[0.98] font-light tracking-[-0.045em] md:text-[72px]">
-          Your community's money,
+          <Words text="Your community's money," start={120} />
           <br />
-          run by its members.
+          <Words text="run by its members." start={120 + 3 * 70} />
         </h1>
-        <p className="mx-auto mt-6 max-w-[560px] text-[17px] leading-relaxed text-mute">
+        <p className="rise mx-auto mt-6 max-w-[560px] text-[17px] leading-relaxed text-mute" style={{ ['--d' as string]: '650ms' } as React.CSSProperties}>
           Chip in, ask for money, approve it. Your record decides how fast. The treasury pays anyone, in the coin they want, on the chain they use.
         </p>
-        <div className="mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium">
+        <div className="rise mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium" style={{ ['--d' as string]: '760ms' } as React.CSSProperties}>
           <a href="#connect" className="rounded-lg bg-accent px-5 py-3 text-on-accent">Connect your treasury</a>
           <a href={boardUrl} className="rounded-lg border border-line bg-panel px-5 py-3">See a live board</a>
         </div>
@@ -104,25 +106,13 @@ export default function Landing() {
           </h2>
           <p className="max-w-[360px] text-[14.5px] text-mute">No new wallet for the group and no new contract. Terra sits on top of the treasury you already have.</p>
         </div>
-        <div className="mt-12 rounded-2xl border border-line bg-panel p-8">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
+        <div className="reveal mt-12 rounded-2xl border border-line bg-panel p-8" data-how>
+          <HowSteps steps={[
               ['01', 'Connect', 'Connect your treasury', "Type your DAO's name. Members sign in with their NEAR account."],
               ['02', 'Chip in', 'Members chip in', 'Everyone sees one balance in dollars, and where every cent went.'],
               ['03', 'Request', 'Ask for money', "Say what it's for and who gets paid. A live quote shows what they receive."],
               ['04', 'Approve', 'Approve and pay', 'Enough approvals and the treasury pays out itself. No one holds the keys alone.'],
-            ].map(([n, tag, t, d], i) => (
-              <div key={n}>
-                <div className={`h-px ${i === 0 ? 'bg-ink' : 'bg-line'}`} />
-                <div className="mt-5 flex items-center gap-2 text-[12px]">
-                  <span className="font-mono text-mute">{n}</span>
-                  <span className="rounded-md border border-line px-2 py-0.5">{tag}</span>
-                </div>
-                <div className="mt-4 text-[15px] font-medium">{t}</div>
-                <p className="mt-1.5 text-[13.5px] leading-relaxed text-mute">{d}</p>
-              </div>
-            ))}
-          </div>
+          ]} />
         </div>
       </section>
 
@@ -147,7 +137,9 @@ export default function Landing() {
             ))}
           </ul>
         </div>
-        <LiveQuoteDemo />
+        <div className="reveal" style={{ ['--d' as string]: '90ms' } as React.CSSProperties}>
+          <LiveQuoteDemo />
+        </div>
       </section>
 
       {/* Approvals */}
@@ -163,7 +155,7 @@ export default function Landing() {
               Each member has a record, built from the treasury's own history: requests paid and requests turned down. A clean record opens the fast lane for small amounts.
             </p>
           </div>
-          <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
+          <div className="reveal mt-12 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
             <Tier name="Small" amount={`Up to $${TIER_LIMITS_USD.small}`} text="One trusted member approves. Paid in minutes." badge />
             <Tier name="Mid" amount={`Up to $${TIER_LIMITS_USD.mid}`} text="The council signs off." />
             <Tier name="Large" amount={`Over $${TIER_LIMITS_USD.mid}`} text="The council votes, and every member sees it on the board." />
@@ -174,7 +166,7 @@ export default function Landing() {
       {/* Trust */}
       <section id="trust" className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
         <h2 className={H2}>Nobody holds your money but you.</h2>
-        <div className="mt-12 grid gap-10 md:grid-cols-3">
+        <div className="reveal mt-12 grid gap-10 md:grid-cols-3">
           <TrustItem
             icon={<><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>}
             title="Your DAO keeps the funds"
@@ -243,8 +235,23 @@ function TrustItem({ icon, title, text }: { icon: React.ReactNode; title: string
 
 /** Static preview of Home with demo data (not interactive). */
 function ProductPreview() {
+  const [tilt, setTilt] = useState(10)
+  useEffect(() => {
+    const on = () => setTilt(Math.max(0, 10 - (window.scrollY / 400) * 10))
+    on()
+    window.addEventListener('scroll', on, { passive: true })
+    return () => window.removeEventListener('scroll', on)
+  }, [])
   return (
-    <div className="relative mx-auto mt-16 max-w-[1080px] rounded-t-2xl border border-b-0 border-line bg-panel p-2 pb-0 text-left" aria-hidden>
+    <div className="relative mx-auto mt-16 max-w-[1080px]" style={{ perspective: '1600px' }}>
+      <FloatCard side="left" delay={1700} title="Paid · 2 min ago" text="20.00 USDC arrived on Solana" />
+      <FloatCard side="right" delay={1850} title="ravi approved" text="Fast lane · 1 of 1" />
+      <div className="rise" style={{ ['--d' as string]: '850ms', animationDuration: '1s' } as React.CSSProperties}>
+    <div
+      className="relative rounded-t-2xl border border-b-0 border-line bg-panel p-2 pb-0 text-left"
+      aria-hidden
+      style={{ transform: `rotateX(${tilt}deg)`, transformOrigin: '50% 0%', transition: 'transform 120ms linear' }}
+    >
       <div className="grid overflow-hidden rounded-t-xl border border-b-0 border-line bg-bg md:grid-cols-[180px_1fr]">
         <aside className="hidden border-r border-line px-3 py-4 text-[12px] text-mute md:block">
           <div className="flex items-center gap-1.5 px-2 text-ink">
@@ -294,6 +301,110 @@ function ProductPreview() {
         </div>
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--bg)] to-transparent" />
+    </div>
+      </div>
+    </div>
+  )
+}
+
+function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay: number; title: string; text: string }) {
+  return (
+    <div
+      className={`pointer-events-none absolute z-10 hidden xl:block ${side === 'left' ? '-left-28 top-6' : '-right-20 top-56'}`}
+      aria-hidden
+    >
+      <div className="pop" style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
+        <div className="float rounded-xl border border-line bg-panel px-4 py-3 text-left text-[12.5px]" style={{ ['--d' as string]: side === 'left' ? '0ms' : '-3s' } as React.CSSProperties}>
+          <div className="flex items-center gap-2">
+            <span className="grid size-4 place-items-center rounded-full bg-accent text-on-accent">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
+            </span>
+            <span className="font-medium">{title}</span>
+          </div>
+          <div className="mt-1 text-mute">{text}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Words({ text, start }: { text: string; start: number }) {
+  return (
+    <>
+      {text.split(' ').map((w, i) => (
+        <span key={i}>
+          <span className="wr">
+            <span style={{ ['--d' as string]: `${start + i * 70}ms` } as React.CSSProperties}>{w}</span>
+          </span>
+          {i < text.split(' ').length - 1 ? ' ' : ''}
+        </span>
+      ))}
+    </>
+  )
+}
+
+/** Adds .in to .reveal elements as they scroll into view (15% visible). */
+function useReveal() {
+  useEffect(() => {
+    const els = [...document.querySelectorAll('.reveal')]
+    if (!('IntersectionObserver' in window)) {
+      els.forEach((e) => e.classList.add('in'))
+      return
+    }
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('in')
+            io.unobserve(e.target)
+          }
+        }),
+      { threshold: 0.15 },
+    )
+    els.forEach((e) => io.observe(e))
+    return () => io.disconnect()
+  }, [])
+}
+
+/** How it works: a line draws across the four steps once the panel is in view. */
+function HowSteps({ steps }: { steps: string[][] }) {
+  const [reached, setReached] = useState(0)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let timers: ReturnType<typeof setTimeout>[] = []
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return
+        io.disconnect()
+        timers = steps.map((_, i) => setTimeout(() => setReached(i + 1), reduceMotion ? 0 : 200 + i * 650))
+      },
+      { threshold: 0.4 },
+    )
+    io.observe(el)
+    return () => {
+      io.disconnect()
+      timers.forEach(clearTimeout)
+    }
+  }, [steps.length])
+  return (
+    <div ref={ref}>
+      <div className="relative h-px bg-line">
+        <div className="absolute inset-y-0 left-0 bg-ink transition-[width] duration-[650ms] ease-out" style={{ width: `${(reached / steps.length) * 100}%` }} />
+      </div>
+      <div className="mt-0 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map(([n, tag, t, d], i) => (
+          <div key={n} className="transition-opacity duration-500" style={{ opacity: i < reached ? 1 : 0.45 }}>
+            <div className="mt-5 flex items-center gap-2 text-[12px]">
+              <span className="font-mono text-mute">{n}</span>
+              <span className="rounded-md border border-line px-2 py-0.5">{tag}</span>
+            </div>
+            <div className="mt-4 text-[15px] font-medium">{t}</div>
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-mute">{d}</p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -395,7 +506,7 @@ function ConnectCta() {
 
   return (
     <section id="connect" className="mx-auto max-w-[1200px] px-6 pb-20 md:pb-28">
-      <div className="relative overflow-hidden rounded-3xl bg-hero px-8 py-12 text-on-hero ring-1 ring-[var(--hero-ring)] md:px-14 md:py-16">
+      <div className="reveal relative overflow-hidden rounded-3xl bg-hero px-8 py-12 text-on-hero ring-1 ring-[var(--hero-ring)] md:px-14 md:py-16">
         <div className="grid items-center gap-10 lg:grid-cols-[1fr_440px] lg:gap-12">
           <div>
             <img src={ICON} alt="" className="size-12 rounded-xl" />
