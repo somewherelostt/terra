@@ -1,4 +1,5 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { AvatarPicker } from './components/AvatarPicker'
 import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner } from './components/ui'
@@ -225,6 +226,7 @@ export function prettyName(name: string): string {
 
 function TopBar({ daoId }: { daoId: string | null }) {
   const { accountId, signIn, signOut, ready } = useWallet()
+  const [picking, setPicking] = useState(false)
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:px-8">
       <div className="md:hidden">
@@ -239,12 +241,15 @@ function TopBar({ daoId }: { daoId: string | null }) {
           <Spinner />
         ) : accountId ? (
           <>
-            <span className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-sm">
+            {picking && <AvatarPicker onClose={() => setPicking(false)} />}
+            <button
+              onClick={() => setPicking(true)}
+              title="Change avatar"
+              className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-sm hover:bg-soft"
+            >
               <Avatar id={accountId} size={26} />
-              <span title={accountId} className="max-w-40 truncate font-medium">
-                {shortName(accountId)}
-              </span>
-            </span>
+              <span className="max-w-40 truncate font-medium">{shortName(accountId)}</span>
+            </button>
             <Button variant="ghost" onClick={signOut}>
               Sign out
             </Button>

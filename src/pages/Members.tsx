@@ -6,6 +6,7 @@ import { isValidAccountId } from '../lib/near'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, isTrusted, type MemberRecord } from '../lib/record'
 import { Account, Avatar, Button, TxStatus, useTx } from '../components/ui'
+import { AvatarPicker } from '../components/AvatarPicker'
 
 type Standing = 'Council' | 'Trusted' | 'New'
 type Filter = 'All' | Standing
@@ -22,6 +23,7 @@ export default function Members() {
   const { accountId } = useWallet()
   const [filter, setFilter] = useState<Filter>('All')
   const [inviting, setInviting] = useState(false)
+  const [picking, setPicking] = useState(false)
   if (!dao) return null
   // Members are accounts in a role; anyone else with history is a contributor, not listed here.
   const memberIds = new Set(dao.policy.roles.flatMap(roleMembers))
@@ -35,6 +37,7 @@ export default function Members() {
   return (
     <div>
       {inviting && <InviteDialog onClose={() => setInviting(false)} />}
+      {picking && <AvatarPicker onClose={() => setPicking(false)} />}
       <div className="text-[13px] text-muted">Members</div>
       <div className="mt-3 flex items-end justify-between gap-4">
         <h1 className="text-[32px] font-light tracking-[-0.03em]">
@@ -66,7 +69,7 @@ export default function Members() {
             <span className="text-right">Fast lane up to</span>
           </div>
           {shown.map((r) => (
-            <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} />
+            <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={() => setPicking(true)} />
           ))}
           {shown.length === 0 && <div className="py-6 text-muted">Nobody here yet.</div>}
         </div>
@@ -84,7 +87,7 @@ export default function Members() {
   )
 }
 
-function MemberRow({ r, you }: { r: MemberRecord; you: boolean }) {
+function MemberRow({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAvatar?: () => void }) {
   const { nearUsd } = useDao()
   const s = standingOf(r)
   const badge = {
@@ -99,7 +102,14 @@ function MemberRow({ r, you }: { r: MemberRecord; you: boolean }) {
         <Avatar id={r.accountId} size={28} />
         <span className="truncate">
           <Account id={r.accountId} className="!font-normal" />
-          {you && <span className="text-muted"> · you</span>}
+          {you && (
+            <>
+              <span className="text-muted"> · you · </span>
+              <button className="text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline" onClick={onAvatar}>
+                change avatar
+              </button>
+            </>
+          )}
         </span>
       </span>
       <span>
