@@ -401,9 +401,13 @@ export function LandingNav({
   )
 
   return (
-    <header className={`sticky top-0 z-30 border-b transition-colors ${scrolled ? 'glass-bar border-line' : 'border-transparent bg-transparent'}`}>
+    // Floats: no edge-to-edge strip. At the top it's transparent; once you scroll, the whole nav becomes
+    // one rounded frosted card inset from the edges. Total height stays 64px (pt-3 + 52px) for sticky offsets.
+    <header className="pointer-events-none sticky top-0 z-30 h-16 px-2 pt-3 sm:px-3">
       <AccountHosts />
-      <div className="relative mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
+      <div
+        className={`pointer-events-auto relative mx-auto flex h-[52px] max-w-[1200px] items-center gap-3 rounded-2xl border px-2 transition-[background-color,border-color] duration-200 sm:px-4 ${scrolled ? 'glass' : 'border-transparent bg-transparent'}`}
+      >
         <a href={home || '#'} className="-ms-1 flex h-11 items-center gap-2 rounded-lg px-1 md:h-10" aria-label={t('common.terraHome')}>
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
@@ -414,8 +418,8 @@ export function LandingNav({
           <nav aria-label={t('landing.nav.sections')} className="glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-[13.5px] whitespace-nowrap">
             <a
               href={`${home}#how`}
-              aria-current={!current && active ? 'true' : undefined}
-              className={`flex h-9 items-center rounded-full px-4 transition-colors ${!current && active ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
+              aria-current={!current && active === 'how' ? 'true' : undefined}
+              className={`flex h-9 items-center rounded-full px-4 transition-colors ${!current && active === 'how' ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
             >
               {navLabel.how}
             </a>
