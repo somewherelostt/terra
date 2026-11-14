@@ -2,6 +2,7 @@
 // decoded with the archival RPC so each vote and request links to its proposal.
 
 import { isNearTransfer, type Dao } from './dao'
+import { fromBase64 } from './near'
 
 const NEARBLOCKS_API = 'https://api-testnet.nearblocks.io/v1'
 const TX_RPCS = ['https://test.rpc.fastnear.com', 'https://near-testnet.drpc.org', 'https://archival-rpc.testnet.fastnear.com']
@@ -122,12 +123,12 @@ async function decodeTx(hash: string, signer: string): Promise<DecodedCall | nul
       return null
     }
     const fc = action.FunctionCall
-    const args = JSON.parse(atob(fc.args || '') || '{}')
+    const args = JSON.parse(fromBase64(fc.args || '') || '{}')
     let returnValue: unknown
     const sv = json.result?.status?.SuccessValue
     if (sv) {
       try {
-        returnValue = JSON.parse(atob(sv))
+        returnValue = JSON.parse(fromBase64(sv))
       } catch {
         returnValue = undefined
       }

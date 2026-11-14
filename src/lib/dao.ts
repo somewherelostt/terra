@@ -1,7 +1,7 @@
 // Sputnik DAO v2/v3 reads and transaction builders.
 // Contract: https://github.com/near-daos/sputnik-dao-contract
 
-import { FACTORY, ONE_NEAR, TGAS, view, viewAccount, spendableBalance, type AccountState } from './near'
+import { FACTORY, ONE_NEAR, TGAS, toBase64, view, viewAccount, spendableBalance, type AccountState } from './near'
 
 export type RoleKind = 'Everyone' | { Group: string[] } | { Member: string }
 
@@ -311,7 +311,7 @@ export function addFunctionCallProposalTx(
               kind: {
                 FunctionCall: {
                   receiver_id: receiverId,
-                  actions: [{ method_name: methodName, args: btoa(JSON.stringify(args)), deposit: deposit.toString(), gas: gas.toString() }],
+                  actions: [{ method_name: methodName, args: toBase64(JSON.stringify(args)), deposit: deposit.toString(), gas: gas.toString() }],
                 },
               },
             },
@@ -418,7 +418,7 @@ export function createGroupTx(input: NewGroupInput): Tx {
         type: 'FunctionCall',
         params: {
           methodName: 'create',
-          args: { name: input.name, args: btoa(JSON.stringify(args)) },
+          args: { name: input.name, args: toBase64(JSON.stringify(args)) },
           gas: (300n * TGAS).toString(),
           deposit: input.deposit.toString(),
         },
