@@ -251,12 +251,12 @@ export function RequestCard({ p }: { p: Proposal }) {
           </div>
         ) : transfer ? (
           <div className="flex items-baseline justify-between gap-3">
-            <span className={sub}>Paid to</span>
-            <span className="tnum">{yoctoToNear(transfer.amount)} NEAR · {shortName(transfer.receiver_id)}</span>
+            <span className={`shrink-0 ${sub}`}>Paid to</span>
+            <span className="tnum min-w-0 truncate">{yoctoToNear(transfer.amount)} NEAR · {shortName(transfer.receiver_id)}</span>
           </div>
         ) : null}
         {arrives && (
-          <div className="mt-2 flex items-baseline justify-between">
+          <div className="mt-2 flex items-baseline justify-between gap-3">
             <span className={sub}>Arrives</span>
             <span>about {arrives} seconds</span>
           </div>
@@ -307,7 +307,7 @@ export function RequestCard({ p }: { p: Proposal }) {
               Not now
             </button>
           </div>
-          <button className="mt-3 self-start text-[12px] opacity-60 hover:opacity-100" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>
+          <button className="mt-1 self-start py-3 text-[12px] opacity-60 hover:opacity-100 sm:py-2" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>
             Decline this request
           </button>
         </>
