@@ -11,6 +11,7 @@ import { isValidAccountId } from '../lib/near'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { confirmGroupsSaved, recordVisit, roleLabel, saveGroupsTx, useMyGroups, type GroupRow } from '../lib/groups'
 import { showToast } from './ui'
+import { groupAvatarUrl } from '../lib/avatar'
 import { prettyName as pretty } from '../App'
 
 
@@ -155,6 +156,18 @@ function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode
   )
 }
 
+/** The group's DiceBear initials tile; the plain first letter if the image can't load. */
+function GroupTile({ name }: { name: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed)
+    return (
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-sand text-[13px] font-medium uppercase ring-1 ring-line" aria-hidden>
+        {name.slice(0, 1)}
+      </span>
+    )
+  return <img src={groupAvatarUrl(name)} alt="" width={32} height={32} loading="lazy" onError={() => setFailed(true)} className="size-8 shrink-0 rounded-lg" aria-hidden />
+}
+
 export function GroupList({ current, onPicked }: { current: string | null; onPicked: () => void }) {
   const { accountId, send } = useWallet()
   const { rows, unsaved, refs } = useMyGroups(accountId, [DEMO_DAO])
@@ -257,9 +270,7 @@ function Row({ row, active, nearUsd, signedIn, onPick }: { row: GroupRow; active
       aria-current={active ? 'true' : undefined}
       title={row.ref.id}
     >
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-sand text-[13px] font-medium uppercase ring-1 ring-line" aria-hidden>
-        {name.slice(0, 1)}
-      </span>
+      <GroupTile name={name} />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium">{name}</span>
         <span className="block truncate text-[12px] text-muted">
