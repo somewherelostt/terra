@@ -5,7 +5,7 @@ import { prettyName } from '../App'
 import type { Track, TrackStep } from '../lib/store'
 import { go, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
+import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, isRole, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
 import { openRequests, routeRequest } from '../lib/record'
@@ -273,6 +273,10 @@ export function RequestCard({ p }: { p: Proposal }) {
   // A vote that would execute a transfer the DAO can't afford reverts (LackBalanceForState), so block it.
   const short = transfer ? BigInt(transfer.amount) > dao.spendable : false
   const canVote = !!accountId && !myVote && contractAllows && terraAllows
+  // In a policy where someone is on the council and in the trusted role, the trusted role's
+  // one-vote threshold applies to their vote, so it pays out above the fast lane too.
+  const trustedRule = transfer ? rules.find((r) => isRole(r.role, 'trusted')) : undefined
+  const paysAlone = !!(canVote && route && route.effectiveTier !== 'small' && trustedRule && accountId && trustedRule.members.includes(accountId) && approvals + 1 < needed)
   const rec = records.get(p.proposer)
 
   return (
@@ -343,6 +347,11 @@ export function RequestCard({ p }: { p: Proposal }) {
           </div>
         )}
         {route && route.tier !== route.effectiveTier && <p className={`mt-2 text-[12px] ${sub}`}>{route.reason}, so the council decides.</p>}
+        {paysAlone && !short && (
+          <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+            You're in this DAO's trusted role as well as the council, so on chain your approval alone pays this out, without the other council votes. Approve only if the group agrees.
+          </p>
+        )}
         {short && (
           <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
             The treasury can spend {yoctoToNear(dao.spendable)} NEAR, less than this request, so an approval now would bounce. Chip in first, then approve.

@@ -83,7 +83,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
         // Address problems are the user's to fix; outages fall back to a labelled sample.
-        if (/recipient|address|invalid/i.test(msg)) setQuoteErr(msg)
+        if (/recipient|address|invalid/i.test(msg)) setQuoteErr(`NEAR Intents can't pay that address (${msg}). Check it, or pick another coin.`)
         else setQuoteDown(true)
       } finally {
         setQuoting(false)
