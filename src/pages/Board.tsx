@@ -91,9 +91,9 @@ export default function Board() {
               </div>
             )}
 
-            <div className="mt-10 overflow-x-auto text-[13.5px]">
-              <div className="min-w-[560px]">
-                <div className="grid grid-cols-[1fr_auto_auto] gap-8 border-b border-line pb-2 text-[12px] text-muted">
+            <div className="mt-10 text-[13.5px]">
+              <div>
+                <div className="hidden grid-cols-[1fr_auto_auto] gap-8 border-b border-line pb-2 text-[12px] text-muted md:grid">
                   <span>Payout</span>
                   <span>Approved by</span>
                   <span className="w-24 text-right">Amount</span>
@@ -114,12 +114,12 @@ export default function Board() {
                       : `${yes} approval${yes === 1 ? '' : 's'}${council && tier === 'large' ? `, of ${council.size} on the council` : ''}`
                   const wants = meta.wants?.replace(/\s+to\s+\S+$/, '')
                   return (
-                    <div key={p.id} className="grid grid-cols-[1fr_auto_auto] items-baseline gap-8 border-b border-line py-4 last:border-0">
+                    <div key={p.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 border-b border-line py-4 last:border-0 md:grid-cols-[1fr_auto_auto] md:gap-8">
                       <span className="flex min-w-0 items-center gap-2.5">
                         {t && <Avatar id={t.receiver_id} size={22} />}
                         <RowText main={meta.title} detail={`${wants ?? 'NEAR'} · ${when}`} extra={<TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />} />
                       </span>
-                      <span className="text-muted">{approvedBy}</span>
+                      <span className="order-3 col-span-2 pl-8 text-[12px] text-muted md:order-none md:col-span-1 md:pl-0 md:text-[13.5px]">{approvedBy}</span>
                       <span className="tnum w-24 text-right">{t ? money(t.amount) : ''}</span>
                     </div>
                   )
