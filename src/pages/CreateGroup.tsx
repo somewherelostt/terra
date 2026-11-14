@@ -17,6 +17,9 @@ function parseList(s: string): string[] {
 
 function slugify(s: string): string {
   return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // é -> e
+    .replace(/['’]/g, '') // Ravi’s -> ravis
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
