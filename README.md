@@ -1,92 +1,116 @@
 # Terra
 
-**The members' app for a community treasury.** Your community already has a treasury on NEAR. Terra lets every member chip in, request money and approve it. A member's track record decides how many approvals a request needs, and the treasury can pay anyone, on any chain.
+**The members' app for a community treasury on NEAR.**
 
-Built for the NEAR Hackathon (Nov 2026), track **Social Money**, also **Open Innovation**.
+- Live demo: {{LIVE_URL}}
+- Demo community (testnet Sputnik DAO): `{{DEMO_DAO}}`
+- Public board: {{LIVE_URL}}/?dao={{DEMO_DAO}}#/board
+- Network: NEAR **testnet**. NEAR Intents quotes come from the live mainnet 1Click API as dry runs.
 
-- Live demo: _added at deploy_
-- Demo video: _added with the X post_
+## What Terra is
 
-## Why
+Communities that share money usually pick one of two bad options: one person holds the money and everyone trusts them, or the group uses a multisig built for crypto people (proposals, bonds, gas, raw token amounts). Treasury dashboards on NEAR serve admins and finance teams. The members, who chip in, ask for money and decide, have no app of their own.
 
-Groups that share money pick between two bad options: one person holds it and everyone trusts them, or a multisig built for crypto people (proposals, bonds, gas, raw token amounts). Trezu and NEAR Business already give admins and finance teams a good treasury dashboard. What's missing is the **member side**: the people who chip in, request money and decide.
+Terra is that app. It sits on top of a community's **existing Sputnik DAO**. Members see the balance in dollars, chip in, request money, and approve requests. Each member's record, computed from the DAO's own history, decides which approval tier a request goes to. A live NEAR Intents quote shows what a recipient on another chain would get, and a public board shows every payout. Terra never deploys its own multisig and never holds the money.
 
-Terra sits on top of a community's **existing Sputnik DAO** (the contract Trezu uses too). It never deploys a new multisig and never holds the money.
+## How it meets the Social Money prompt
 
-## What it does
+| The prompt asks for | What Terra does | Where in the code |
+|---|---|---|
+| Use the community's existing DAO or Trezu treasury for custody and approvals; don't build a new multisig | Type any Sputnik DAO account and Terra reads and writes to it. Money only moves through that DAO's own `add_proposal` and `act_proposal`. "Start a group" only exists for communities with no DAO yet, and it calls the standard testnet factory `sputnikv2.testnet`. | `src/lib/dao.ts`, `src/pages/Landing.tsx`, `src/pages/CreateGroup.tsx` |
+| Reputation tied to named accounts, traceable | Each named account's record (requests, approved, rejected, paid out, chipped in, votes) is computed only from the DAO's proposals and its NearBlocks transactions. Every row links to the proposal or transaction on chain. | `src/lib/record.ts`, `src/pages/Members.tsx` |
+| Small payouts auto-approve for trusted contributors | **Fast lane** (up to $50, requester has a clean record or a `trusted`/`council` role): one approval from a trusted member **other than the requester** executes the payout. In the Terra policy the `trusted` role has a 1-vote threshold for transfers. A small request from a member with no record yet goes to the council instead. | `routeRequest` in `src/lib/record.ts`, `newGroupPolicy` in `src/lib/dao.ts` |
+| Mid-size payouts need one council member | **Council nod** ($50 to $500): routed to the `council` role at the council's own threshold. This is one council member only when the DAO's council threshold is one vote. Terra's default policy for new groups uses a council majority (for a 2-member council that's both members). | `src/lib/record.ts` |
+| Large payouts become a normal DAO proposal | **Full vote** (over $500): the council votes at its normal threshold, and the open request is shown on the public board. | `src/lib/record.ts`, `src/pages/Board.tsx` |
+| A public board | `?dao=<dao>#/board`: no sign-in, no buttons that move money. Shows balance, paid-out total, members, median time to pay, staking, and each payout with who approved it and a proof link. | `src/pages/Board.tsx` |
 
-| Screen | What a member can do |
-|---|---|
-| **Home** | See the treasury in dollars (NEAR underneath), members, open requests and recent activity. Chip in NEAR. |
-| **Request money** | "Pay [account] [amount] for [reason]". For a recipient on another chain, pick the token and chain (230+ tokens on 30+ chains) and get a live **NEAR Intents** quote: "the treasury sends about 6.10 NEAR, they get 20.00 USDC on Solana". The quote is saved in the request so voters see it. |
-| **Approve** | Request cards with the tier, the quote, who asked, and approvals so far. Approve or reject; when the threshold is met the DAO pays out on its own. |
-| **Members** | Each member's record, computed from the DAO's own history: requests, approved, rejected, amounts, chip-ins, votes. A clean record earns the fast lane. |
-| **Activity** | Every chip-in, request, approval and payout, each linking to its transaction on NearBlocks. |
-| **Earn** | Propose staking idle money with a testnet validator; members approve it like any request. |
-| **Board** | A read-only link for sponsors: balance, open requests, payouts and records. No sign-in, no buttons. |
-| **Start a group** | For communities without a DAO: creates a standard Sputnik DAO with a Terra-shaped policy through the official testnet factory. |
-| **Request links** | Share a link that opens "Request money" already filled in. |
-
-## How it maps to the Social Money prompt
-
-| The prompt asks for | Terra |
-|---|---|
-| Use the community's existing DAO or Trezu treasury for custody and approvals; no new multisig | Type any Sputnik DAO name and Terra reads and writes to it. Money only moves through `add_proposal` / `act_proposal` on that DAO. |
-| Reputation tied to named accounts, traceable | Member records are computed only from the DAO's proposals and transactions; every row links to the chain. |
-| Tiers: small auto-approves for trusted contributors, mid needs one council member, large is a normal proposal | **Fast lane** (up to $50, requester with a clean record): one trusted member's approval executes it. **Council nod** ($50–$500, or no record yet): the council's threshold. **Full vote** (over $500): the council votes, shown to every member on the board. |
-| A public board | `?dao=<dao>#/board`: read-only balance, open requests, payouts and records. |
-| Shared budgets and collective ownership | Chip-ins go straight to the DAO account; idle money can be staked in the DAO's own name. |
+The dollar limits of each tier are enforced by the app, not by the contract. See [What's real and what's simulated](#whats-real-and-whats-simulated).
 
 ## How NEAR is used
 
-- **Sputnik DAO v2/v3** (testnet factory `sputnikv2.testnet`): reads `get_config`, `get_policy`, `get_proposals`, `get_last_proposal_id`; writes `add_proposal` (Transfer and FunctionCall kinds, with the exact bond the policy asks for) and `act_proposal` (passing the proposal `kind` back, as v3 requires). New groups go through the factory's `create`.
-- **NEAR Intents 1Click API**: `GET /v0/tokens` for the token list and the NEAR/USD price; `POST /v0/quote` with `dry: true` and `EXACT_OUTPUT` for "the recipient gets exactly X". No API key (keyless use carries a 0.2% fee, which is fine for dry quotes).
-- **NEAR Connect** (`@hot-labs/near-connect`): wallet sign-in and signing with Meteor, Intear, Nightly, Ledger, NEAR CLI and others on testnet.
-- **Staking pools**: `deposit_and_stake` through a DAO FunctionCall proposal; balance read with `get_account_total_balance`.
-- **JSON-RPC** (FastNEAR, near.org) for reads and transaction lookups, and the **NearBlocks** testnet API for the activity feed.
+- **Sputnik DAO (v2/v3) on testnet.** Reads: `get_config`, `get_policy`, `get_proposals`, `get_last_proposal_id`. Writes:
+  - `add_proposal` with a `Transfer` kind for payment requests, a `FunctionCall` kind for staking, and an `AddMemberToRole` kind for invites. Each attaches the exact `proposal_bond` from the DAO's policy.
+  - `act_proposal` with `VoteApprove` or `VoteReject`, passing the proposal `kind` back as v3 contracts require. When the threshold is met, the DAO pays out on its own.
+  - New groups: the factory `sputnikv2.testnet` method `create`, with a Terra-shaped policy (`council`, `trusted`, `all` roles).
+- **NEAR Intents 1Click API** (`https://1click.chaindefuser.com/v0`). `GET /tokens` loads the token list and the NEAR/USD price used for every dollar amount. `POST /quote` runs with `dry: true` and `swapType: EXACT_OUTPUT` ("the recipient gets exactly X; how much NEAR does the treasury send?"). No API key is used. The quote is saved in the proposal description so voters see it.
+- **Staking.** Earn files a DAO `FunctionCall` proposal calling `deposit_and_stake` on a testnet validator pool (default `aurora.pool.f863973.m0`). Home and the board read the DAO's stake with `get_account_total_balance`.
+- **NEAR Social.** Avatars are saved to the member's own SocialDB data on `v1.social08.testnet` (key `<account>/terra/avatar`, via `set`) and read back with `get`. Accounts with no saved avatar get a generated default.
+- **Named accounts.** Every screen shows readable `name.testnet` accounts. Records, tiers and approvals all key on the account name.
+- **Wallets and reads.** NEAR Connect (`@hot-labs/near-connect`) handles sign-in and signing on testnet. Reads go over JSON-RPC (FastNEAR, then `rpc.testnet.near.org` as fallback), and the activity feed uses the NearBlocks testnet API.
 
 ## Try it
 
-You need a browser. Signing needs a NEAR **testnet** account (Meteor Wallet → Testnet → create account, then use the faucet).
+You need a browser. Steps 1–5 need no account. Steps 6–8 need **two NEAR testnet accounts** (any NEAR wallet on testnet, funded from the testnet faucet).
 
-1. Open the live demo and click **Try the demo community** → you see the treasury balance in USD, members and recent payouts, read live from a testnet DAO.
-2. Go to **Activity** → every payout, request and approval, each with a NearBlocks link.
-3. Go to **Request money** → pick **Someone on another chain**, keep "USDC on Solana", paste any Solana address, type `20` → a live NEAR Intents quote appears (about 6 NEAR, about 20 seconds).
-4. Open **Board** → the same data with no sign-in and no buttons. Share this link with a sponsor.
-5. With a testnet account: **Start a new group** (or open a DAO you're a member of) → **Chip in** 1 NEAR on Home → the balance and activity update.
-6. **Request money** → pay a NEAR account 0.5 NEAR → sign → the request appears in **Approve**.
-7. Sign in with a second member account → **Approve** → once the threshold is met the DAO pays out; the payout shows in Activity with its transaction.
+1. Open {{LIVE_URL}} and click **try the demo community** (under the DAO box) → Home opens for `{{DEMO_DAO}}`.
+2. On **Home** → the treasury balance is shown in **US dollars**, with the NEAR amount and today's NEAR price underneath, then members, total paid out and recent activity. All of it is read live from the testnet DAO.
+3. Click **Pay** in the sidebar. Type `20` in Amount and any reason, keep **USDC on Solana**, and paste any Solana address in **Their Solana address** → within a few seconds a card labelled **Live quote · NEAR Intents** shows "They get exactly 20.00 USDC", how much NEAR the treasury sends (about 6 NEAR at today's price), the fee, and the arrival time (about 20 seconds). The tier note under it says which approval lane the request would take.
+4. Click **Approve** → open requests show their tier ("Small", "Mid", "Large"), who asked, the requester's record, the saved quote, and "N of M" approvals so far. As a guest you can see them but not vote.
+5. Click **Board** (or open {{LIVE_URL}}/?dao={{DEMO_DAO}}#/board in a private window) → the public board, with no sign-in and no money buttons: balance, paid-out total, members, and each payout with who approved it and a proof link to NearBlocks.
+6. **Start your own group** (signed flows): on the landing page click **Create one in a minute**. Signed in as A, name the group, list A and B as council and B as trusted, set a starting deposit of at least 5 NEAR (the factory needs about 5 NEAR to store the DAO contract), and sign the factory call → you land on Home for your new DAO.
+7. Signed in as A: **Home → Chip in** 1 NEAR → the balance goes up and the chip-in appears in Activity. Then **Pay**, choose **NEAR account**, pay B $1 → sign → the request appears in **Approve** as Small.
+8. Sign in as B → **Approve** → click **Approve and pay** → the payout tracker follows the transaction, the DAO pays out, and the payout appears in Activity, on the Board and in A's record on **Members**.
 
-## What's real and what's simulated
+Steps 6–8 use real testnet transactions signed by your own wallet. They haven't yet been run end to end on the deployed demo DAO.
 
-- **Real, on testnet:** DAO reads, chip-ins, payment requests, approvals and payouts, group creation, staking proposals. All signed by the member's own wallet.
-- **Real, on mainnet, read-only:** NEAR Intents quotes and token prices (dry quotes; nothing is swapped).
-- **Simulated:** the cross-chain leg. NEAR Intents has no testnet, so on testnet the treasury pays the quoted NEAR to a stand-in NEAR account the requester names. On mainnet the same request would pay the Intents deposit address and the recipient would get the token on their chain. If the live quote API is down, Terra shows a clearly labelled sample quote recorded on 14 Nov 2026.
-- **Enforced by the app, not the contract:** the dollar limits for each tier. Sputnik decides approvals by role and proposal kind, not by amount, so Terra routes each request to the right role (a `trusted` role with a one-vote threshold for transfers, or the council). A member of the trusted role could still approve a large transfer from another client. A small guard contract that holds the trusted role and checks amounts is the next step.
-- Staking rewards arrive once per epoch (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first.
+## Run locally
 
-## Run it locally
+Requires Node 20.19+ or 22.12+ (what Vite 8 needs) and pnpm (the repo pins `pnpm@12.14.0` in `packageManager`).
 
 ```bash
 pnpm install
-pnpm dev
+cp .env.example .env   # optional; the defaults below are used without it
+pnpm dev               # http://localhost:5173
 ```
 
-Optional settings are in `.env.example` (the demo DAO and the staking pool).
+`.env.example`:
 
-## Built with
+| Variable | Default | What it does |
+|---|---|---|
+| `VITE_DEMO_DAO` | `riverside-coop.sputnikv2.testnet` | DAO opened by "try the demo community" |
+| `VITE_STAKING_POOL` | `aurora.pool.f863973.m0` | Testnet validator pool used by Earn |
 
-React 19, TypeScript, Vite, Tailwind CSS 4, `@hot-labs/near-connect`. NEAR JSON-RPC, NEAR Intents 1Click API, NearBlocks API. AI coding assistants were used while building, as the rules allow.
+Other scripts: `pnpm build` (type-check and production build into `dist/`), `pnpm preview`, `pnpm lint`. No backend and no API keys are needed: the app calls NEAR RPC, NearBlocks and the 1Click API straight from the browser. A fresh clone with `pnpm install` then `pnpm dev` and `pnpm build` was checked on 14 Nov 2026.
 
-All code in this repository was written during the hackathon window.
+## What's real and what's simulated
+
+- **Testnet only.** All DAO reads and writes, chip-ins, requests, approvals, payouts, group creation, staking and avatar saves use NEAR testnet, signed by the member's own wallet.
+- **Intents quotes are live but dry.** Quotes come from the real mainnet 1Click API with `dry: true`. Nothing is swapped, and **no cross-chain transfer happens**. NEAR Intents has no testnet, so on testnet the treasury pays the quoted NEAR to a NEAR "stand-in" account named on the Pay screen. On mainnet the same proposal would pay the Intents deposit address.
+- **Saved-quote fallback.** If the 1Click API fails, Pay shows a clearly labelled **Sample quote** recorded on 14 Nov 2026 at 13:00 UTC (20 USDC on Solana for about 6.10 NEAR) instead of a live one.
+- **Tier limits are enforced by the app, not the contract.** Sputnik decides approvals by role and proposal kind, not by amount. Terra routes each request to the right role and only lets the right accounts vote in its UI. But a member of the `trusted` role (threshold 1 for transfers) could approve a large transfer from another client. A small guard contract that checks amounts is the fix (see What's next).
+- **Staking rewards accrue per epoch** (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first. Unstaking is not built into the UI.
+- **Dollar amounts** use the NEAR/USD price from the 1Click token list. Payouts on testnet are still in NEAR.
+
+## Libraries, templates and services used
+
+No starter template; the project was scaffolded with plain Vite. All code in this repository was written during the hackathon window. AI coding assistants were used while building, as the rules allow (Q-005).
+
+| Library or service | Used for |
+|---|---|
+| React 19, React DOM | UI |
+| TypeScript, Vite, `@vitejs/plugin-react` | Language and build |
+| Tailwind CSS 4 (`@tailwindcss/vite`) | Styling |
+| `@hot-labs/near-connect` 0.12.0 | Wallet sign-in and transaction signing |
+| oxlint | Linting |
+| Geist and Geist Mono (Google Fonts) | Typography |
+| DiceBear HTTP API (`thumbs` style) | Default avatars |
+| NEAR JSON-RPC (FastNEAR, near.org) | Chain reads |
+| NearBlocks testnet API | Activity feed and transaction links |
+| NEAR Intents 1Click API | Token list, NEAR price, dry quotes |
+| Sputnik DAO contract and testnet factory `sputnikv2.testnet` | Treasury, proposals, votes |
+| SocialDB `v1.social08.testnet` | Saved avatars |
+
+## Hackathon
+
+Built at **NEAR HACKATHON** (November 2026). Tracks: **`social`** (Social Money) and **`open`** (Open Innovation).
 
 ## What's next
 
-- Real cross-chain payouts and pay-ins through NEAR Intents on mainnet.
-- A guard contract so tier limits are enforced on chain.
-- Allowances for members and AI helpers with spending limits.
-- A hand-off to Trezu for groups that outgrow the app.
+- Real cross-chain payouts on mainnet: pay the NEAR Intents deposit address with `dry: false`.
+- A guard contract that holds the `trusted` role and checks amounts, so tier limits are enforced on chain.
+- Spending allowances for members and AI helpers through limited access keys.
+- A hand-off to a full treasury dashboard such as Trezu for groups that outgrow the members' app.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
