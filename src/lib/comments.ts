@@ -121,14 +121,15 @@ export function useGroupComments(daoId: string | null | undefined) {
   const dao = ctx?.dao && ctx.dao.id === daoId ? ctx.dao : null
   const members = dao ? new Set(allMembers(dao.policy)) : null
   const proposerOf = dao ? new Map(dao.proposals.map((p) => [p.id, p.proposer])) : null
-  const trustedAuthor = (c: Comment) => !members || members.has(c.author) || proposerOf?.get(c.proposalId) === c.author
+  // Until the group's members are known, show nothing rather than everything.
+  const trustedAuthor = (c: Comment) => !!members && (members.has(c.author) || proposerOf?.get(c.proposalId) === c.author)
   const visible = all.filter(trustedAuthor)
   return {
-    loading: !g || (g.loading && !g.at),
+    loading: !g || (g.loading && !g.at) || !members,
     error: !!g?.error,
     forRequest: (proposalId: number) => visible.filter((c) => c.proposalId === proposalId),
     count: (proposalId: number) => visible.reduce((n, c) => n + (c.proposalId === proposalId ? 1 : 0), 0),
-    hiddenFor: (proposalId: number) => all.filter((c) => c.proposalId === proposalId && !trustedAuthor(c)),
+    hiddenFor: (proposalId: number) => (members ? all.filter((c) => c.proposalId === proposalId && !trustedAuthor(c)) : []),
     refresh: () => (daoId ? loadComments(daoId, true) : Promise.resolve()),
   }
 }

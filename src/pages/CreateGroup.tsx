@@ -82,6 +82,8 @@ export default function CreateGroup() {
   const step1Error =
     displayName.trim().length < 2
       ? 'Give the group a name.'
+      : !slug
+        ? 'Type a treasury address in Latin letters, numbers or dashes (e.g. hindi-club).'
       : !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3
         ? 'The treasury address needs 3+ lowercase letters, numbers or dashes.'
         : !isValidAccountId(daoId)

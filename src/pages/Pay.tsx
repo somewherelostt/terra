@@ -202,6 +202,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     const meta = {
       title: title.trim(),
       wants: mode === 'intents' && token ? `${quote ? quote.quote.amountOutFormatted : tokenAmount} ${token.symbol} on ${chainName(token.blockchain)} to ${address.trim()}` : undefined,
+      notes: mode === 'intents' ? `Testnet payout: the quoted NEAR goes to ${payTo}` : undefined,
       quote: quoteText(),
       tier: effectiveTier ? TIER_COPY[effectiveTier].label : undefined,
     }
@@ -320,8 +321,9 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                 <input className={bare + ' font-mono text-[14px]'} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={token?.blockchain === 'sol' ? 'Solana address' : 'Address on their chain'} spellCheck={false} />
               </label>
               <label className={line}>
-                <span className="text-[12px] text-muted">NEAR account that receives the payout</span>
+                <span className="text-[12px] text-muted">NEAR account paid on testnet</span>
                 <input className={bare + ' font-mono text-[14px]'} value={standIn} onChange={(e) => setStandIn(e.target.value.toLowerCase())} placeholder="you.testnet" spellCheck={false} />
+                <span className="mt-1 block text-[12px] text-muted">NEAR Intents runs on mainnet, so on testnet the group pays this account the quoted NEAR.</span>
               </label>
             </>
           )}

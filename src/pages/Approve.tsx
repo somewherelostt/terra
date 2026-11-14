@@ -217,7 +217,6 @@ export function RequestCard({ p }: { p: Proposal }) {
     const group = prettyName(dao!.config.name)
     const to = transfer ? displayName(transfer.receiver_id) : ''
     const steps: TrackStep[] = [{ label: 'Approved by you', done: true, at: 'now', hash }]
-    const wantsLine = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
     const base = { eta: transfer ? 'checking…' : '', finished: false, paid: false }
     setTrack(p.id, { ...base, steps: [...steps, { label: transfer ? `${group} sends ${yoctoToNear(transfer.amount)} NEAR` : 'Applying the change', done: false }] })
 
@@ -235,11 +234,6 @@ export function RequestCard({ p }: { p: Proposal }) {
     if (status === 'Approved') {
       steps.push({ label: transfer ? `${group} sent ${yoctoToNear(transfer.amount)} NEAR` : 'Change applied', done: true, at: since(), hash })
       setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
-      if (transfer && wantsLine) {
-        await wait(950)
-        steps.push({ label: 'Cross-chain via NEAR Intents (mainnet)', done: false })
-        setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
-      }
       if (transfer) {
         await wait(950)
         steps.push({ label: `Arrived in ${to}'s account`, done: true, at: since() })

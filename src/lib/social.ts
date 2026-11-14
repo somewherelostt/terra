@@ -84,7 +84,7 @@ export function cleanText(s: unknown, maxLen: number): string {
   const t = s
     .replace(/\r\n?/g, '\n') // before the strip below, which would eat a bare \r
     // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0008\u000b-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+    .replace(/[\u0000-\u0008\u000b-\u001f\u007f\u200b\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()

@@ -219,6 +219,9 @@ export async function isDao(id: string): Promise<boolean> {
   }
 }
 
+/** Full, fully decided proposal pages per DAO (see loadDao). */
+const settledPages = new Map<string, Map<number, Proposal[]>>()
+
 export async function loadDao(id: string, stakingPool?: string | null): Promise<Dao> {
   const [config, policy, account, lastProposalId] = await Promise.all([
     view<DaoConfig>(id, 'get_config'),
@@ -228,10 +231,21 @@ export async function loadDao(id: string, stakingPool?: string | null): Promise<
   ])
   if (!account) throw new Error(`Account ${id} not found`)
   // The whole history, so member records remember every paid and turned-down request.
-  // Pages of 100 go out together; near.ts caps how many run at once.
+  // Pages of 100 go out together; near.ts caps how many run at once. A full page whose
+  // proposals are all decided can't change, so it's reused instead of fetched again.
+  const cache = settledPages.get(id) ?? new Map<number, Proposal[]>()
+  settledPages.set(id, cache)
   const starts: number[] = []
   for (let i = 0; i < lastProposalId; i += 100) starts.push(i)
-  const pages = await Promise.all(starts.map((i) => view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 })))
+  const pages = await Promise.all(
+    starts.map(async (i) => {
+      const hit = cache.get(i)
+      if (hit) return hit
+      const page = await view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 })
+      if (page.length === 100 && page.every((p) => p.status !== 'InProgress')) cache.set(i, page)
+      return page
+    }),
+  )
   const proposals: Proposal[] = pages.flat()
   let staked = 0n
   if (stakingPool) {
