@@ -1,4 +1,5 @@
-import { openDao, useDao } from '../lib/store'
+import { useState } from 'react'
+import { openDao, shareUrl, useDao } from '../lib/store'
 import { allMembers, approvalRules, decodeDescription, isNearTransfer, isRole } from '../lib/dao'
 import { nanoToDate, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, openRequests, tierFor } from '../lib/record'
@@ -6,12 +7,19 @@ import { Avatar, RowText, TxLink } from '../components/ui'
 import { MemberName } from '../components/ProfileSheet'
 import { CommentCount, RequestSheetHost, openRequestSheet } from '../components/Comments'
 import { prettyName } from '../App'
+import { LandingNav } from './Landing'
+import { Button } from '../components/ui'
 
-const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 
 /** Public, read-only board: no sign-in, no sidebar, no buttons that move money. */
-export default function Board() {
+/**
+ * The group's public record. `app`: a normal page inside the app shell (members, signed in).
+ * `public`: the landing's navbar and width, for visitors and shared links.
+ */
+export default function Board({ variant = 'public' }: { variant?: 'app' | 'public' }) {
   const { dao, nearUsd, error, activity } = useDao()
+  const [copied, setCopied] = useState(false)
+  const isApp = variant === 'app'
   if (error)
     return (
       <div className="mx-auto max-w-[560px] px-6 py-24 text-center">
@@ -40,23 +48,17 @@ export default function Board() {
   const median = waits.length ? waits[Math.floor(waits.length / 2)] : NaN
   const open = dao ? openRequests(dao) : []
 
-  return (
-    <div className="min-h-screen">
-      <RequestSheetHost />
-      <header className="border-b border-line">
-        <div className="mx-auto flex h-14 max-w-[880px] items-center gap-2 px-6 text-[13px]">
-          <img src={ICON} alt="" className="size-6 rounded-[6px]" />
-          <span className="font-medium">terra</span>
-          <span className="ml-3 hidden text-muted sm:inline">Public board · read only</span>
-          {dao && (
-            <button onClick={() => openDao(dao.id, 'home')} className="ml-auto min-h-11 rounded-lg border border-line bg-card px-3 py-1.5 font-medium sm:min-h-0">
-              Join {name}
-            </button>
-          )}
-        </div>
-      </header>
+  const publicLink = dao ? shareUrl(dao.id, 'board') : ''
+  const title = dao ? (
+    <>
+      {name} holds <span className="tnum">{money(dao.spendable + dao.staked)}</span> and has paid out{' '}
+      <span className="tnum">{activity ? money(paidThisYear) : '…'}</span> this year.
+    </>
+  ) : null
 
-      <div className="mx-auto max-w-[880px] px-6 py-12 md:py-16">
+  const body = (
+    <>
+      <RequestSheetHost />
         {!dao ? (
           <div aria-busy>
             <div className="skeleton h-3 w-48" />
@@ -65,11 +67,29 @@ export default function Board() {
           </div>
         ) : (
           <>
-            <div className="text-[13px] text-muted">{dao.id}</div>
-            <h1 className="mt-4 text-[34px] leading-[1.02] font-light tracking-[-0.04em] md:text-[48px]">
-              {name} holds <span className="tnum">{money(dao.spendable + dao.staked)}</span> and has paid out{' '}
-              <span className="tnum">{activity ? money(paidThisYear) : '…'}</span> this year.
-            </h1>
+            {isApp ? (
+              <>
+                <div className="flex items-center justify-between gap-3 text-[13px] text-muted">
+                  <span>Board</span>
+                  <Button
+                    variant="secondary"
+                    onClick={() => navigator.clipboard?.writeText(publicLink).then(() => setCopied(true)).catch(() => setCopied(false))}
+                  >
+                    {copied ? 'Public link copied' : 'Share public link'}
+                  </Button>
+                </div>
+                <h1 className="mt-3 max-w-3xl text-[32px] leading-[1.1] font-light tracking-[-0.03em]">{title}</h1>
+              </>
+            ) : (
+              <>
+                <div className="text-[13px] text-muted">{dao.id}</div>
+                <h1 className="mt-4 max-w-4xl text-[34px] leading-[1.02] font-light tracking-[-0.04em] md:text-[48px]">{title}</h1>
+                <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-[12px] text-muted">
+                  <span aria-hidden className="size-1.5 rounded-full bg-good" />
+                  Read-only public board
+                </span>
+              </>
+            )}
             <p className="mt-4 text-[14.5px] text-muted">Every payout below was approved by members. Each one links to its record on NEAR.</p>
 
             <div className="mt-10 grid grid-cols-2 border-y border-line md:grid-cols-4">
@@ -190,11 +210,25 @@ export default function Board() {
           </>
         )}
 
-        <div className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[12.5px] text-muted">
-          <span>Powered by terra · built on NEAR</span>
-          <button onClick={() => openDao(null)} className="hover:text-ink">Run your community's treasury with Terra →</button>
-        </div>
-      </div>
+        {!isApp && (
+          <div className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[12.5px] text-muted">
+            <span>Powered by terra · built on NEAR</span>
+            <button onClick={() => openDao(null)} className="-my-3 py-3 hover:text-ink">Run your community's treasury with Terra →</button>
+          </div>
+        )}
+    </>
+  )
+
+  if (isApp) return body
+  return (
+    <div className="min-h-screen">
+      <LandingNav
+        boardUrl={publicLink || '#'}
+        home="./"
+        current="board"
+        joinCta={dao ? { label: `Join ${name}`, onClick: () => openDao(dao.id, 'join') } : undefined}
+      />
+      <main className="mx-auto max-w-[1200px] px-4 pt-10 pb-16 sm:px-6 md:pt-16">{body}</main>
     </div>
   )
 }
@@ -203,7 +237,7 @@ function Stat({ k, v, cls }: { k: string; v: string; cls: string }) {
   return (
     <div className={`py-5 ${cls}`}>
       <div className="text-[12px] text-muted">{k}</div>
-      <div className="tnum mt-1.5 text-[20px] font-light md:text-[26px]">{v}</div>
+      <div className="tnum mt-1.5 text-[22px] font-light tracking-tight sm:text-[28px]">{v}</div>
     </div>
   )
 }

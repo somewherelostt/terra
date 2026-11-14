@@ -320,8 +320,22 @@ const NAV_LINKS: [string, string][] = [
   ['trust', 'Trust'],
 ]
 
-/** Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in. */
-function LandingNav({ boardUrl }: { boardUrl: string }) {
+/**
+ * Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in.
+ * Also used by the public board, where section links point back to the landing (`home="./"`) and the
+ * signed-out primary is "Join <group>".
+ */
+export function LandingNav({
+  boardUrl,
+  home = '',
+  current,
+  joinCta,
+}: {
+  boardUrl: string
+  home?: string
+  current?: 'board'
+  joinCta?: { label: string; onClick: () => void }
+}) {
   const { accountId } = useWallet()
   const [scrolled, setScrolled] = useState(false)
   const [active, setActive] = useState<string | null>(null)
@@ -357,7 +371,11 @@ function LandingNav({ boardUrl }: { boardUrl: string }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [menu])
 
-  const primary = accountId ? (
+  const primary = !accountId && joinCta ? (
+    <button type="button" onClick={joinCta.onClick} className="inline-flex h-10 max-w-[11rem] items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong sm:max-w-none">
+      <span className="truncate">{joinCta.label}</span>
+    </button>
+  ) : accountId ? (
     <button type="button" onClick={openTerra} className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
       Open Terra <span aria-hidden className="ml-1.5">→</span>
     </button>
@@ -372,7 +390,7 @@ function LandingNav({ boardUrl }: { boardUrl: string }) {
     <header className={`sticky top-0 z-30 border-b transition-colors ${scrolled ? 'glass-bar border-line' : 'border-transparent bg-transparent'}`}>
       <AccountHosts />
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
-        <a href="#" className="-ml-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label="Terra home">
+        <a href={home || '#'} className="-ml-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label="Terra home">
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
         </a>
@@ -381,7 +399,7 @@ function LandingNav({ boardUrl }: { boardUrl: string }) {
           {NAV_LINKS.map(([id, label]) => (
             <a
               key={id}
-              href={`#${id}`}
+              href={`${home}#${id}`}
               aria-current={active === id ? 'true' : undefined}
               className={`relative flex h-10 items-center rounded-lg px-3 transition-colors ${active === id ? 'text-ink' : 'text-mute hover:text-ink'}`}
             >
@@ -389,7 +407,14 @@ function LandingNav({ boardUrl }: { boardUrl: string }) {
               {active === id && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
             </a>
           ))}
-          <a href={boardUrl} className="flex h-10 items-center rounded-lg px-3 text-mute hover:text-ink">Live board</a>
+          <a
+            href={boardUrl}
+            aria-current={current === 'board' ? 'page' : undefined}
+            className={`relative flex h-10 items-center rounded-lg px-3 ${current === 'board' ? 'text-ink' : 'text-mute hover:text-ink'}`}
+          >
+            Live board
+            {current === 'board' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
+          </a>
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
@@ -428,7 +453,7 @@ function LandingNav({ boardUrl }: { boardUrl: string }) {
           >
             <nav aria-label="Sections" className="flex flex-col">
               {NAV_LINKS.map(([id, label]) => (
-                <a key={id} href={`#${id}`} onClick={() => setMenu(false)} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">
+                <a key={id} href={`${home}#${id}`} onClick={() => setMenu(false)} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">
                   {label}
                 </a>
               ))}

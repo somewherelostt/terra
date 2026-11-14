@@ -2,7 +2,7 @@ import { type ReactNode } from 'react'
 import { openProfileSheet } from './components/ProfileSheet'
 import { AccountChip, AccountHosts, ThemeButton } from './components/AccountMenu'
 import GroupSwitcher from './components/GroupSwitcher'
-import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
+import { DaoProvider, go, openDao, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner, WrongNetworkBanner } from './components/ui'
 import { prefetchProfiles, useNames } from './lib/profile'
@@ -24,6 +24,7 @@ import Messages from './pages/Messages'
 
 export default function App() {
   const route = useRoute()
+  const { accountId } = useWallet()
 
 
   if (route.page === 'create') return <CreateGroup />
@@ -47,8 +48,8 @@ export default function App() {
 
   return (
     <DaoProvider daoId={route.daoId}>
-      {route.page === 'board' ? (
-        <Board />
+      {route.page === 'board' && !accountId ? (
+        <Board variant="public" />
       ) : (
         <Shell page={route.page} daoId={route.daoId}>
           <DaoGate>
@@ -60,6 +61,7 @@ export default function App() {
             {route.page === 'earn' && <Earn />}
             {route.page === 'allowances' && <Allowances />}
             {route.page === 'messages' && <Messages />}
+            {route.page === 'board' && <Board variant="app" />}
           </DaoGate>
         </Shell>
       )}
@@ -167,21 +169,17 @@ function NetworkCheck() {
 function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean }) {
   const { dao } = useDaoSafe()
   const count = item.page === 'approve' && dao ? openRequests(dao).length : 0
-  const external = item.page === 'board' && dao
   return (
     <a
-      href={external ? shareUrl(dao.id, 'board') : `#/${item.page}`}
-      target={external ? '_blank' : undefined}
-      rel={external ? 'noreferrer' : undefined}
+      href={`#/${item.page}`}
+      aria-current={active ? 'page' : undefined}
       onClick={(e) => {
-        if (external) return
         e.preventDefault()
         go(item.page)
       }}
       className={`flex items-center rounded-lg px-3 py-2 text-[13.5px] transition ${active ? 'bg-card text-ink ring-1 ring-line' : 'text-muted hover:text-ink'}`}
     >
       <span className="flex-1">{item.label}</span>
-      {external && <span className="text-muted">↗</span>}
       {count > 0 && <span className="grid size-[18px] place-items-center rounded-full bg-brand text-[10.5px] font-medium text-on-brand">{count}</span>}
     </a>
   )
@@ -194,7 +192,7 @@ function MobileNav({ page }: { page: Page }) {
   return (
     <nav aria-label="Main" className="glass fixed inset-x-3 bottom-[calc(10px+env(safe-area-inset-bottom))] z-20 flex gap-0.5 rounded-[30px] p-1.5 md:hidden">
       {items.map((n) => {
-        const href = n.page === 'board' && dao ? shareUrl(dao.id, 'board') : `#/${n.page}`
+        const href = `#/${n.page}`
         return (
           <a
             key={n.page}
