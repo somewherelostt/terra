@@ -9,6 +9,7 @@ import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNear
 import { nanoToDate, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
 import { openRequests, routeRequest } from '../lib/record'
+import { joinRequestOf } from '../lib/join'
 import { Avatar, Button, EmptyState, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 
 export default function Approve() {
@@ -127,6 +128,7 @@ function DecidedRow({ p }: { p: Proposal }) {
   let detail: string
   if (paid) detail = meta.wants ? `paid · ${meta.wants.replace(/\s+to\s+\S+$/, '')} requested` : `paid to ${displayName(transfer!.receiver_id)}`
   else if (p.status === 'Rejected') detail = `declined, ${yes} to ${no}`
+  else if (joinRequestOf(p)) detail = `${s.label.toLowerCase()} · join request`
   else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${requestKind(p.kind).toLowerCase()}`)
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
@@ -154,6 +156,7 @@ export function RequestCard({ p }: { p: Proposal }) {
   const meta = decodeDescription(p.description)
   const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
   const isTransfer = !!transfer
+  const join = joinRequestOf(p)
   const route = isTransfer ? routeRequest(dao, p, nearUsd, records) : null
   const rules = approvalRules(dao.policy, p.kind)
   const voters = route ? route.voters : [...new Set(rules.flatMap((r) => r.members))]
@@ -216,7 +219,9 @@ export function RequestCard({ p }: { p: Proposal }) {
       }
       const bubble = transfer
         ? `Paid. ${to} has their ${yoctoToNear(transfer.amount)} NEAR${wantsLine ? ` (on mainnet: ${wantsLine})` : ''}.`
-        : 'Done. The change is live.'
+        : join
+          ? `Done. ${displayName(join.member)} is in.`
+          : 'Done. The change is live.'
       setTrack(p.id, { steps: [...steps], eta: 'done', finished: true, paid: true, bubble })
       showToast(transfer ? `Paid · ${yoctoToNear(transfer.amount)} NEAR to ${to}.` : 'Approved and applied.')
     } else if (status === 'Failed') {
@@ -250,7 +255,7 @@ export function RequestCard({ p }: { p: Proposal }) {
       <div className={`flex items-center justify-between gap-3 text-[12px] ${sub}`}>
         <span className="flex min-w-0 items-center gap-2 truncate">
           <Avatar id={p.proposer} size={20} />
-          {displayName(p.proposer)} is asking · {timeAgo(nanoToDate(p.submission_time))}
+          {displayName(p.proposer)} {join && join.member === p.proposer ? 'wants to join' : 'is asking'} · {timeAgo(nanoToDate(p.submission_time))}
           {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ' · new member' : ''}
         </span>
         <span className="shrink-0">
@@ -269,10 +274,21 @@ export function RequestCard({ p }: { p: Proposal }) {
             `${yoctoToNear(transfer.amount)} NEAR`
           )}
         </div>
+      ) : join ? (
+        <div className="mt-6 flex items-center gap-4">
+          <Avatar id={join.member} size={56} />
+          <div className="min-w-0">
+            <div className="truncate text-[28px] font-light leading-tight tracking-[-0.03em]" title={join.member}>
+              {displayName(join.member)}
+            </div>
+            <div className="mt-0.5 text-[14px]">{join.member === p.proposer ? `wants to join as ${join.role}` : `invited as ${join.role}`}</div>
+            <div className={`mt-0.5 truncate font-mono text-[12px] ${sub}`}>{join.member}</div>
+          </div>
+        </div>
       ) : (
         <div className="mt-6 text-[20px] font-light">{requestKind(p.kind)}</div>
       )}
-      <div className="mt-2 break-words text-[14px]">{meta.title}</div>
+      {!join && <div className="mt-2 break-words text-[14px]">{meta.title}</div>}
       {meta.notes && <p className={`mt-1 text-[13px] ${sub}`}>{meta.notes}</p>}
 
       <div className={`mt-6 border-t pt-4 text-[13px] ${rule}`}>
@@ -350,7 +366,7 @@ export function RequestCard({ p }: { p: Proposal }) {
         </div>
       )}
       <div className="mt-3 flex items-center justify-between gap-3">
-        <TxStatus state={tx.state} doneText={lastAction === 'VoteReject' ? 'Declined.' : 'Approved. If that was the last one needed, the treasury has paid.'} />
+        <TxStatus state={tx.state} doneText={lastAction === 'VoteReject' ? 'Declined.' : join ? "Approved. Once enough of the council approves, they're in." : 'Approved. If that was the last one needed, the treasury has paid.'} />
       </div>
       {createdTx && tx.state.status === 'idle' && (
         <div className={`mt-1 text-[12px] ${sub}`}>

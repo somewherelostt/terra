@@ -7,6 +7,7 @@ import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, isTrusted, type MemberRecord } from '../lib/record'
 import { Avatar, Button, EmptyState, TxStatus, useTx } from '../components/ui'
 import { AddNameNudge, MemberName, openProfileSheet } from '../components/ProfileSheet'
+import { InviteSheet } from '../components/InviteSheet'
 
 type Standing = 'Council' | 'Trusted' | 'New'
 type Filter = 'All' | Standing
@@ -23,6 +24,7 @@ export default function Members() {
   const { accountId } = useWallet()
   const [filter, setFilter] = useState<Filter>('All')
   const [inviting, setInviting] = useState(false)
+  const [addingById, setAddingById] = useState(false)
   if (!dao) return null
   // Members are accounts in a role; anyone else with history is a contributor, not listed here.
   const memberIds = new Set(dao.policy.roles.flatMap(roleMembers))
@@ -35,7 +37,8 @@ export default function Members() {
 
   return (
     <div>
-      {inviting && <InviteDialog onClose={() => setInviting(false)} />}
+      {inviting && <InviteSheet onClose={() => setInviting(false)} onAddByAccount={() => { setInviting(false); setAddingById(true) }} />}
+      {addingById && <InviteDialog onClose={() => setAddingById(false)} />}
       <div className="text-[13px] text-muted">Members</div>
       <div className="mt-3 flex items-end justify-between gap-4">
         <h1 className="text-[32px] font-light tracking-[-0.03em]">
@@ -127,7 +130,7 @@ function MemberCard({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAva
           </div>
           <div className="truncate font-mono text-[11.5px] text-muted">{r.accountId}</div>
           {you && (
-            <button className="min-h-8 text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={onAvatar}>
+            <button className="min-h-11 text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={onAvatar}>
               Edit profile
             </button>
           )}

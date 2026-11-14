@@ -16,6 +16,7 @@ import Board from './pages/Board'
 import Earn from './pages/Earn'
 import CreateGroup from './pages/CreateGroup'
 import SignIn from './pages/SignIn'
+import Join from './pages/Join'
 
 export default function App() {
   const route = useRoute()
@@ -29,6 +30,13 @@ export default function App() {
       </DaoProvider>
     ) : (
       <SignIn daoId={null} />
+    )
+  }
+  if (route.page === 'join') {
+    return (
+      <DaoProvider daoId={route.daoId}>
+        <Join daoId={route.daoId} params={route.params} />
+      </DaoProvider>
     )
   }
   if (!route.daoId) return <Landing />
