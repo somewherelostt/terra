@@ -5,7 +5,7 @@ import { addMemberProposalTx, can, roleMembers } from '../lib/dao'
 import { isValidAccountId } from '../lib/near'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, isTrusted, type MemberRecord } from '../lib/record'
-import { Account, Avatar, Button, TxStatus, useTx } from '../components/ui'
+import { Account, Avatar, Button, EmptyState, TxStatus, useTx } from '../components/ui'
 import { AvatarPicker } from '../components/AvatarPicker'
 
 type Standing = 'Council' | 'Trusted' | 'New'
@@ -63,7 +63,7 @@ export default function Members() {
         {shown.map((r) => (
           <MemberCard key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={() => setPicking(true)} />
         ))}
-        {shown.length === 0 && <div className="py-6 text-muted">Nobody here yet.</div>}
+        {shown.length === 0 && <div className="py-6 text-muted">{filter === 'All' ? 'Nobody here yet.' : `No ${filter.toLowerCase()} members yet.`}</div>}
       </div>
 
       <div className="mt-4 hidden overflow-x-auto text-[13.5px] md:block">
@@ -78,9 +78,20 @@ export default function Members() {
           {shown.map((r) => (
             <MemberRow key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={() => setPicking(true)} />
           ))}
-          {shown.length === 0 && <div className="py-6 text-muted">Nobody here yet.</div>}
+          {shown.length === 0 && <div className="py-6 text-muted">{filter === 'All' ? 'Nobody here yet.' : `No ${filter.toLowerCase()} members yet.`}</div>}
         </div>
       </div>
+
+      {rows.length <= 1 && (
+        <EmptyState
+          icon="people"
+          className="mt-6"
+          title={!rows.length ? 'No members yet' : rows[0].accountId === accountId ? "It's just you so far" : 'One member so far'}
+          text="Invite the people who chip in and ask for money. The council approves each invite."
+        >
+          <Button onClick={() => setInviting(true)}>Invite a member</Button>
+        </EmptyState>
+      )}
 
       <div className="mt-10 max-w-[560px] rounded-2xl border border-line bg-card p-6">
         <div className="text-[14px] font-medium">How standing works</div>

@@ -3,12 +3,12 @@ import { view } from '../lib/near'
 import { wait } from '../lib/motion'
 import { prettyName } from '../App'
 import type { Track, TrackStep } from '../lib/store'
-import { useDao } from '../lib/store'
+import { go, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests, routeRequest } from '../lib/record'
-import { Avatar, Button, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
+import { Avatar, Button, EmptyState, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 
 export default function Approve() {
   const { dao, accountId, tracks } = { ...useDao(), ...useWallet() }
@@ -37,16 +37,20 @@ export default function Approve() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-line p-10 text-center">
-            <div className="mx-auto grid size-12 place-items-center rounded-full border border-line">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
-            </div>
-            <div className="mt-4 text-[15px]">You're all caught up</div>
-            <p className="mt-1 text-[13px] text-muted">No open requests. Anyone in the group can request money.</p>
-          </div>
+          <EmptyState
+            title={dao.proposals.length ? "You're all caught up" : 'No requests yet'}
+            text={
+              dao.proposals.length
+                ? 'No open requests. Anyone in the group can request money.'
+                : 'When someone asks for money, it shows up here for members to approve.'
+            }
+          >
+            <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
+          </EmptyState>
         )}
       </div>
 
+      {decided.length > 0 && (
       <div className="mt-12 max-w-[880px]">
         <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
           <span>Recently decided</span>
@@ -60,6 +64,7 @@ export default function Approve() {
           ))}
         </div>
       </div>
+      )}
     </div>
   )
 }

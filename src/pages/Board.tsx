@@ -98,7 +98,11 @@ export default function Board() {
                   <span>Approved by</span>
                   <span className="w-24 text-right">Amount</span>
                 </div>
-                {payouts.length === 0 && <div className="py-6 text-muted">No payouts yet.</div>}
+                {payouts.length === 0 && (
+                  <div className="border-b border-line py-8 text-muted">
+                    No payouts yet. When members approve a request, the payout shows up here with a link to its record on NEAR.
+                  </div>
+                )}
                 {payouts.slice(0, 40).map((p) => {
                   const meta = decodeDescription(p.description)
                   const t = isNearTransfer(p.kind) ? p.kind.Transfer : null

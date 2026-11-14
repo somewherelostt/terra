@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import type { ActivityItem } from '../lib/activity'
-import { useDao } from '../lib/store'
+import { go, useDao } from '../lib/store'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { decodeDescription, isExpired, isNearTransfer, type Proposal } from '../lib/dao'
-import { Avatar, RowText, TxLink } from '../components/ui'
+import { Avatar, Button, EmptyState, RowText, TxLink } from '../components/ui'
 
 type Filter = 'All' | 'Money in' | 'Money out' | 'Requests'
 
@@ -61,7 +61,13 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
         <div className="skeleton h-4 w-4/6" />
       </div>
     )
-  if (!items?.length) return <div className="border-y border-line py-8 text-[13.5px] text-muted">Nothing here yet. Chip in or request money to get things going.</div>
+  if (!items?.length)
+    return (
+      <EmptyState icon="list" title="Nothing here yet" text="Money in, money out and every request shows up here, each with its record on NEAR.">
+        <Button onClick={() => go('home', { chip: '1' })}>Chip in</Button>
+        <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
+      </EmptyState>
+    )
   const byId = new Map(dao?.proposals.map((p) => [p.id, p]))
   const money = (y?: string) => (y ? (isFinite(nearUsd) ? usd(yoctoToNumber(y) * nearUsd) : `${yoctoToNear(y)} NEAR`) : '')
 
