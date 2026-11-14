@@ -12,9 +12,7 @@ import SiteFooter, { GitHubMark, REPO } from '../components/SiteFooter'
 import Faq from '../components/Faq'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 import { formatDate, formatNumber, tr, useT } from '../i18n'
-import { splitUsd, usd } from '../lib/format'
-import { Avatar } from '../components/ui'
-import { groupAvatarUrl } from '../lib/avatar'
+import { splitUsd } from '../lib/format'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 const DEMO_SOL_ADDRESS = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'
@@ -59,6 +57,9 @@ export default function Landing() {
 
       {/* The story: what Terra is, in four plain steps with real bits of the app (the "How it works" target). */}
       <StorySection />
+
+      {/* See it in action: real screenshots of the app */}
+      <ShotsSection />
 
       {/* Why not a bank account or one treasurer */}
       <WhySection />
@@ -545,16 +546,16 @@ const PROOF_CELL = [
 ]
 
 /** Four cards that tell one concrete story, each ending in a cropped phone showing that step's real screen. */
-const STORY_GROUP = 'City Club'
 const STORY_TIME = '9:41'
+const SHOT_HOST = 'useterra.app'
 
 function StorySection() {
   const t = useT()
   const steps = [
-    { title: t('landing.story.s1.title'), text: t('landing.story.s1.text'), icon: 'M12 3v18M5 8h11a3 3 0 010 6H8a3 3 0 000 6h11', screen: <ScreenHome /> },
-    { title: t('landing.story.s2.title'), text: t('landing.story.s2.text'), icon: 'M12 5v14M5 12h14', screen: <ScreenPay /> },
-    { title: t('landing.story.s3.title'), text: t('landing.story.s3.text'), icon: 'M5 13l4 4L19 7', screen: <ScreenApprove /> },
-    { title: t('landing.story.s4.title'), text: t('landing.story.s4.text'), icon: 'M4 12h14M13 6l6 6-6 6', screen: <ScreenPaid /> },
+    { title: t('landing.story.s1.title'), text: t('landing.story.s1.text'), icon: 'M12 3v18M5 8h11a3 3 0 010 6H8a3 3 0 000 6h11', shot: 'home' as ShotName },
+    { title: t('landing.story.s2.title'), text: t('landing.story.s2.text'), icon: 'M12 5v14M5 12h14', shot: 'pay' as ShotName },
+    { title: t('landing.story.s3.title'), text: t('landing.story.s3.text'), icon: 'M5 13l4 4L19 7', shot: 'approve' as ShotName },
+    { title: t('landing.story.s4.title'), text: t('landing.story.s4.text'), icon: 'M4 12h14M13 6l6 6-6 6', shot: 'activity' as ShotName },
   ]
   return (
     <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-6 py-20 md:py-24">
@@ -574,8 +575,8 @@ function StorySection() {
             </div>
             <h3 className="mt-4 text-[17px] font-medium tracking-[-0.01em]">{st.title}</h3>
             <p className="mt-1.5 text-[14px] leading-relaxed text-mute">{st.text}</p>
-            <div className="mt-auto pt-6" aria-hidden>
-              <Phone>{st.screen}</Phone>
+            <div className="mt-auto pt-6">
+              <Phone shot={st.shot} />
             </div>
           </li>
         ))}
@@ -585,129 +586,66 @@ function StorySection() {
 }
 
 /** The top of a phone, cut off by the card's bottom edge: bezel, status bar, island and the group's app bar. */
-function Phone({ children }: { children: React.ReactNode }) {
+type ShotName = 'home' | 'pay' | 'approve' | 'activity'
+
+/**
+ * A real screenshot of the app, light and dark (captured at 2x from the City Club demo group on testnet).
+ * Both are in the page; CSS shows the one matching the theme, and lazy loading skips the hidden one.
+ */
+function Shot({ src, w, h, alt, className = '', eager }: { src: string; w: number; h: number; alt: string; className?: string; eager?: boolean }) {
+  const common = { width: w, height: h, alt, decoding: 'async' as const, loading: eager ? undefined : ('lazy' as const), className: `block h-auto w-full ${className}` }
   return (
-    <div className="phone-frame mx-auto h-[300px] w-full max-w-[250px] rounded-t-[30px] p-[6px] pb-0">
+    <>
+      <img src={`shots/${src}-dark.webp`} {...common} className={`${common.className} theme-dark-only`} />
+      <img src={`shots/${src}-light.webp`} {...common} className={`${common.className} theme-light-only`} />
+    </>
+  )
+}
+
+/** The top of a phone, cut off by the card's bottom edge: bezel, status bar, island, then the real screen. */
+function Phone({ shot, className = 'h-[300px] max-w-[250px]' }: { shot: ShotName; className?: string }) {
+  const t = useT()
+  return (
+    <div className={`phone-frame mx-auto w-full rounded-t-[30px] p-[6px] pb-0 ${className}`}>
       <div className="h-full overflow-hidden rounded-t-[24px] bg-bg text-start text-ink">
-        <div className="relative flex h-7 items-center justify-between px-5 text-[10px] font-medium">
+        <div className="relative flex h-6 items-center justify-between px-5 text-[10px] font-medium" aria-hidden>
           <span className="tnum">{STORY_TIME}</span>
-          <span className="absolute inset-x-0 top-1.5 mx-auto h-[15px] w-[62px] rounded-full bg-[#000]" />
+          <span className="absolute inset-x-0 top-1 mx-auto h-[15px] w-[62px] rounded-full bg-[#000]" />
           <span className="flex items-center gap-1">
             <svg viewBox="0 0 16 10" className="h-2 w-3" fill="currentColor"><rect x="0" y="6" width="3" height="4" rx="0.6" /><rect x="4.3" y="4" width="3" height="6" rx="0.6" /><rect x="8.6" y="2" width="3" height="8" rx="0.6" /><rect x="12.9" y="0" width="3" height="10" rx="0.6" /></svg>
             <span className="h-2 w-4 rounded-[2px] border border-current p-px"><span className="block h-full w-3/4 rounded-[1px] bg-current" /></span>
           </span>
         </div>
-        <div className="flex items-center gap-2 border-b border-line px-3.5 pb-2.5 pt-1.5">
-          <img src={groupAvatarUrl(STORY_GROUP)} alt="" className="size-6 rounded-[7px]" />
-          <span className="text-[12.5px] font-medium">{STORY_GROUP}</span>
-          <span className="ms-auto"><Avatar id="priya" size={20} shape="circle" /></span>
+        <Shot src={`phone-${shot}`} w={780} h={1688} alt={t(`landing.shots.alt.${shot}`)} />
+      </div>
+    </div>
+  )
+}
+
+/** "See it in action": the real desktop app in a browser frame, with two phone screens overlapping it. */
+function ShotsSection() {
+  const t = useT()
+  return (
+    <section className="mx-auto max-w-[1200px] px-6 pb-20 md:pb-28">
+      <div className="max-w-[640px]">
+        <h2 className={H2}>{t('landing.shots.title')}</h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-mute">{t('landing.shots.lead')}</p>
+      </div>
+      <div className="relative mt-10 lg:me-24">
+        <div className="shot-browser reveal overflow-hidden rounded-2xl border border-line bg-panel">
+          <div className="flex h-9 items-center gap-1.5 border-b border-line px-4" aria-hidden>
+            <span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" />
+            <span className="mx-auto rounded-md bg-bg px-10 py-0.5 text-[11px] text-mute">{SHOT_HOST}</span>
+          </div>
+          <Shot src="desktop-home" w={1800} h={1125} alt={t('landing.shots.alt.desktop')} />
         </div>
-        <div className="px-3.5 pt-3">{children}</div>
+        <div className="reveal pointer-events-none absolute -end-2 bottom-[-40px] hidden w-[220px] lg:-end-24 lg:block" style={{ ['--d' as string]: '150ms' } as React.CSSProperties}>
+          <div className="shot-phone overflow-hidden rounded-[28px] border-[5px] border-[#151517]">
+            <Shot src="phone-approve" w={780} h={1688} alt={t('landing.shots.alt.approve')} className="aspect-[390/700] object-cover object-top" />
+          </div>
+        </div>
       </div>
-    </div>
-  )
-}
-
-function MiniRow({ who, label, amount, good }: { who: string; label: string; amount: string; good?: boolean }) {
-  return (
-    <div className="flex items-center gap-2 py-1.5 text-[11px]">
-      <Avatar id={who} size={18} shape="circle" />
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      <span className={`tnum ${good ? 'text-good' : 'text-mute'}`}>{amount}</span>
-    </div>
-  )
-}
-
-function ScreenHome() {
-  const t = useT()
-  const [whole, cents] = splitUsd(1240)
-  return (
-    <div>
-      <div className="text-[10.5px] text-mute">{t('landing.preview.holds', { name: STORY_GROUP })}</div>
-      <div className="tnum mt-1 text-[30px] leading-none font-light tracking-[-0.04em]">
-        {whole}<span className="text-mute">{cents}</span>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] font-medium">
-        <span className="grid h-8 place-items-center rounded-lg bg-accent text-on-accent">{t('home.chipIn')}</span>
-        <span className="grid h-8 place-items-center rounded-lg border border-line">{t('pay.title')}</span>
-      </div>
-      <div className="mt-3 text-[10.5px] text-mute">{t('nav.activity')}</div>
-      <div className="mt-0.5 divide-y divide-line">
-        <MiniRow who="ana" label={t('landing.preview.chippedIn', { name: 'ana' })} amount={`+${usd(50)}`} good />
-        <MiniRow who="ben" label={t('landing.preview.chippedIn', { name: 'ben' })} amount={`+${usd(25)}`} good />
-        <MiniRow who="priya" label={t('landing.preview.venue')} amount={`-${usd(120)}`} />
-      </div>
-    </div>
-  )
-}
-
-function ScreenPay() {
-  const t = useT()
-  const field = 'mt-1 rounded-lg border border-line bg-panel px-2.5 py-2 text-[11.5px]'
-  return (
-    <div>
-      <div className="text-[14px] font-medium tracking-[-0.01em]">{t('pay.title')}</div>
-      <div className="mt-2.5 text-[10.5px] text-mute">{t('pay.amount.label')}</div>
-      <div className={`${field} tnum !text-[17px] font-light`}>{usd(20)}</div>
-      <div className="mt-1 text-[10px] text-good">{t('pay.amount.theyGet', { amount: '20.00', symbol: 'USDC', chain: 'Solana' })}</div>
-      <div className="mt-2 text-[10.5px] text-mute">{t('pay.for.label')}</div>
-      <div className={field}>{t('pay.for.placeholder')}</div>
-      <div className="mt-2.5 grid h-8 place-items-center rounded-lg bg-accent text-[11px] font-medium text-on-accent">{t('pay.send')}</div>
-    </div>
-  )
-}
-
-function ScreenApprove() {
-  const t = useT()
-  return (
-    <div className="rounded-xl border border-line bg-panel p-3">
-      <div className="flex items-center gap-1.5 text-[10.5px] text-mute">
-        <Avatar id="ravi" size={18} shape="circle" />
-        {t('landing.preview.asking', { name: 'ravi' })}
-      </div>
-      <div className="tnum mt-2 text-[24px] leading-none font-light tracking-[-0.04em]">{usd(20)}</div>
-      <div className="mt-1 text-[11px]">{t('landing.story.s2.ui')}</div>
-      <div className="mt-3 flex items-center justify-between text-[10px] text-mute">
-        <span className="flex -space-x-1">
-          {['priya', 'ana'].map((id) => (
-            <span key={id} className="rounded-full ring-2 ring-[var(--panel)]"><Avatar id={id} size={16} shape="circle" /></span>
-          ))}
-        </span>
-        {t('landing.story.s3.count')}
-      </div>
-      <div className="mt-1.5 h-[3px] rounded-full bg-accent" />
-      <div className="mt-3 grid h-8 place-items-center rounded-lg bg-accent text-[11px] font-medium text-on-accent">{t('landing.preview.approvePay')}</div>
-      <div className="mt-1.5 grid h-7 place-items-center text-[10.5px] text-mute">{t('landing.preview.notNow')}</div>
-    </div>
-  )
-}
-
-function ScreenPaid() {
-  const t = useT()
-  const rows: [string, string][] = [
-    [t('approve.status.approved'), t('approve.track.atNow')],
-    [t('approve.track.sent', { group: STORY_GROUP, amount: '6.56' }), t('approve.track.atSeconds', { s: '4' })],
-    [t('landing.preview.arrived'), t('approve.track.atSeconds', { s: '19' })],
-  ]
-  return (
-    <div>
-      <div className="flex items-center gap-2">
-        <span className="grid size-6 place-items-center rounded-full bg-accent text-on-accent">
-          <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
-        </span>
-        <span className="text-[14px] font-medium">{t('approve.track.headPaid')}</span>
-      </div>
-      <div className="tnum mt-2 text-[20px] leading-tight font-light tracking-[-0.03em]">{t('landing.story.s4.amount')}</div>
-      <ol className="relative mt-3 space-y-2.5 border-s border-line ps-3.5">
-        {rows.map(([label, at], i) => (
-          <li key={i} className="relative text-[10.5px] leading-snug">
-            <span className="absolute -start-[18.5px] top-[3px] size-[7px] rounded-full bg-accent" />
-            <span className="flex justify-between gap-2"><span>{label}</span><span className="shrink-0 text-mute">{at}</span></span>
-          </li>
-        ))}
-      </ol>
-      <div className="mt-3 inline-flex h-7 items-center rounded-lg border border-line px-2.5 text-[10.5px]">{t('approve.receipt')}</div>
-    </div>
+    </section>
   )
 }
 

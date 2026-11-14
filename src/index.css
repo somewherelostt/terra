@@ -412,3 +412,9 @@ button:active { transform: scale(.98); }
 
 /* Landing nav once scrolled: the page colour, slightly see-through with a blur. */
 .nav-solid-scrolled { background-color: color-mix(in oklab, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); }
+
+/* Real screenshots on the landing: show the one matching the theme. */
+:root:not([data-theme="light"]) .theme-light-only, :root[data-theme="light"] .theme-dark-only { display: none; }
+.shot-browser { box-shadow: 0 30px 80px -30px rgba(47, 107, 255, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.02); }
+:root[data-theme="light"] .shot-browser { box-shadow: 0 30px 80px -30px rgba(47, 107, 255, 0.35); }
+.shot-phone { box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08); }

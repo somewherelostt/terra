@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "Le club de Priya met de l'argent dans une cagnotte commune. Tout le monde voit le solde.",
   "landing.story.s2.title": "Quelqu'un demande de l'argent",
   "landing.story.s2.text": "Ravi demande 20 $ pour payer une graphiste pour l'affiche de la rencontre.",
-  "landing.story.s2.ui": "Affiche pour la rencontre",
   "landing.story.s3.title": "Les membres approuvent",
   "landing.story.s3.text": "Deux membres appuient sur Approuver. Les petites demandes du quotidien demandent moins de votes.",
-  "landing.story.s3.count": "2 sur 2 ont approuvé",
   "landing.story.s4.title": "L'argent part",
   "landing.story.s4.text": "La graphiste est payée directement depuis la cagnotte, même en USDC sur Solana.",
-  "landing.story.s4.amount": "20,00 USDC sur Solana",
   "landing.why.title": "Pourquoi pas un simple compte bancaire ou un trésorier ?",
   "landing.why.b1.title": "Personne ne la détient seul",
   "landing.why.b1.text": "L'argent est sur le compte propre de votre groupe. Le dépenser demande l'accord des membres, pas l'identifiant d'une seule personne.",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "Est-ce open source ?",
   "faq.open-source.a": "Oui, sous licence MIT. Le code est sur [GitHub](https://github.com/somewherelostt/terra).",
   "faq.real-money.q": "Est-ce en service avec de l'argent réel ?",
-  "faq.real-money.a": "Pas encore. Terra tourne sur le testnet de NEAR, donc l'argent est de test ; les devis inter-chaînes sont réels. Le mainnet est la prochaine étape."
+  "faq.real-money.a": "Pas encore. Terra tourne sur le testnet de NEAR, donc l'argent est de test ; les devis inter-chaînes sont réels. Le mainnet est la prochaine étape.",
+  "landing.shots.title": "Voyez-le en action",
+  "landing.shots.lead": "De vrais écrans de City Club, un groupe de démonstration sur le testnet NEAR.",
+  "landing.shots.alt.home": "Accueil de Terra : le solde du groupe, avec Cotiser et Demander de l’argent",
+  "landing.shots.alt.pay": "Demande de 20 $ pour une affiche, avec un prix en direct",
+  "landing.shots.alt.approve": "Une demande en attente de l’accord des membres",
+  "landing.shots.alt.activity": "Activité : les paiements faits par le groupe",
+  "landing.shots.alt.desktop": "Terra sur ordinateur : l’accueil du groupe avec la barre latérale"
 }

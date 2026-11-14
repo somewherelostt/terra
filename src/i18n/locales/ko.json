@@ -992,13 +992,10 @@
   "landing.story.s1.text": "Priya의 클럽이 공동 지갑에 돈을 넣습니다. 잔액은 모두에게 보입니다.",
   "landing.story.s2.title": "누군가 돈을 요청해요",
   "landing.story.s2.text": "Ravi가 밋업 포스터 디자이너에게 줄 $20를 요청합니다.",
-  "landing.story.s2.ui": "밋업 포스터",
   "landing.story.s3.title": "멤버가 승인해요",
   "landing.story.s3.text": "멤버 두 명이 승인을 누릅니다. 작은 일상 요청은 더 적은 표로 통과돼요.",
-  "landing.story.s3.count": "2명 중 2명 승인",
   "landing.story.s4.title": "돈이 지급돼요",
   "landing.story.s4.text": "디자이너는 지갑에서 바로 돈을 받습니다. Solana의 USDC로도요.",
-  "landing.story.s4.amount": "Solana의 20.00 USDC",
   "landing.why.title": "그냥 은행 계좌나 총무 한 명이면 안 될까요?",
   "landing.why.b1.title": "누구도 혼자 쥐지 않아요",
   "landing.why.b1.text": "돈은 그룹 자체 계정에 있습니다. 지급하려면 한 사람의 로그인이 아니라 멤버들의 승인이 필요해요.",
@@ -1026,5 +1023,12 @@
   "faq.open-source.q": "오픈 소스인가요?",
   "faq.open-source.a": "네, MIT 라이선스입니다. 코드는 [GitHub](https://github.com/somewherelostt/terra)에 있습니다.",
   "faq.real-money.q": "실제 돈으로 운영되나요?",
-  "faq.real-money.a": "아직은 아닙니다. Terra는 NEAR testnet에서 돌아가므로 돈은 테스트용입니다. 크로스체인 견적은 실제입니다. 다음은 mainnet입니다."
+  "faq.real-money.a": "아직은 아닙니다. Terra는 NEAR testnet에서 돌아가므로 돈은 테스트용입니다. 크로스체인 견적은 실제입니다. 다음은 mainnet입니다.",
+  "landing.shots.title": "실제로 보기",
+  "landing.shots.lead": "NEAR 테스트넷의 데모 그룹 City Club의 실제 화면입니다.",
+  "landing.shots.alt.home": "Terra 홈: 그룹 잔액과 돈 모으기, 돈 요청",
+  "landing.shots.alt.pay": "포스터용 $20 요청과 실시간 견적",
+  "landing.shots.alt.approve": "멤버 승인을 기다리는 요청",
+  "landing.shots.alt.activity": "활동: 그룹이 지급한 내역",
+  "landing.shots.alt.desktop": "데스크톱의 Terra: 사이드바가 있는 그룹 홈"
 }

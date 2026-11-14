@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "Priyas Club zahlt in eine gemeinsame Kasse ein. Alle sehen den Kontostand.",
   "landing.story.s2.title": "Jemand fragt Geld an",
   "landing.story.s2.text": "Ravi fragt 20 $ an, um eine Designerin für das Meetup-Poster zu bezahlen.",
-  "landing.story.s2.ui": "Poster für das Meetup",
   "landing.story.s3.title": "Mitglieder stimmen zu",
   "landing.story.s3.text": "Zwei Mitglieder tippen auf Zustimmen. Kleine Alltagsanfragen brauchen weniger Stimmen.",
-  "landing.story.s3.count": "2 von 2 zugestimmt",
   "landing.story.s4.title": "Das Geld wird ausgezahlt",
   "landing.story.s4.text": "Die Designerin wird direkt aus der Kasse bezahlt, sogar in USDC auf Solana.",
-  "landing.story.s4.amount": "20,00 USDC auf Solana",
   "landing.why.title": "Warum nicht einfach ein Bankkonto oder ein Kassenwart?",
   "landing.why.b1.title": "Niemand verwaltet es allein",
   "landing.why.b1.text": "Das Geld liegt auf dem eigenen Konto eurer Gruppe. Auszahlungen brauchen die Zustimmung der Mitglieder, nicht das Login einer Person.",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "Ist es Open Source?",
   "faq.open-source.a": "Ja, unter der MIT-Lizenz. Der Code ist auf [GitHub](https://github.com/somewherelostt/terra).",
   "faq.real-money.q": "Läuft das schon mit echtem Geld?",
-  "faq.real-money.a": "Noch nicht. Terra läuft im NEAR Testnet, das Geld ist also Testgeld; die Cross-Chain-Angebote sind echt. Mainnet kommt als Nächstes."
+  "faq.real-money.a": "Noch nicht. Terra läuft im NEAR Testnet, das Geld ist also Testgeld; die Cross-Chain-Angebote sind echt. Mainnet kommt als Nächstes.",
+  "landing.shots.title": "So sieht es aus",
+  "landing.shots.lead": "Echte Screens von City Club, einer Demo-Gruppe im NEAR-Testnet.",
+  "landing.shots.alt.home": "Terra-Start: der Kontostand der Gruppe, mit Einzahlen und Geld anfragen",
+  "landing.shots.alt.pay": "20 $ für ein Poster anfragen, mit Live-Kurs",
+  "landing.shots.alt.approve": "Eine Anfrage, die auf die Zustimmung der Mitglieder wartet",
+  "landing.shots.alt.activity": "Aktivität: Auszahlungen der Gruppe",
+  "landing.shots.alt.desktop": "Terra am Desktop: die Startseite der Gruppe mit Seitenleiste"
 }

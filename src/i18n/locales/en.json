@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "Priya's club puts money into one shared pot. Everyone sees the balance.",
   "landing.story.s2.title": "Someone asks for money",
   "landing.story.s2.text": "Ravi asks for $20 to pay a designer for the meetup poster.",
-  "landing.story.s2.ui": "Poster for the meetup",
   "landing.story.s3.title": "Members approve",
   "landing.story.s3.text": "Two members tap Approve. Small, everyday requests need fewer votes.",
-  "landing.story.s3.count": "2 of 2 approved",
   "landing.story.s4.title": "The money goes out",
   "landing.story.s4.text": "The designer gets paid straight from the pot, even in USDC on Solana.",
-  "landing.story.s4.amount": "20.00 USDC on Solana",
   "landing.why.title": "Why not just a bank account or one treasurer?",
   "landing.why.b1.title": "Nobody holds it alone",
   "landing.why.b1.text": "The money sits in your group's own account. Paying it out takes members' approval, not one person's login.",
@@ -1062,5 +1059,12 @@
   "landing.oss.title": "Open source",
   "landing.oss.text": "Terra is open source under MIT. Read the code, fork it, run your own.",
   "landing.oss.cta": "View on GitHub",
-  "landing.oss.github": "Code on GitHub"
+  "landing.oss.github": "Code on GitHub",
+  "landing.shots.title": "See it in action",
+  "landing.shots.lead": "Real screens from City Club, a demo group on NEAR testnet.",
+  "landing.shots.alt.home": "Terra home: the group’s balance, with Chip in and Request money",
+  "landing.shots.alt.pay": "Requesting $20 for a poster, with a live quote",
+  "landing.shots.alt.approve": "A request waiting for members to approve",
+  "landing.shots.alt.activity": "Activity: payouts the group has made",
+  "landing.shots.alt.desktop": "Terra on desktop: the group’s home with the sidebar"
 }

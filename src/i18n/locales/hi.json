@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "प्रिया का क्लब एक साझा गुल्लक में पैसे डालता है। सबको बैलेंस दिखता है।",
   "landing.story.s2.title": "कोई पैसे माँगता है",
   "landing.story.s2.text": "रवि मीटअप पोस्टर के डिज़ाइनर को देने के लिए $20 माँगता है।",
-  "landing.story.s2.ui": "मीटअप के लिए पोस्टर",
   "landing.story.s3.title": "सदस्य मंज़ूरी देते हैं",
   "landing.story.s3.text": "दो सदस्य मंज़ूर करें दबाते हैं। छोटी, रोज़मर्रा की माँगों के लिए कम वोट चाहिए।",
-  "landing.story.s3.count": "2 में से 2 ने मंज़ूर किया",
   "landing.story.s4.title": "पैसा भेज दिया जाता है",
   "landing.story.s4.text": "डिज़ाइनर को सीधे गुल्लक से भुगतान मिलता है, Solana पर USDC में भी।",
-  "landing.story.s4.amount": "Solana पर 20.00 USDC",
   "landing.why.title": "सिर्फ़ बैंक खाता या एक खजांची क्यों नहीं?",
   "landing.why.b1.title": "पैसा किसी एक के पास नहीं",
   "landing.why.b1.text": "पैसा आपके ग्रुप के अपने खाते में रहता है। भुगतान के लिए सदस्यों की मंज़ूरी चाहिए, किसी एक का लॉगिन नहीं।",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "क्या यह ओपन सोर्स है?",
   "faq.open-source.a": "हाँ, MIT लाइसेंस के तहत। कोड [GitHub](https://github.com/somewherelostt/terra) पर है।",
   "faq.real-money.q": "क्या यह असली पैसे के साथ चल रहा है?",
-  "faq.real-money.a": "अभी नहीं। Terra NEAR testnet पर चलता है, इसलिए पैसा टेस्ट का है; क्रॉस-चेन कोट असली हैं। अगला कदम mainnet है।"
+  "faq.real-money.a": "अभी नहीं। Terra NEAR testnet पर चलता है, इसलिए पैसा टेस्ट का है; क्रॉस-चेन कोट असली हैं। अगला कदम mainnet है।",
+  "landing.shots.title": "इसे काम करते देखें",
+  "landing.shots.lead": "City Club की असली स्क्रीन, जो NEAR testnet पर एक डेमो ग्रुप है।",
+  "landing.shots.alt.home": "Terra होम: ग्रुप का बैलेंस, पैसे डालें और पैसे माँगें के साथ",
+  "landing.shots.alt.pay": "पोस्टर के लिए $20 माँगना, लाइव कीमत के साथ",
+  "landing.shots.alt.approve": "सदस्यों की मंज़ूरी का इंतज़ार करती एक माँग",
+  "landing.shots.alt.activity": "गतिविधि: ग्रुप के किए भुगतान",
+  "landing.shots.alt.desktop": "डेस्कटॉप पर Terra: साइडबार के साथ ग्रुप का होम"
 }

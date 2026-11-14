@@ -1172,13 +1172,10 @@
   "landing.story.s1.text": "يضع نادي بريا المال في صندوق مشترك واحد. الجميع يرى الرصيد.",
   "landing.story.s2.title": "شخص يطلب مالًا",
   "landing.story.s2.text": "يطلب رافي 20 $ ليدفع لمصممة ملصق اللقاء.",
-  "landing.story.s2.ui": "ملصق اللقاء",
   "landing.story.s3.title": "الأعضاء يوافقون",
   "landing.story.s3.text": "يضغط عضوان على موافقة. الطلبات اليومية الصغيرة تحتاج أصواتًا أقل.",
-  "landing.story.s3.count": "وافق 2 من 2",
   "landing.story.s4.title": "المال يُدفع",
   "landing.story.s4.text": "تحصل المصممة على أجرها مباشرة من الصندوق، حتى بعملة USDC على Solana.",
-  "landing.story.s4.amount": "20.00 USDC على Solana",
   "landing.why.title": "لماذا لا يكفي حساب بنكي أو أمين صندوق واحد؟",
   "landing.why.b1.title": "لا أحد يحتفظ به وحده",
   "landing.why.b1.text": "المال في حساب مجموعتك الخاص. صرفه يحتاج موافقة الأعضاء، لا تسجيل دخول شخص واحد.",
@@ -1206,5 +1203,12 @@
   "faq.open-source.q": "هل هو مفتوح المصدر؟",
   "faq.open-source.a": "نعم، برخصة MIT. الشيفرة على [GitHub](https://github.com/somewherelostt/terra).",
   "faq.real-money.q": "هل يعمل بأموال حقيقية؟",
-  "faq.real-money.a": "ليس بعد. يعمل Terra على NEAR testnet، لذا فالمال للتجربة؛ أما عروض الأسعار بين السلاسل فحقيقية. والخطوة التالية هي mainnet."
+  "faq.real-money.a": "ليس بعد. يعمل Terra على NEAR testnet، لذا فالمال للتجربة؛ أما عروض الأسعار بين السلاسل فحقيقية. والخطوة التالية هي mainnet.",
+  "landing.shots.title": "شاهده وهو يعمل",
+  "landing.shots.lead": "شاشات حقيقية من City Club، وهي مجموعة تجريبية على شبكة NEAR testnet.",
+  "landing.shots.alt.home": "الصفحة الرئيسية في Terra: رصيد المجموعة، مع المساهمة وطلب المال",
+  "landing.shots.alt.pay": "طلب 20 $ لملصق، مع سعر مباشر",
+  "landing.shots.alt.approve": "طلب ينتظر موافقة الأعضاء",
+  "landing.shots.alt.activity": "النشاط: الدفعات التي أجرتها المجموعة",
+  "landing.shots.alt.desktop": "Terra على الحاسوب: الصفحة الرئيسية للمجموعة مع الشريط الجانبي"
 }

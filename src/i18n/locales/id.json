@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "Klub Priya memasukkan uang ke satu kas bersama. Semua bisa melihat saldonya.",
   "landing.story.s2.title": "Seseorang minta dana",
   "landing.story.s2.text": "Ravi minta $20 untuk membayar desainer poster meetup.",
-  "landing.story.s2.ui": "Poster untuk meetup",
   "landing.story.s3.title": "Anggota menyetujui",
   "landing.story.s3.text": "Dua anggota mengetuk Setujui. Permintaan kecil sehari-hari butuh lebih sedikit suara.",
-  "landing.story.s3.count": "2 dari 2 menyetujui",
   "landing.story.s4.title": "Uangnya dikirim",
   "landing.story.s4.text": "Desainer dibayar langsung dari kas, bahkan dalam USDC di Solana.",
-  "landing.story.s4.amount": "20,00 USDC di Solana",
   "landing.why.title": "Kenapa tidak rekening bank biasa atau satu bendahara saja?",
   "landing.why.b1.title": "Tak ada yang memegang sendiri",
   "landing.why.b1.text": "Uangnya ada di akun milik grupmu sendiri. Membayar butuh persetujuan anggota, bukan login satu orang.",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "Apakah ini open source?",
   "faq.open-source.a": "Ya, dengan lisensi MIT. Kodenya ada di [GitHub](https://github.com/somewherelostt/terra).",
   "faq.real-money.q": "Apakah sudah memakai uang sungguhan?",
-  "faq.real-money.a": "Belum. Terra berjalan di NEAR testnet, jadi uangnya uang uji coba; penawaran lintas chain-nya nyata. Mainnet menyusul berikutnya."
+  "faq.real-money.a": "Belum. Terra berjalan di NEAR testnet, jadi uangnya uang uji coba; penawaran lintas chain-nya nyata. Mainnet menyusul berikutnya.",
+  "landing.shots.title": "Lihat cara kerjanya",
+  "landing.shots.lead": "Layar asli dari City Club, grup demo di testnet NEAR.",
+  "landing.shots.alt.home": "Beranda Terra: saldo grup, dengan Patungan dan Minta dana",
+  "landing.shots.alt.pay": "Meminta $20 untuk poster, dengan harga langsung",
+  "landing.shots.alt.approve": "Permintaan yang menunggu persetujuan anggota",
+  "landing.shots.alt.activity": "Aktivitas: pembayaran yang dilakukan grup",
+  "landing.shots.alt.desktop": "Terra di desktop: beranda grup dengan sidebar"
 }

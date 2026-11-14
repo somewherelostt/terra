@@ -992,13 +992,10 @@
   "landing.story.s1.text": "Priya 的俱乐部把钱放进一个共享资金池。每个人都能看到余额。",
   "landing.story.s2.title": "有人申请用钱",
   "landing.story.s2.text": "Ravi 申请 $20,用来支付聚会海报的设计费。",
-  "landing.story.s2.ui": "聚会海报",
   "landing.story.s3.title": "成员批准",
   "landing.story.s3.text": "两位成员点击批准。日常的小额申请需要的票数更少。",
-  "landing.story.s3.count": "2 人中 2 人已批准",
   "landing.story.s4.title": "钱付出去",
   "landing.story.s4.text": "设计师直接从资金池收到款,甚至可以是 Solana 上的 USDC。",
-  "landing.story.s4.amount": "Solana 上的 20.00 USDC",
   "landing.why.title": "为什么不用银行账户或者一个财务就行?",
   "landing.why.b1.title": "没有人独自掌管",
   "landing.why.b1.text": "钱放在小组自己的账户里。付款需要成员批准,而不是某一个人的登录。",
@@ -1026,5 +1023,12 @@
   "faq.open-source.q": "是开源的吗？",
   "faq.open-source.a": "是的，采用 MIT 许可证。代码在 [GitHub](https://github.com/somewherelostt/terra) 上。",
   "faq.real-money.q": "现在是用真钱运行的吗？",
-  "faq.real-money.a": "还不是。Terra 运行在 NEAR testnet 上，所以钱是测试币；跨链报价是真实的。下一步是 mainnet。"
+  "faq.real-money.a": "还不是。Terra 运行在 NEAR testnet 上，所以钱是测试币；跨链报价是真实的。下一步是 mainnet。",
+  "landing.shots.title": "实际效果",
+  "landing.shots.lead": "来自 City Club 的真实界面,这是 NEAR 测试网上的一个演示小组。",
+  "landing.shots.alt.home": "Terra 首页:小组余额,以及出钱和申请用钱",
+  "landing.shots.alt.pay": "为海报申请 $20,附实时报价",
+  "landing.shots.alt.approve": "一笔等待成员批准的申请",
+  "landing.shots.alt.activity": "动态:小组的付款记录",
+  "landing.shots.alt.desktop": "桌面版 Terra:带侧边栏的小组首页"
 }

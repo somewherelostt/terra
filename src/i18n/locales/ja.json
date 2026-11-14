@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "Priyaのクラブが共同のお財布にお金を入れます。残高は全員に見えます。",
   "landing.story.s2.title": "誰かが申請する",
   "landing.story.s2.text": "Raviがミートアップのポスターを作るデザイナーへの支払いに$20を申請します。",
-  "landing.story.s2.ui": "ミートアップのポスター",
   "landing.story.s3.title": "メンバーが承認する",
   "landing.story.s3.text": "2人のメンバーが承認をタップ。日常の小さな申請は少ない票で通ります。",
-  "landing.story.s3.count": "2人中2人が承認",
   "landing.story.s4.title": "お金が支払われる",
   "landing.story.s4.text": "デザイナーにはお財布から直接支払われます。SolanaのUSDCでもOK。",
-  "landing.story.s4.amount": "Solana上の20.00 USDC",
   "landing.why.title": "銀行口座や会計係一人ではだめなの?",
   "landing.why.b1.title": "一人で持たない",
   "landing.why.b1.text": "お金はグループ自身の口座にあります。支払うにはメンバーの承認が必要で、誰か一人のログインでは動きません。",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "オープンソースですか？",
   "faq.open-source.a": "はい、MIT ライセンスです。コードは [GitHub](https://github.com/somewherelostt/terra) にあります。",
   "faq.real-money.q": "本物のお金で動いていますか？",
-  "faq.real-money.a": "まだです。Terra は NEAR testnet で動いているので、お金はテスト用です。クロスチェーンの見積もりは本物です。次は mainnet です。"
+  "faq.real-money.a": "まだです。Terra は NEAR testnet で動いているので、お金はテスト用です。クロスチェーンの見積もりは本物です。次は mainnet です。",
+  "landing.shots.title": "実際の画面",
+  "landing.shots.lead": "NEARテストネット上のデモグループ City Club の実際の画面です。",
+  "landing.shots.alt.home": "Terraのホーム:グループの残高と「出し合う」「お金を申請」",
+  "landing.shots.alt.pay": "ポスター代$20の申請とライブ見積もり",
+  "landing.shots.alt.approve": "メンバーの承認を待つ申請",
+  "landing.shots.alt.activity": "アクティビティ:グループの支払い履歴",
+  "landing.shots.alt.desktop": "デスクトップ版Terra:サイドバー付きのグループのホーム"
 }

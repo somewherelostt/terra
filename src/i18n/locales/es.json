@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "El club de Priya pone dinero en un bote común. Todos ven el saldo.",
   "landing.story.s2.title": "Alguien pide dinero",
   "landing.story.s2.text": "Ravi pide 20 $ para pagar a una diseñadora por el póster del encuentro.",
-  "landing.story.s2.ui": "Póster para el encuentro",
   "landing.story.s3.title": "Los miembros aprueban",
   "landing.story.s3.text": "Dos miembros tocan Aprobar. Las peticiones pequeñas del día a día necesitan menos votos.",
-  "landing.story.s3.count": "2 de 2 aprobaron",
   "landing.story.s4.title": "El dinero sale",
   "landing.story.s4.text": "La diseñadora cobra directamente del bote, incluso en USDC en Solana.",
-  "landing.story.s4.amount": "20,00 USDC en Solana",
   "landing.why.title": "¿Por qué no una cuenta bancaria o un tesorero?",
   "landing.why.b1.title": "Nadie lo controla solo",
   "landing.why.b1.text": "El dinero está en la cuenta propia de tu grupo. Pagarlo requiere la aprobación de los miembros, no el acceso de una sola persona.",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "¿Es de código abierto?",
   "faq.open-source.a": "Sí, con licencia MIT. El código está en [GitHub](https://github.com/somewherelostt/terra).",
   "faq.real-money.q": "¿Funciona ya con dinero real?",
-  "faq.real-money.a": "Todavía no. Terra funciona en la testnet de NEAR, así que el dinero es de prueba; las cotizaciones entre cadenas son reales. La mainnet es lo siguiente."
+  "faq.real-money.a": "Todavía no. Terra funciona en la testnet de NEAR, así que el dinero es de prueba; las cotizaciones entre cadenas son reales. La mainnet es lo siguiente.",
+  "landing.shots.title": "Míralo en acción",
+  "landing.shots.lead": "Pantallas reales de City Club, un grupo de demostración en la testnet de NEAR.",
+  "landing.shots.alt.home": "Inicio de Terra: el saldo del grupo, con Aportar y Pedir dinero",
+  "landing.shots.alt.pay": "Pidiendo 20 $ para un póster, con precio en vivo",
+  "landing.shots.alt.approve": "Una petición esperando la aprobación de los miembros",
+  "landing.shots.alt.activity": "Actividad: pagos que ha hecho el grupo",
+  "landing.shots.alt.desktop": "Terra en escritorio: el inicio del grupo con la barra lateral"
 }

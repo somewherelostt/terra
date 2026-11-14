@@ -1028,13 +1028,10 @@
   "landing.story.s1.text": "Priya'nın kulübü ortak bir kumbaraya para koyar. Herkes bakiyeyi görür.",
   "landing.story.s2.title": "Biri para ister",
   "landing.story.s2.text": "Ravi, buluşma afişi için tasarımcıya ödemek üzere 20 $ ister.",
-  "landing.story.s2.ui": "Buluşma afişi",
   "landing.story.s3.title": "Üyeler onaylar",
   "landing.story.s3.text": "İki üye Onayla'ya dokunur. Küçük, günlük istekler daha az oy gerektirir.",
-  "landing.story.s3.count": "2 üyeden 2'si onayladı",
   "landing.story.s4.title": "Para gönderilir",
   "landing.story.s4.text": "Tasarımcı, ödemesini doğrudan kumbaradan alır, Solana'da USDC olarak bile.",
-  "landing.story.s4.amount": "Solana'da 20,00 USDC",
   "landing.why.title": "Neden sadece bir banka hesabı ya da tek bir sayman değil?",
   "landing.why.b1.title": "Kimse tek başına tutmaz",
   "landing.why.b1.text": "Para grubunuzun kendi hesabında durur. Ödeme yapmak için bir kişinin girişi değil, üyelerin onayı gerekir.",
@@ -1062,5 +1059,12 @@
   "faq.open-source.q": "Açık kaynak mı?",
   "faq.open-source.a": "Evet, MIT lisansıyla. Kod [GitHub](https://github.com/somewherelostt/terra) üzerinde.",
   "faq.real-money.q": "Gerçek parayla mı çalışıyor?",
-  "faq.real-money.a": "Henüz değil. Terra NEAR testnet üzerinde çalışıyor, yani para test parası; zincirler arası teklifler gerçek. Sırada mainnet var."
+  "faq.real-money.a": "Henüz değil. Terra NEAR testnet üzerinde çalışıyor, yani para test parası; zincirler arası teklifler gerçek. Sırada mainnet var.",
+  "landing.shots.title": "Nasıl çalıştığını görün",
+  "landing.shots.lead": "NEAR testnet'teki demo grup City Club'tan gerçek ekranlar.",
+  "landing.shots.alt.home": "Terra ana sayfa: grubun bakiyesi, Para koy ve Para iste ile",
+  "landing.shots.alt.pay": "Bir afiş için canlı fiyatla 20 $ isteme",
+  "landing.shots.alt.approve": "Üyelerin onayını bekleyen bir istek",
+  "landing.shots.alt.activity": "Etkinlik: grubun yaptığı ödemeler",
+  "landing.shots.alt.desktop": "Masaüstünde Terra: kenar çubuğuyla grubun ana sayfası"
 }
