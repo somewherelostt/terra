@@ -4,7 +4,7 @@ import { useWallet } from '../lib/wallet'
 import { addFunctionCallProposalTx, can, decodeDescription, kindName } from '../lib/dao'
 import { TGAS, view, accountUrl } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
-import { Badge, Button, Card, Field, Money, SectionTitle, TxStatus, inputCls, useTx } from '../components/ui'
+import { Badge, Button, Card, Field, Money, TxStatus, inputCls, useTx } from '../components/ui'
 
 interface PoolInfo {
   fee: number
@@ -57,30 +57,30 @@ export default function Earn() {
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       <div>
-        <h1 className="text-2xl font-medium tracking-tight">Earn</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
+        <div className="text-[13px] text-muted">Earn</div>
+        <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">Let idle money earn</h1>
+        <p className="mt-1 max-w-2xl text-[13.5px] text-muted">
           Money the group isn't spending yet can earn staking rewards with a NEAR validator. Staking is a request too: members approve it, and the treasury stakes in its own name.
         </p>
       </div>
-      <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <SectionTitle>Now earning</SectionTitle>
-          <div className="flex flex-wrap items-end gap-8">
-            <div>
-              <div className="text-sm text-muted">Staked</div>
-              <Money yocto={dao.staked} nearUsd={nearUsd} size="lg" />
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="min-w-0">
+          <div className="grid grid-cols-2 border-y border-line">
+            <div className="border-r border-line py-5 pr-5">
+              <div className="text-[12px] text-muted">Staked</div>
+              <div className="mt-1.5"><Money yocto={dao.staked} nearUsd={nearUsd} size="lg" /></div>
             </div>
-            <div>
-              <div className="text-sm text-muted">Available to stake</div>
-              <Money yocto={dao.spendable} nearUsd={nearUsd} size="lg" />
+            <div className="py-5 pl-5">
+              <div className="text-[12px] text-muted">Available to stake</div>
+              <div className="mt-1.5"><Money yocto={dao.spendable} nearUsd={nearUsd} size="lg" /></div>
             </div>
           </div>
-          <div className="mt-5 rounded-xl bg-soft p-3 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="font-medium">Validator</span>
-              <a className="text-accent-text hover:underline" href={accountUrl(STAKING_POOL)} target="_blank" rel="noreferrer">{STAKING_POOL}</a>
+          <div className="border-b border-line py-5 text-[13.5px]">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="text-muted">Validator</span>
+              <a className="min-w-0 truncate font-mono text-[13px] text-accent-text hover:underline" href={accountUrl(STAKING_POOL)} target="_blank" rel="noreferrer">{STAKING_POOL}</a>
               {pool && <Badge tone="good">Active</Badge>}
             </div>
             {pool && (
@@ -88,7 +88,7 @@ export default function Earn() {
                 Fee {(pool.fee * 100).toFixed(0)}% of rewards · {Number(yoctoToNear(pool.totalStaked, 0).replace(/,/g, '')).toLocaleString('en-US')} NEAR staked in total
               </div>
             )}
-            <p className="mt-2 text-xs text-muted">Rewards arrive once per epoch (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first.</p>
+            <p className="mt-2 text-[12px] text-muted">Rewards arrive once per epoch (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first.</p>
           </div>
           {pending.length > 0 && (
             <div className="mt-4 text-sm">
@@ -103,9 +103,9 @@ export default function Earn() {
               </ul>
             </div>
           )}
-        </Card>
-        <Card className="lg:col-span-2">
-          <SectionTitle>Propose staking</SectionTitle>
+        </div>
+        <Card className="self-start">
+          <div className="mb-4 text-[13.5px] font-medium">Propose staking</div>
           <Field label="Amount to stake (NEAR)" hint={yocto && isFinite(nearUsd) ? `≈ ${usd(yoctoToNumber(yocto) * nearUsd)} · minimum 1 NEAR` : 'Minimum 1 NEAR'}>
             <input className={inputCls} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </Field>
