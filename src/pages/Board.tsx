@@ -101,7 +101,7 @@ export default function Board() {
 
       <section>
         <SectionTitle>Member records</SectionTitle>
-        <RecordsTable readOnly />
+        <RecordsTable />
       </section>
 
       <footer className="pb-6 text-center text-xs text-muted">

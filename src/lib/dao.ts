@@ -406,3 +406,26 @@ export function createGroupTx(input: NewGroupInput): Tx {
     ],
   }
 }
+
+/** "Invite": a request to add an account to a role, voted on like any other change. */
+export function addMemberProposalTx(dao: Dao, memberId: string, role: string): Tx {
+  return {
+    receiverId: dao.id,
+    actions: [
+      {
+        type: 'FunctionCall',
+        params: {
+          methodName: 'add_proposal',
+          args: {
+            proposal: {
+              description: encodeDescription({ title: `Add ${memberId} as ${role}` }),
+              kind: { AddMemberToRole: { member_id: memberId, role } },
+            },
+          },
+          gas: (100n * TGAS).toString(),
+          deposit: dao.policy.proposal_bond,
+        },
+      },
+    ],
+  }
+}
