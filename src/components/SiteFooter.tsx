@@ -23,11 +23,12 @@ export default function SiteFooter({ home = '', boardUrl }: { home?: string; boa
     {
       title: 'Docs',
       links: [
-        { label: 'Overview', href: `${REPO}#the-why`, external: true },
-        { label: 'What it does', href: `${REPO}#what-it-does`, external: true },
-        { label: 'How NEAR is used', href: `${REPO}#how-near-is-used`, external: true },
-        { label: 'Try it', href: `${REPO}#try-it`, external: true },
-        { label: 'Getting started', href: `${REPO}#getting-started`, external: true },
+        { label: 'Overview', href: `${home}#/docs` },
+        { label: 'Quick start', href: `${home}#/docs?s=quick-start` },
+        { label: 'Approvals and tiers', href: `${home}#/docs?s=tiers` },
+        { label: 'Payouts to other chains', href: `${home}#/docs?s=payouts` },
+        { label: 'Allowances', href: `${home}#/docs?s=allowances` },
+        { label: 'FAQ', href: `${home}#/docs?s=faq` },
       ],
     },
     {
