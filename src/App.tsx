@@ -15,6 +15,7 @@ import Members from './pages/Members'
 import Activity from './pages/Activity'
 import Board from './pages/Board'
 import Earn from './pages/Earn'
+import Allowances from './pages/Allowances'
 import CreateGroup from './pages/CreateGroup'
 import SignIn from './pages/SignIn'
 import Join from './pages/Join'
@@ -56,6 +57,7 @@ export default function App() {
             {route.page === 'members' && <Members />}
             {route.page === 'activity' && <Activity />}
             {route.page === 'earn' && <Earn />}
+            {route.page === 'allowances' && <Allowances />}
             {route.page === 'messages' && <Messages />}
           </DaoGate>
         </Shell>
@@ -119,6 +121,7 @@ const NAV: { page: Page; label: string; icon: string }[] = [
   { page: 'messages', label: 'Messages', icon: 'M4 5h16v11H8l-4 4z' },
   { page: 'activity', label: 'Activity', icon: 'M4 6h16M4 12h16M4 18h10' },
   { page: 'earn', label: 'Earn', icon: 'M4 17l6-6 4 4 6-8' },
+  { page: 'allowances', label: 'Allowances', icon: 'M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z' },
   { page: 'board', label: 'Board', icon: 'M4 4h16v12H4zM8 20h8' },
 ]
 

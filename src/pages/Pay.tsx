@@ -9,6 +9,7 @@ import { isTrusted, tierFor, TIER_COPY } from '../lib/record'
 import { Button, Spinner, TxStatus, showToast, useTx } from '../components/ui'
 import { prettyName } from '../App'
 import { useCountUp } from '../lib/motion'
+import { AllowanceBanner } from './Allowances'
 
 type Mode = 'near' | 'intents'
 
@@ -219,6 +220,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
       <div className="text-[13px] text-muted">Pay</div>
       <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">Request money</h1>
       <p className="mt-1 text-[13.5px] text-muted">{name} pays them directly, on the chain they use, once members approve.</p>
+      <div className="mt-6"><AllowanceBanner /></div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-8">

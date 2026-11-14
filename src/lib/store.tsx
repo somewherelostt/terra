@@ -9,8 +9,8 @@ export const STAKING_POOL = import.meta.env.VITE_STAKING_POOL || 'aurora.pool.f8
 
 // ---------- tiny router: ?dao=<id>#/<page> ----------
 
-export type Page = 'home' | 'pay' | 'approve' | 'members' | 'activity' | 'board' | 'earn' | 'create' | 'signin' | 'join' | 'messages'
-const PAGES: Page[] = ['home', 'pay', 'approve', 'members', 'activity', 'board', 'earn', 'create', 'signin', 'join', 'messages']
+export type Page = 'home' | 'pay' | 'approve' | 'members' | 'activity' | 'board' | 'earn' | 'create' | 'signin' | 'join' | 'allowances' | 'messages'
+const PAGES: Page[] = ['home', 'pay', 'approve', 'members', 'activity', 'board', 'earn', 'create', 'signin', 'join', 'allowances', 'messages']
 
 function readRoute(): { page: Page; daoId: string | null; params: URLSearchParams } {
   const url = new URL(window.location.href)
