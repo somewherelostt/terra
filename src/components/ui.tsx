@@ -210,3 +210,14 @@ export function Toaster() {
     </div>
   )
 }
+
+/** A one-line row label: the reason truncates, the muted detail never gets cut mid-sentence. */
+export function RowText({ main, detail, extra }: { main: ReactNode; detail?: ReactNode; extra?: ReactNode }) {
+  return (
+    <span className="flex min-w-0 items-baseline gap-1.5">
+      <span className="min-w-0 truncate">{main}</span>
+      {detail && <span className="shrink-0 whitespace-nowrap text-muted">· {detail}</span>}
+      {extra && <span className="shrink-0">{extra}</span>}
+    </span>
+  )
+}

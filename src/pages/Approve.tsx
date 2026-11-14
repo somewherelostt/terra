@@ -8,7 +8,7 @@ import { useWallet } from '../lib/wallet'
 import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests, routeRequest } from '../lib/record'
-import { Button, TxLink, TxStatus, showToast, useTx } from '../components/ui'
+import { Button, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 
 export default function Approve() {
   const { dao, accountId, tracks } = { ...useDao(), ...useWallet() }
@@ -99,8 +99,8 @@ function DecidedRow({ p }: { p: Proposal }) {
   else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${kindName(p.kind)}`)
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
-      <span className="min-w-0 truncate" title={meta.title}>
-        {meta.title} <span className="text-muted">· {detail}</span>
+      <span className="min-w-0 flex-1" title={meta.title}>
+        <RowText main={meta.title} detail={detail} />
       </span>
       <span className="flex shrink-0 items-baseline gap-4">
         {payout && <TxLink hash={payout} label="Receipt" />}

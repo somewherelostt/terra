@@ -3,7 +3,7 @@ import type { ActivityItem } from '../lib/activity'
 import { useDao } from '../lib/store'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { decodeDescription, isExpired, isNearTransfer, type Proposal } from '../lib/dao'
-import { TxLink } from '../components/ui'
+import { RowText, TxLink } from '../components/ui'
 
 type Filter = 'All' | 'Money in' | 'Money out' | 'Requests'
 
@@ -83,9 +83,9 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
             const { text, amount, tone } = describe(a, p, money, dao ? (q: Proposal) => isExpired(q, dao.policy) : () => false)
             return (
               <div key={(a.txHash ?? '') + a.kind + i} className="grid grid-cols-[1fr_auto_auto] items-baseline gap-4 border-b border-line py-3.5 last:border-0 sm:gap-8">
-                <span className="min-w-0">
+                <span className="flex min-w-0 items-baseline gap-2">
                   {text}
-                  {!a.ok && <span className="ml-2 text-[12px] text-bad">failed</span>}
+                  {!a.ok && <span className="shrink-0 text-[12px] text-bad">failed</span>}
                 </span>
                 {a.txHash ? <TxLink hash={a.txHash} label="Receipt" /> : <span />}
                 <span className={`tnum w-24 text-right ${tone}`}>{amount}</span>
@@ -105,44 +105,27 @@ function describe(a: ActivityItem, p: Proposal | undefined, money: (y?: string) 
   const who = shortName(a.who)
   const votes = p ? Object.values(p.votes) : []
   const yes = votes.filter((v) => v === 'Approve').length
+  const row = (main: string, detail?: string) => <RowText main={main} detail={detail} />
   switch (a.kind) {
     case 'chip-in':
-      return { text: <>{who} chipped in <span className="text-muted">· {yoctoToNear(a.amount ?? '0')} NEAR</span></>, amount: `+${money(a.amount)}`, tone: 'text-good' }
-    case 'payout':
-      return {
-        text: (
-          <>
-            {title ?? 'Payout'} <span className="text-muted">· paid to {shortName(a.to ?? '')}{wants ? ` · they asked for ${wants}` : ''}{yes ? ` · ${yes} approval${yes === 1 ? '' : 's'}` : ''}</span>
-          </>
-        ),
-        amount: `−${money(a.amount)}`,
-        tone: '',
-      }
+      return { text: row(`${who} chipped in`, `${yoctoToNear(a.amount ?? '0')} NEAR`), amount: `+${money(a.amount)}`, tone: 'text-good' }
+    case 'payout': {
+      const bits = [`paid to ${shortName(a.to ?? '')}`, wants ? `asked for ${wants}` : '', yes ? `${yes} approval${yes === 1 ? '' : 's'}` : ''].filter(Boolean)
+      return { text: row(title ?? 'Payout', bits.join(' · ')), amount: `−${money(a.amount)}`, tone: '' }
+    }
     case 'request': {
       const status = !p ? '' : p.status === 'InProgress' ? (expired(p) ? 'expired' : `waiting, ${yes} approval${yes === 1 ? '' : 's'}`) : p.status === 'Approved' ? 'paid' : p.status.toLowerCase()
       const isMoney = p && isNearTransfer(p.kind)
       return {
-        text: (
-          <>
-            {who} {isMoney ? 'asked for money' : 'proposed a change'} <span className="text-muted">· {title ?? `request #${a.proposalId}`}{status ? ` · ${status}` : ''}</span>
-          </>
-        ),
+        text: row(title ?? `request #${a.proposalId}`, [`${who} ${isMoney ? 'asked for money' : 'proposed a change'}`, status].filter(Boolean).join(' · ')),
         amount: a.amount ? money(a.amount) : '',
         tone: 'text-muted',
       }
     }
     case 'approve':
     case 'reject':
-      return {
-        text: (
-          <>
-            {who} {a.kind === 'approve' ? 'approved' : 'declined'} <span className="text-muted">· {title ?? `request #${a.proposalId}`}</span>
-          </>
-        ),
-        amount: '',
-        tone: '',
-      }
+      return { text: row(title ?? `request #${a.proposalId}`, `${a.kind === 'approve' ? 'approved' : 'declined'} by ${who}`), amount: '', tone: '' }
     default:
-      return { text: <>{who} sent a transaction</>, amount: '', tone: '' }
+      return { text: row(`${who} sent a transaction`), amount: '', tone: '' }
   }
 }

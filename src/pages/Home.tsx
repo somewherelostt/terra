@@ -5,7 +5,7 @@ import { allMembers, chipInTx, decodeDescription } from '../lib/dao'
 import { nearToYocto, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests } from '../lib/record'
 import type { ActivityItem } from '../lib/activity'
-import { Avatar, Button, TxLink, TxStatus, useTx } from '../components/ui'
+import { Avatar, Button, RowText, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
 import { useCountUp, useDelta } from '../lib/motion'
 import { RequestCard } from './Approve'
@@ -171,29 +171,29 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
         let amount: React.ReactNode = null
         switch (a.kind) {
           case 'chip-in':
-            label = <>{shortName(a.who)} chipped in <span className="text-muted">· {yoctoToNear(a.amount ?? '0')} NEAR</span></>
+            label = <RowText main={`${shortName(a.who)} chipped in`} detail={`${yoctoToNear(a.amount ?? '0')} NEAR`} />
             amount = <span className="text-good">+{money(a.amount)}</span>
             break
           case 'payout':
-            label = <>{title ?? 'Payout'} <span className="text-muted">· paid to {shortName(a.to ?? '')}</span></>
+            label = <RowText main={title ?? 'Payout'} detail={`paid to ${shortName(a.to ?? '')}`} />
             amount = <>−{money(a.amount)}</>
             break
           case 'request':
-            label = <>{shortName(a.who)} is asking <span className="text-muted">· {title ?? 'a change'}</span></>
+            label = <RowText main={title ?? 'a change'} detail={`${shortName(a.who)} is asking`} />
             amount = a.amount ? <span className="text-muted">{money(a.amount)}</span> : null
             break
           case 'approve':
           case 'reject':
-            label = <>{shortName(a.who)} {a.kind === 'approve' ? 'approved' : 'declined'} <span className="text-muted">· {title ?? `request #${a.proposalId}`}</span></>
+            label = <RowText main={title ?? `request #${a.proposalId}`} detail={`${a.kind === 'approve' ? 'approved' : 'declined'} by ${shortName(a.who)}`} />
             break
           default:
             label = <>{shortName(a.who)} sent a transaction</>
         }
         return (
           <div key={(a.txHash ?? '') + a.kind + i} className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
-            <span className="min-w-0 truncate">
+            <span className="flex min-w-0 items-baseline gap-2">
               {label}
-              <span className="ml-2 text-[12px] text-muted">{timeAgo(a.time)}</span>
+              <span className="shrink-0 text-[12px] text-muted">{timeAgo(a.time)}</span>
             </span>
             <span className="tnum flex shrink-0 items-baseline gap-3">
               {amount}
