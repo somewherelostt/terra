@@ -59,7 +59,14 @@ export default function Members() {
         ))}
       </div>
 
-      <div className="mt-4 overflow-x-auto text-[13.5px]">
+      <div className="mt-4 space-y-2 md:hidden">
+        {shown.map((r) => (
+          <MemberCard key={r.accountId} r={r} you={r.accountId === accountId} onAvatar={() => setPicking(true)} />
+        ))}
+        {shown.length === 0 && <div className="py-6 text-muted">Nobody here yet.</div>}
+      </div>
+
+      <div className="mt-4 hidden overflow-x-auto text-[13.5px] md:block">
         <div className="min-w-[640px]">
           <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr_1fr] border-b border-line py-2.5 text-[12px] text-muted">
             <span>Member</span>
@@ -82,6 +89,53 @@ export default function Members() {
           nod from a trusted member. Requests up to ${TIER_LIMITS_USD.mid} go to the council; bigger ones are a full council vote. The council and the trusted role are set in the DAO's
           policy, and every record is computed from the DAO's own history on NEAR.
         </p>
+      </div>
+    </div>
+  )
+}
+
+function memberFacts(r: MemberRecord, nearUsd: number) {
+  const s = standingOf(r)
+  const badge = { Trusted: 'bg-accent text-on-accent', Council: 'border border-line', New: 'bg-soft text-muted' }[s]
+  const money = r.chippedIn === 0n ? '—' : isFinite(nearUsd) ? usd(yoctoToNumber(r.chippedIn) * nearUsd) : `${yoctoToNear(r.chippedIn)} NEAR`
+  const lane = s === 'New' ? 'Council decides' : s === 'Council' ? '$' + TIER_LIMITS_USD.mid : '$' + TIER_LIMITS_USD.small
+  return { s, badge, money, lane }
+}
+
+/** Phone layout: one card per member. */
+function MemberCard({ r, you, onAvatar }: { r: MemberRecord; you: boolean; onAvatar?: () => void }) {
+  const { nearUsd } = useDao()
+  const f = memberFacts(r, nearUsd)
+  return (
+    <div className="rounded-2xl border border-line bg-card p-4">
+      <div className="flex items-center gap-3">
+        <Avatar id={r.accountId} size={40} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[15px]">
+            <Account id={r.accountId} className="!font-normal" />
+            {you && <span className="text-muted"> · you</span>}
+          </div>
+          {you && (
+            <button className="text-[12.5px] text-muted underline-offset-2 hover:underline" onClick={onAvatar}>
+              Change avatar
+            </button>
+          )}
+        </div>
+        <span className={`shrink-0 rounded-md px-2 py-0.5 text-[12px] font-medium ${f.badge}`}>{f.s}</span>
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2 text-[12px]">
+        <div>
+          <div className="text-muted">Chipped in</div>
+          <div className="tnum mt-0.5 text-[14px]">{f.money}</div>
+        </div>
+        <div>
+          <div className="text-muted">Requests paid</div>
+          <div className="tnum mt-0.5 text-[14px]">{r.requested ? `${r.approved} of ${r.requested}` : '—'}</div>
+        </div>
+        <div>
+          <div className="text-muted">Fast lane up to</div>
+          <div className="tnum mt-0.5 text-[14px]">{f.lane}</div>
+        </div>
       </div>
     </div>
   )
@@ -184,12 +238,19 @@ export function RecordsTable() {
   const memberIds = new Set(dao.policy.roles.flatMap(roleMembers))
   const rows = [...records.values()].filter((r) => memberIds.has(r.accountId)).sort((a, b) => b.approved - a.approved)
   return (
-    <div className="overflow-x-auto text-[13.5px]">
-      <div className="min-w-[560px]">
+    <>
+      <div className="space-y-2 md:hidden">
         {rows.map((r) => (
-          <MemberRow key={r.accountId} r={r} you={false} />
+          <MemberCard key={r.accountId} r={r} you={false} />
         ))}
       </div>
-    </div>
+      <div className="hidden overflow-x-auto text-[13.5px] md:block">
+        <div className="min-w-[560px]">
+          {rows.map((r) => (
+            <MemberRow key={r.accountId} r={r} you={false} />
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
