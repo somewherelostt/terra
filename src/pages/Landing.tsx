@@ -8,6 +8,7 @@ import { useWallet } from '../lib/wallet'
 import { RECORDED_QUOTE, getTokens, quotePayout, type QuoteResult } from '../lib/intents'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
+import SiteFooter from '../components/SiteFooter'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -162,17 +163,7 @@ export default function Landing() {
 
       <ConnectCta />
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-2 px-6 py-8 text-[12.5px] text-mute">
-          <span className="flex items-center gap-2 text-ink">
-            <img src={ICON} alt="" className="size-5 rounded-[5px]" />
-            terra
-          </span>
-          <span>The members' app for community treasuries.</span>
-          <span className="ml-auto rounded-full border border-line px-2 py-0.5 text-[11.5px] text-mute">NEAR testnet</span>
-          <a href="https://github.com/somewherelostt/terra" className="-my-3 py-3 hover:text-ink">GitHub</a>
-        </div>
-      </footer>
+      <SiteFooter boardUrl={boardUrl} />
     </div>
   )
 }

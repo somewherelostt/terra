@@ -8,6 +8,7 @@ import { MemberName } from '../components/ProfileSheet'
 import { CommentCount, RequestSheetHost, openRequestSheet } from '../components/Comments'
 import { prettyName } from '../App'
 import { LandingNav } from './Landing'
+import SiteFooter from '../components/SiteFooter'
 import { Button } from '../components/ui'
 
 
@@ -210,12 +211,6 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
           </>
         )}
 
-        {!isApp && (
-          <div className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[12.5px] text-muted">
-            <span>Powered by terra · built on NEAR</span>
-            <button onClick={() => openDao(null)} className="-my-3 py-3 hover:text-ink">Run your community's treasury with Terra →</button>
-          </div>
-        )}
     </>
   )
 
@@ -228,7 +223,8 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
         current="board"
         joinCta={dao ? { label: `Join ${name}`, onClick: () => openDao(dao.id, 'join') } : undefined}
       />
-      <main className="mx-auto max-w-[1200px] px-4 pt-10 pb-16 sm:px-6 md:pt-16">{body}</main>
+      <main className="mx-auto max-w-[1200px] px-4 pt-10 pb-20 sm:px-6 md:pt-16 md:pb-28">{body}</main>
+      <SiteFooter home="./" boardUrl={publicLink || '#'} />
     </div>
   )
 }
