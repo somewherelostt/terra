@@ -158,7 +158,15 @@ async function status(o) {
   const qs = new URLSearchParams({ depositAddress, ...(memo ? { depositMemo: memo } : {}) })
   let last = ''
   for (;;) {
-    const s = await api(`/status?${qs}`)
+    let s
+    try {
+      s = await api(`/status?${qs}`)
+    } catch (e) {
+      // Network blips (timeouts, resets) shouldn't end a long watch; HTTP errors still exit via die().
+      console.log(`  ${new Date().toISOString().slice(11, 19)}  network error (${e.cause?.code || e.message}), retrying`)
+      await new Promise((r) => setTimeout(r, every))
+      continue
+    }
     if (s.status !== last) {
       console.log(`  ${new Date().toISOString().slice(11, 19)}  ${s.status}`)
       last = s.status
