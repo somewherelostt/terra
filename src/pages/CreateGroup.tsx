@@ -5,6 +5,7 @@ import { FACTORY, isValidAccountId, viewAccount } from '../lib/near'
 import { nearToYocto } from '../lib/format'
 import { openDao, shareUrl } from '../lib/store'
 import { TIER_LIMITS_USD } from '../lib/record'
+import { rememberGroup } from '../lib/groups'
 import { Button, TxStatus, useTx } from '../components/ui'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -76,7 +77,8 @@ export default function CreateGroup() {
 
   async function create() {
     if (step1Error || step2Error || step3Error || !yocto) return
-    await tx.run(() => send(createGroupTx({ displayName, name: slug, purpose, council: councilList, trusted: trustedList, deposit: yocto })))
+    const hash = await tx.run(() => send(createGroupTx({ displayName, name: slug, purpose, council: councilList, trusted: trustedList, deposit: yocto })))
+    if (hash) rememberGroup(accountId, daoId, 'created') // shows in My groups; saved to the profile on the next save
   }
 
   const titles = ['Your group', 'Invite members', 'Review and create']
