@@ -26,11 +26,11 @@ export default function Board() {
         <div className="flex items-center gap-3">
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-9 w-9" />
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted">Public board · read-only</div>
-            <h1 className="text-2xl font-bold tracking-tight">{prettyName(dao.config.name)}</h1>
+            <div className="text-xs font-medium uppercase tracking-wide text-muted">Public board · read-only</div>
+            <h1 className="text-2xl font-medium tracking-tight">{prettyName(dao.config.name)}</h1>
           </div>
         </div>
-        <button className="text-sm font-medium text-brand hover:underline" onClick={() => openDao(dao.id, 'home')}>
+        <button className="text-sm font-medium text-accent-text hover:underline" onClick={() => openDao(dao.id, 'home')}>
           Member? Open in Terra →
         </button>
       </header>
@@ -47,7 +47,7 @@ export default function Board() {
         </Card>
         <Card>
           <div className="text-sm text-muted">Open requests</div>
-          <div className="mt-1 text-2xl font-semibold">{open.length}</div>
+          <div className="mt-1 text-2xl font-medium">{open.length}</div>
         </Card>
       </div>
 

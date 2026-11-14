@@ -8,7 +8,7 @@ export default function Activity() {
   const { activity } = useDao()
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
+      <h1 className="text-2xl font-medium tracking-tight">Activity</h1>
       <Card>
         <SectionTitle>Every chip-in, request, approval and payout</SectionTitle>
         <ActivityList items={activity?.items} loading={!activity} full />
@@ -62,7 +62,7 @@ export function ActivityList({ items, loading, full }: { items?: ActivityItem[];
             <div className="min-w-0 flex-1">
               <div className="text-sm leading-snug">
                 {text}
-                {!a.ok && <span className="ml-2 text-xs font-semibold text-bad">failed</span>}
+                {!a.ok && <span className="ml-2 text-xs font-medium text-bad">failed</span>}
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-muted">
                 <span title={a.time.toISOString()}>{timeAgo(a.time)}</span>

@@ -1,65 +1,74 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
   --color-bg: var(--bg);
-  --color-card: var(--card);
-  --color-soft: var(--soft);
+  --color-card: var(--panel);
+  --color-soft: var(--sand);
   --color-line: var(--line);
   --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-brand: var(--brand);
-  --color-brand-strong: var(--brand-strong);
-  --color-brand-soft: var(--brand-soft);
-  --color-on-brand: var(--on-brand);
-  --color-good: var(--good);
-  --color-good-soft: var(--good-soft);
+  --color-muted: var(--mute);
+  --color-brand: var(--accent);
+  --color-brand-strong: var(--accent-strong);
+  --color-brand-soft: var(--sand);
+  --color-on-brand: var(--on-accent);
+  --color-accent-text: var(--accent-text);
+  --color-hero: var(--hero);
+  --color-on-hero: var(--on-hero);
+  --color-good: var(--moss);
+  --color-good-soft: var(--moss-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
 }
 
+/* Dark is the default. Near-black, lime accent, lime for money coming in. */
 :root {
+  color-scheme: dark;
+  --bg: #0b0b0c;
+  --panel: #121214;
+  --ink: #f5f5f4;
+  --mute: #8b8b8f;
+  --line: #232326;
+  --sand: #161618;
+  --accent: #c8f560;
+  --accent-strong: #b6e34c;
+  --on-accent: #0b0b0c;
+  --accent-text: #c8f560;
+  --moss: #c8f560;
+  --moss-soft: rgba(200, 245, 96, 0.1);
+  --hero: #121214;
+  --hero-ring: #232326;
+  --hero-line: rgba(255, 255, 255, 0.1);
+  --on-hero: #f5f5f4;
+  --bad: #f0a091;
+  --bad-soft: rgba(240, 160, 145, 0.1);
+  --warn: #f0c56b;
+  --warn-soft: rgba(240, 197, 107, 0.1);
+}
+
+/* Light: lime is only a fill, never text on a light surface. */
+:root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f6f5f0;
-  --card: #ffffff;
-  --soft: #efede5;
-  --line: #e2dfd3;
-  --ink: #1d231f;
-  --muted: #6a6f68;
-  --brand: #1f5135;
-  --brand-strong: #163d27;
-  --brand-soft: #e3efe2;
-  --on-brand: #ffffff;
-  --good: #1d6b3a;
-  --good-soft: #e1f2e5;
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --ink: #0b0b0c;
+  --mute: #6b6b70;
+  --line: #e7e7ea;
+  --sand: #f2f2f4;
+  --accent-strong: #b6e34c;
+  --accent-text: #3d6b00;
+  --moss: #3d6b00;
+  --moss-soft: #eef6dc;
+  --hero: #0b0b0c;
+  --hero-ring: transparent;
+  --hero-line: rgba(255, 255, 255, 0.12);
   --bad: #a63a2b;
   --bad-soft: #f8e4df;
   --warn: #8a5a00;
   --warn-soft: #fbefd5;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #111512;
-    --card: #181d19;
-    --soft: #212822;
-    --line: #2c342d;
-    --ink: #eef1ec;
-    --muted: #9aa39a;
-    --brand: #8fd19e;
-    --brand-strong: #a8deb4;
-    --brand-soft: #1f3324;
-    --on-brand: #0d1a10;
-    --good: #8fd19e;
-    --good-soft: #1b2e20;
-    --bad: #f0a091;
-    --bad-soft: #3a211c;
-    --warn: #f0c56b;
-    --warn-soft: #3a2f17;
-  }
 }
 
 html, body, #root { min-height: 100%; }
@@ -70,3 +79,5 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+.tnum, .tabular-nums { font-variant-numeric: tabular-nums; }

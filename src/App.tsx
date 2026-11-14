@@ -58,7 +58,7 @@ function DaoGate({ children }: { children: ReactNode }) {
   if (error)
     return (
       <div className="mx-auto max-w-lg py-16 text-center">
-        <h1 className="text-xl font-semibold">We couldn't open that treasury</h1>
+        <h1 className="text-xl font-medium">We couldn't open that treasury</h1>
         <p className="mt-2 text-sm text-muted">{error}</p>
         <Button className="mt-6" onClick={() => openDao(null)}>
           Pick another community
@@ -87,7 +87,7 @@ const NAV: { page: Page; label: string; icon: string }[] = [
 function Shell({ page, daoId, children }: { page: Page; daoId: string | null; children: ReactNode }) {
   return (
     <div className="min-h-screen md:flex">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-card px-4 py-5 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line px-4 py-6 md:flex">
         <Logo />
         {daoId ? <GroupSwitcher /> : <div className="mt-6" />}
         <nav className="mt-4 flex flex-col gap-1">
@@ -117,11 +117,11 @@ function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean
         e.preventDefault()
         go(item.page)
       }}
-      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${active ? 'bg-brand-soft text-brand' : 'text-ink hover:bg-soft'}`}
+      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${active ? 'bg-card text-ink ring-1 ring-line' : 'text-muted hover:text-ink'}`}
     >
       <Icon d={item.icon} />
       <span className="flex-1">{item.label}</span>
-      {count > 0 && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-on-brand">{count}</span>}
+      {count > 0 && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-on-brand">{count}</span>}
     </a>
   )
 }
@@ -134,7 +134,7 @@ function MobileNav({ page }: { page: Page }) {
         <a
           key={n.page}
           href={`#/${n.page}`}
-          className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${page === n.page ? 'text-brand' : 'text-muted'}`}
+          className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${page === n.page ? 'text-accent-text' : 'text-muted'}`}
         >
           <Icon d={n.icon} />
           {n.label === 'Ask for money' ? 'Ask' : n.label}
@@ -161,11 +161,11 @@ function GroupSwitcher() {
       className="mt-6 flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left hover:bg-soft"
       title="Switch community"
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-sm font-medium text-accent-text">
         {(dao?.config.name ?? '?').slice(0, 1).toUpperCase()}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold">{dao ? prettyName(dao.config.name) : '…'}</span>
+        <span className="block truncate text-sm font-medium">{dao ? prettyName(dao.config.name) : '…'}</span>
         <span className="block truncate text-xs text-muted">{dao?.id}</span>
       </span>
       <span className="text-muted">⇄</span>
@@ -188,7 +188,7 @@ function TopBar({ daoId }: { daoId: string | null }) {
         <Logo compact />
       </div>
       <div className="hidden text-xs text-muted md:block">
-        <span className="rounded-full bg-warn-soft px-2 py-0.5 font-semibold text-warn">Testnet</span>
+        <span className="rounded-full bg-warn-soft px-2 py-0.5 font-medium text-warn">Testnet</span>
         {daoId && <span className="ml-2">Connected to {daoId}</span>}
       </div>
       <div className="flex items-center gap-2">
@@ -217,8 +217,8 @@ function TopBar({ daoId }: { daoId: string | null }) {
 export function Logo({ compact }: { compact?: boolean }) {
   return (
     <a href="#/home" className="flex items-center gap-2.5">
-      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-8 w-8" />
-      {!compact && <span className="text-lg font-bold tracking-tight">Terra</span>}
+      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-6 w-6" />
+      {!compact && <span className="text-[15px] font-medium tracking-tight">terra</span>}
     </a>
   )
 }

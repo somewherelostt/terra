@@ -137,7 +137,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Ask for money</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Ask for money</h1>
         <p className="mt-1 text-sm text-muted">Your request goes to the treasury as a payment the members approve. Once approved, the treasury pays it out itself.</p>
       </div>
 
@@ -154,7 +154,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                 <button
                   key={m}
                   onClick={() => setMode(m)}
-                  className={`rounded-lg px-3 py-1.5 font-medium ${mode === m ? 'bg-card shadow-sm' : 'text-muted'}`}
+                  className={`rounded-lg px-3 py-1.5 font-medium ${mode === m ? 'bg-card ' : 'text-muted'}`}
                 >
                   {m === 'near' ? 'A NEAR account' : 'Someone on another chain'}
                 </button>
@@ -278,7 +278,7 @@ function QuoteBox({ quote, token, loading, error, nearUsd }: { quote: QuoteResul
   return (
     <div className="rounded-xl border border-line bg-soft p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted">NEAR Intents quote</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-muted">NEAR Intents quote</span>
         {quote && !quote.recorded && <Badge tone="good">Live</Badge>}
         {quote?.recorded && <Badge tone="warn">Sample</Badge>}
       </div>

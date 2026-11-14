@@ -10,7 +10,7 @@ export default function Members() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Members and records</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Members and records</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted">
           Every record is computed from this DAO's own history on NEAR, so anyone can check it. A clean record earns the fast lane for small requests.
         </p>
@@ -34,7 +34,7 @@ export default function Members() {
             {dao.policy.roles.map((r) => (
               <li key={r.name}>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">{r.name}</span>
+                  <span className="font-medium">{r.name}</span>
                   <span className="text-xs text-muted">{r.kind === 'Everyone' ? 'anyone' : `${roleMembers(r).length} member${roleMembers(r).length === 1 ? '' : 's'}`}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -60,15 +60,15 @@ export function RecordsTable({ readOnly }: { readOnly?: boolean }) {
       <table className="w-full min-w-[640px] text-sm">
         <thead>
           <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
-            <th className="px-5 py-3 font-semibold">Member</th>
-            <th className="px-3 py-3 font-semibold">Roles</th>
-            <th className="px-3 py-3 text-right font-semibold">Asked</th>
-            <th className="px-3 py-3 text-right font-semibold">Approved</th>
-            <th className="px-3 py-3 text-right font-semibold">Rejected</th>
-            <th className="px-3 py-3 text-right font-semibold">Approved total</th>
-            <th className="px-3 py-3 text-right font-semibold">Chipped in</th>
-            <th className="px-3 py-3 text-right font-semibold">Votes</th>
-            <th className="px-5 py-3 font-semibold">Lane</th>
+            <th className="px-5 py-3 font-medium">Member</th>
+            <th className="px-3 py-3 font-medium">Roles</th>
+            <th className="px-3 py-3 text-right font-medium">Asked</th>
+            <th className="px-3 py-3 text-right font-medium">Approved</th>
+            <th className="px-3 py-3 text-right font-medium">Rejected</th>
+            <th className="px-3 py-3 text-right font-medium">Approved total</th>
+            <th className="px-3 py-3 text-right font-medium">Chipped in</th>
+            <th className="px-3 py-3 text-right font-medium">Votes</th>
+            <th className="px-5 py-3 font-medium">Lane</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">

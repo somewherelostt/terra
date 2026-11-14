@@ -3,13 +3,13 @@ import { accountUrl, txUrl } from '../lib/near'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-line bg-card p-5 shadow-sm ${className}`}>{children}</div>
+  return <div className={`rounded-2xl border border-line bg-card p-5 ${className}`}>{children}</div>
 }
 
 export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{children}</h2>
+      <h2 className="text-sm font-medium uppercase tracking-wide text-muted">{children}</h2>
       {right}
     </div>
   )
@@ -44,7 +44,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
     >
       {children}
     </button>
@@ -64,7 +64,7 @@ export function Avatar({ id, size = 32 }: { id: string; size?: number }) {
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold uppercase text-white"
+      className="inline-flex shrink-0 items-center justify-center rounded-full font-medium uppercase text-white"
       style={{ width: size, height: size, background: `hsl(${h} 45% 42%)`, fontSize: size * 0.42 }}
       title={id}
     >
@@ -79,7 +79,7 @@ export function Money({ yocto, nearUsd, size = 'md' }: { yocto: string | bigint;
   const cls = { md: 'text-base', lg: 'text-2xl', xl: 'text-5xl tracking-tight' }[size]
   return (
     <span className="inline-flex flex-col">
-      <span className={`font-semibold tabular-nums ${cls}`}>{main}</span>
+      <span className={`font-medium tabular-nums ${cls}`}>{main}</span>
       {isFinite(nearUsd) && <span className="text-xs text-muted tabular-nums">{yoctoToNear(yocto)} NEAR</span>}
     </span>
   )
@@ -88,7 +88,7 @@ export function Money({ yocto, nearUsd, size = 'md' }: { yocto: string | bigint;
 export function TxLink({ hash, label = 'View on NearBlocks' }: { hash?: string; label?: string }) {
   if (!hash) return null
   return (
-    <a href={txUrl(hash)} target="_blank" rel="noreferrer" className="text-xs font-medium text-brand hover:underline">
+    <a href={txUrl(hash)} target="_blank" rel="noreferrer" className="text-xs font-medium text-accent-text hover:underline">
       {label} ↗
     </a>
   )
@@ -100,9 +100,9 @@ export function Badge({ children, tone = 'neutral' }: { children: ReactNode; ton
     good: 'bg-good-soft text-good',
     bad: 'bg-bad-soft text-bad',
     warn: 'bg-warn-soft text-warn',
-    brand: 'bg-brand-soft text-brand',
+    brand: 'bg-brand-soft text-accent-text',
   }[tone]
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${t}`}>{children}</span>
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${t}`}>{children}</span>
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {

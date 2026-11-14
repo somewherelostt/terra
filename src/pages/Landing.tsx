@@ -48,10 +48,10 @@ export default function Landing() {
       </header>
 
       <section className="mx-auto max-w-5xl px-4 pb-12 pt-10 md:px-8 md:pt-16">
-        <p className="mb-4 inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand">
+        <p className="mb-4 inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-accent-text">
           For communities that already have a treasury on NEAR
         </p>
-        <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight md:text-6xl">
+        <h1 className="max-w-3xl text-4xl font-medium leading-tight tracking-tight md:text-6xl">
           Your community's money, in every member's hands.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-muted">
@@ -81,11 +81,11 @@ export default function Landing() {
         </form>
         {error && <p className="mt-2 text-sm text-bad">{error}</p>}
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
-          <button className="font-medium text-brand hover:underline" onClick={() => openDao(DEMO_DAO)}>
+          <button className="font-medium text-accent-text hover:underline" onClick={() => openDao(DEMO_DAO)}>
             Try the demo community →
           </button>
           <span>or</span>
-          <button className="font-medium text-brand hover:underline" onClick={() => go('create')}>
+          <button className="font-medium text-accent-text hover:underline" onClick={() => go('create')}>
             start a new group
           </button>
         </div>
@@ -107,7 +107,7 @@ export default function Landing() {
           },
         ].map((f) => (
           <div key={f.t} className="rounded-2xl border border-line bg-card p-5">
-            <h3 className="font-semibold">{f.t}</h3>
+            <h3 className="font-medium">{f.t}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">{f.d}</p>
           </div>
         ))}

@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{prettyName(dao.config.name)}</h1>
+        <h1 className="text-2xl font-medium tracking-tight">{prettyName(dao.config.name)}</h1>
         {dao.config.purpose && <p className="mt-1 max-w-2xl text-sm text-muted">{dao.config.purpose}</p>}
       </div>
 
@@ -32,7 +32,7 @@ export default function Home() {
                 <Money yocto={total} nearUsd={nearUsd} size="xl" />
               </div>
               {dao.staked > 0n && (
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-xs font-semibold text-good">
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-xs font-medium text-good">
                   Earning · {usd(yoctoToNumber(dao.staked) * nearUsd)} staked
                 </div>
               )}
@@ -56,13 +56,13 @@ export default function Home() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <SectionTitle right={<button className="text-sm font-medium text-brand hover:underline" onClick={() => go('activity')}>See all</button>}>
+          <SectionTitle right={<button className="text-sm font-medium text-accent-text hover:underline" onClick={() => go('activity')}>See all</button>}>
             Recent activity
           </SectionTitle>
           <ActivityList items={activity?.items.slice(0, 6)} loading={!activity} />
         </Card>
         <Card>
-          <SectionTitle right={<button className="text-sm font-medium text-brand hover:underline" onClick={() => go('members')}>Records</button>}>
+          <SectionTitle right={<button className="text-sm font-medium text-accent-text hover:underline" onClick={() => go('members')}>Records</button>}>
             Members
           </SectionTitle>
           <ul className="space-y-2.5">
@@ -84,7 +84,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-xs text-muted">{label}</div>
-      <div className="mt-0.5 text-lg font-semibold tabular-nums">{value}</div>
+      <div className="mt-0.5 text-lg font-medium tabular-nums">{value}</div>
     </div>
   )
 }
@@ -126,7 +126,7 @@ function ShareBox({ daoId }: { daoId: string }) {
   const url = shareUrl(daoId, 'board')
   return (
     <div className="mt-5 rounded-xl bg-soft p-3">
-      <div className="text-xs font-semibold text-ink">Read-only link for sponsors</div>
+      <div className="text-xs font-medium text-ink">Read-only link for sponsors</div>
       <div className="mt-1 text-xs text-muted">Balance, requests, payouts and records. No sign-in, no buttons.</div>
       <div className="mt-2 flex gap-2">
         <Button
@@ -138,7 +138,7 @@ function ShareBox({ daoId }: { daoId: string }) {
         >
           {copied ? 'Copied' : 'Copy link'}
         </Button>
-        <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-xl px-3 text-xs font-semibold text-brand hover:underline">
+        <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-xl px-3 text-xs font-medium text-accent-text hover:underline">
           Open ↗
         </a>
       </div>

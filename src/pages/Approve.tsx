@@ -16,7 +16,7 @@ export default function Approve() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Approve</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Approve</h1>
         <p className="mt-1 text-sm text-muted">Requests waiting for a decision. When enough members approve, the treasury pays automatically.</p>
       </div>
       <section>
@@ -32,7 +32,7 @@ export default function Approve() {
         )}
       </section>
       <section>
-        <SectionTitle right={<button className="text-sm font-medium text-brand hover:underline" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>}>
+        <SectionTitle right={<button className="text-sm font-medium text-accent-text hover:underline" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>}>
           Decided
         </SectionTitle>
         <Card className="!p-0">
@@ -119,14 +119,14 @@ function RequestCard({ p }: { p: Proposal }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-xs text-muted">Request #{p.id} · {timeAgo(nanoToDate(p.submission_time))}</div>
-          <h3 className="mt-1 text-lg font-semibold leading-snug">{meta.title}</h3>
+          <h3 className="mt-1 text-lg font-medium leading-snug">{meta.title}</h3>
         </div>
         {route && <Badge tone="brand">{TIER_COPY[route.effectiveTier].label}</Badge>}
       </div>
 
       {transfer ? (
         <div className="mt-3">
-          <div className="text-2xl font-semibold tabular-nums">
+          <div className="text-2xl font-medium tabular-nums">
             {isFinite(nearUsd) ? usd(yoctoToNumber(transfer.amount) * nearUsd) : `${yoctoToNear(transfer.amount)} NEAR`}
           </div>
           <div className="text-xs text-muted">
@@ -139,7 +139,7 @@ function RequestCard({ p }: { p: Proposal }) {
 
       {meta.wants && (
         <div className="mt-3 rounded-xl bg-soft p-3 text-sm">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">Recipient wants</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-muted">Recipient wants</div>
           <div className="mt-0.5 break-all">{meta.wants}</div>
           {meta.quote && <div className="mt-1 text-xs text-muted">NEAR Intents: {meta.quote}</div>}
         </div>

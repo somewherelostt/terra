@@ -50,9 +50,9 @@ export default function CreateGroup() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Start a new group</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Start a new group</h1>
         <p className="mt-1 text-sm text-muted">
-          Already have a DAO? <button className="font-medium text-brand hover:underline" onClick={() => openDao(null)}>Open it instead</button>. Otherwise Terra creates a standard Sputnik DAO for you through the official testnet factory. You own it; Terra never does.
+          Already have a DAO? <button className="font-medium text-accent-text hover:underline" onClick={() => openDao(null)}>Open it instead</button>. Otherwise Terra creates a standard Sputnik DAO for you through the official testnet factory. You own it; Terra never does.
         </p>
       </div>
       <Card className="space-y-5">

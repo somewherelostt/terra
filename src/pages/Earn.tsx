@@ -59,7 +59,7 @@ export default function Earn() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Earn</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Earn</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted">
           Money the group isn't spending yet can earn staking rewards with a NEAR validator. Staking is a request too: members approve it, and the treasury stakes in its own name.
         </p>
@@ -80,7 +80,7 @@ export default function Earn() {
           <div className="mt-5 rounded-xl bg-soft p-3 text-sm">
             <div className="flex items-center gap-2">
               <span className="font-medium">Validator</span>
-              <a className="text-brand hover:underline" href={accountUrl(STAKING_POOL)} target="_blank" rel="noreferrer">{STAKING_POOL}</a>
+              <a className="text-accent-text hover:underline" href={accountUrl(STAKING_POOL)} target="_blank" rel="noreferrer">{STAKING_POOL}</a>
               {pool && <Badge tone="good">Active</Badge>}
             </div>
             {pool && (
@@ -97,7 +97,7 @@ export default function Earn() {
                 {pending.map((p) => (
                   <li key={p.id}>
                     #{p.id} {decodeDescription(p.description).title} ·{' '}
-                    <button className="text-brand hover:underline" onClick={() => go('approve')}>approve</button>
+                    <button className="text-accent-text hover:underline" onClick={() => go('approve')}>approve</button>
                   </li>
                 ))}
               </ul>
