@@ -218,6 +218,17 @@ button:active { transform: scale(.98); }
 .palette { transform: translateY(-6px) scale(.98); transition: transform var(--dur-2) var(--ease-out); }
 .palette-bg.open .palette { transform: none; }
 
+/* ---------- Landing hero: deep blue horizon (Maaz picked option A, 14 Nov) ----------
+   Near-black at the top so the headline reads, sinking into deep blue with a bright horizon
+   behind the product preview. Light mode: white fading into sky blue. */
+.hero-horizon::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 22%, #061038 48%, #0b2fa8 67%, #2f7bff 81%, #8fc2ff 93%, #c9e2ff 100%);
+}
+:root[data-theme="light"] .hero-horizon::before {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 16%, #eef4ff 36%, #cfe1ff 60%, #7fb0ff 82%, #2f6bff 100%);
+}
+
 /* ---------- Glass (phone chrome and sheets) ----------
    Frosted, translucent surfaces for things that float over content: the phone tab bar,
    the top bar and bottom sheets. Unlayered, so .glass wins over bg-card / border-line.

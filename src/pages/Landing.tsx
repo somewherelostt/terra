@@ -22,7 +22,8 @@ export default function Landing() {
     <div className="min-h-screen">
       <LandingNav boardUrl={boardUrl} />
 
-      {/* Hero */}
+      {/* Hero, over a deep blue horizon that rises behind the product preview */}
+      <div className="hero-horizon relative isolate overflow-hidden">
       <section className="mx-auto max-w-[1200px] px-4 pt-12 text-center sm:px-6 md:pt-24">
         <div className="inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-mute sm:text-[12.5px]">
           <span className="live size-1.5 rounded-full bg-accent" />
@@ -43,6 +44,7 @@ export default function Landing() {
         <ResumeLink />
         <ProductPreview />
       </section>
+      </div>
 
       {/* Proof strip */}
       <section className="border-y border-line">
