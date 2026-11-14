@@ -11,13 +11,8 @@ import { isValidAccountId } from '../lib/near'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { confirmGroupsSaved, recordVisit, roleLabel, saveGroupsTx, useMyGroups, type GroupRow } from '../lib/groups'
 import { showToast } from './ui'
+import { prettyName as pretty } from '../App'
 
-function pretty(name: string): string {
-  return name
-    .split(/[-_]/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
-}
 
 let priceCache = NaN
 function useNearUsd(): number {

@@ -271,6 +271,8 @@ function GroupCard() {
 }
 
 export function prettyName(name: string): string {
+  // Names people typed ("nearHack Community") are kept as written; only slugs get title case.
+  if (/\s/.test(name) || /[A-Z]/.test(name)) return name.trim()
   return name
     .split(/[-_]/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
