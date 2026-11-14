@@ -1,4 +1,3 @@
-import LanguagePicker from './LanguagePicker'
 import { ThemeButton } from './AccountMenu'
 import { useT } from '../i18n'
 
@@ -43,13 +42,9 @@ export default function SiteFooter({ home = '', boardUrl }: { home?: string; boa
           </nav>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5 text-[12.5px] text-mute">
+        <div className="mt-6 flex items-center justify-between gap-3 text-[12.5px] text-mute">
           <span>{t('footer.copyright', { year: '2026' })}</span>
-          <div className="flex flex-wrap items-center gap-2">
-            <LanguagePicker up align="end-md" />
-            <ThemeButton />
-            <span className="rounded-full border border-line px-2 py-0.5 text-[11.5px]">{t('common.nearTestnet')}</span>
-          </div>
+          <ThemeButton />
         </div>
       </div>
 
