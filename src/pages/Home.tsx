@@ -2,15 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { go, shareUrl, useDao, useRoute } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { allMembers, chipInTx, decodeDescription } from '../lib/dao'
-import { nearToYocto, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { nearToYocto, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { displayName, useNames } from '../lib/profile'
 import { openRequests } from '../lib/record'
 import type { ActivityItem } from '../lib/activity'
 import { Avatar, Button, RowText, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
 import { useCountUp, useDelta } from '../lib/motion'
 import { RequestCard } from './Approve'
+import { AddNameNudge, openProfileSheet } from '../components/ProfileSheet'
 
 export default function Home() {
+  useNames()
   const { dao, nearUsd, activity, refresh, tracks } = useDao()
   const { accountId } = useWallet()
   const [copied, setCopied] = useState(false)
@@ -53,14 +56,16 @@ export default function Home() {
       <div className="flex items-center justify-between text-[13px] text-muted">
         <span>Home</span>
         {accountId ? (
-          <span className="flex items-center gap-2" title={accountId}>
-            {accountId}
+          <button type="button" className="flex min-w-0 items-center gap-2 hover:text-ink" title={`${accountId} · Edit profile`} onClick={openProfileSheet}>
+            <span className="truncate">{displayName(accountId)}</span>
             <Avatar id={accountId} size={24} />
-          </span>
+          </button>
         ) : (
           <span>{today}</span>
         )}
       </div>
+
+      {allMembers(dao.policy).includes(accountId ?? '') && <AddNameNudge className="mt-6 max-w-sm" />}
 
       <div className="mt-10 text-[13px] text-muted">{name} holds</div>
       <Balance usd={balanceUsd} muted={empty} />
@@ -170,6 +175,7 @@ function formatWait(min: number): string {
 }
 
 function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loading: boolean; nearUsd: number }) {
+  useNames()
   const { dao } = useDao()
   if (loading)
     return (
@@ -189,23 +195,23 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
         let amount: React.ReactNode = null
         switch (a.kind) {
           case 'chip-in':
-            label = <RowText main={`${shortName(a.who)} chipped in`} detail={`${yoctoToNear(a.amount ?? '0')} NEAR`} />
+            label = <RowText main={`${displayName(a.who)} chipped in`} detail={`${yoctoToNear(a.amount ?? '0')} NEAR`} />
             amount = <span className="text-good">+{money(a.amount)}</span>
             break
           case 'payout':
-            label = <RowText main={title ?? 'Payout'} detail={`paid to ${shortName(a.to ?? '')}`} />
+            label = <RowText main={title ?? 'Payout'} detail={`paid to ${displayName(a.to ?? '')}`} />
             amount = <>−{money(a.amount)}</>
             break
           case 'request':
-            label = <RowText main={title ?? 'a change'} detail={`${shortName(a.who)} is asking`} />
+            label = <RowText main={title ?? 'a change'} detail={`${displayName(a.who)} is asking`} />
             amount = a.amount ? <span className="text-muted">{money(a.amount)}</span> : null
             break
           case 'approve':
           case 'reject':
-            label = <RowText main={title ?? `request #${a.proposalId}`} detail={`${a.kind === 'approve' ? 'approved' : 'declined'} by ${shortName(a.who)}`} />
+            label = <RowText main={title ?? `request #${a.proposalId}`} detail={`${a.kind === 'approve' ? 'approved' : 'declined'} by ${displayName(a.who)}`} />
             break
           default:
-            label = <>{shortName(a.who)} sent a transaction</>
+            label = <>{displayName(a.who)} sent a transaction</>
         }
         return (
           <div key={(a.txHash ?? '') + a.kind + i} className="flex items-center justify-between gap-4 border-b border-line py-3.5 last:border-0">

@@ -3,6 +3,7 @@ import { allMembers, approvalRules, decodeDescription, isNearTransfer } from '..
 import { nanoToDate, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, openRequests, tierFor } from '../lib/record'
 import { Avatar, RowText, TxLink } from '../components/ui'
+import { MemberName } from '../components/ProfileSheet'
 import { prettyName } from '../App'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -83,7 +84,14 @@ export default function Board() {
                   const meta = decodeDescription(p.description)
                   return (
                     <div key={p.id} className="grid grid-cols-[1fr_auto] items-baseline gap-8 border-b border-line py-4 last:border-0">
-                      <RowText main={meta.title} detail={`asked ${nanoToDate(p.submission_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`} />
+                      <RowText
+                        main={meta.title}
+                        detail={
+                          <>
+                            <MemberName id={p.proposer} card /> asked {nanoToDate(p.submission_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          </>
+                        }
+                      />
                       <span className="tnum w-24 text-right text-muted">{isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : ''}</span>
                     </div>
                   )
@@ -121,7 +129,20 @@ export default function Board() {
                     <div key={p.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 border-b border-line py-4 last:border-0 md:grid-cols-[1fr_auto_auto] md:gap-8">
                       <span className="flex min-w-0 items-center gap-2.5">
                         {t && <Avatar id={t.receiver_id} size={22} />}
-                        <RowText main={meta.title} detail={`${wants ?? 'NEAR'} · ${when}`} extra={<TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />} />
+                        <RowText
+                          main={meta.title}
+                          detail={
+                            <>
+                              {t && (
+                                <>
+                                  to <MemberName id={t.receiver_id} card /> ·{' '}
+                                </>
+                              )}
+                              {`${wants ?? 'NEAR'} · ${when}`}
+                            </>
+                          }
+                          extra={<TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />}
+                        />
                       </span>
                       <span className="order-3 col-span-2 pl-8 text-[12px] text-muted md:order-none md:col-span-1 md:pl-0 md:text-[13.5px]">{approvedBy}</span>
                       <span className="tnum w-24 text-right">{t ? money(t.amount) : ''}</span>
