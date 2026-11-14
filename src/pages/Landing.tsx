@@ -24,7 +24,7 @@ export default function Landing() {
     <div className="min-h-screen">
       {/* Nav */}
       <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-8 px-6">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4 sm:gap-8 sm:px-6">
           <a href="#" className="flex items-center gap-2">
             <img src={ICON} alt="" className="size-7 rounded-[7px]" />
             <span className="text-[16px] font-medium tracking-tight">terra</span>
@@ -35,7 +35,7 @@ export default function Landing() {
             <a href="#trust" className="hover:text-ink">Trust</a>
             <a href={boardUrl} className="hover:text-ink">Live board</a>
           </nav>
-          <div className="ml-auto flex items-center gap-2 text-[13.5px] font-medium">
+          <div className="ml-auto flex items-center gap-1 whitespace-nowrap text-[13.5px] font-medium sm:gap-2">
             <button
               className="hidden rounded-lg px-3 py-2 text-mute hover:text-ink sm:block"
               onClick={() => {
@@ -53,18 +53,21 @@ export default function Landing() {
             ) : (
               <button className="rounded-lg px-3 py-2 hover:bg-sand" onClick={() => go('signin')}>Sign in</button>
             )}
-            <a href="#connect" className="rounded-lg bg-accent px-4 py-2 text-on-accent">Connect a treasury</a>
+            <a href="#connect" className="rounded-lg bg-accent px-3 py-2 text-on-accent sm:px-4">
+              <span className="sm:hidden">Connect</span>
+              <span className="hidden sm:inline">Connect a treasury</span>
+            </a>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-[1200px] px-6 pt-16 text-center md:pt-24">
-        <div className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-[12.5px] text-mute">
+      <section className="mx-auto max-w-[1200px] px-4 pt-12 text-center sm:px-6 md:pt-24">
+        <div className="inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-mute sm:text-[12.5px]">
           <span className="live size-1.5 rounded-full bg-accent" />
-          Works with any Sputnik DAO or Trezu treasury on NEAR
+          <span className="truncate">Works with any Sputnik DAO or Trezu treasury<span className="hidden sm:inline"> on NEAR</span></span>
         </div>
-        <h1 className="mx-auto mt-7 max-w-[900px] text-[44px] leading-[0.98] font-light tracking-[-0.045em] md:text-[72px]">
+        <h1 className="mx-auto mt-7 max-w-[900px] text-[40px] leading-[1] font-light tracking-[-0.045em] sm:text-[52px] md:text-[72px] md:leading-[0.98]">
           <Words text="Your community's money," start={120} />
           <br />
           <Words text="run by its members." start={120 + 3 * 70} />
