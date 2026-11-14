@@ -9,6 +9,7 @@ import { RECORDED_QUOTE, getTokens, quotePayout, type QuoteResult } from '../lib
 import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
 import SiteFooter, { GitHubMark, REPO } from '../components/SiteFooter'
+import LedgerBg from '../components/LedgerBg'
 import Faq from '../components/Faq'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 import { formatDate, formatNumber, tr, useT } from '../i18n'
@@ -31,6 +32,7 @@ export default function Landing() {
 
       {/* Hero, over a deep blue horizon that rises behind the product preview */}
       <div className="hero-horizon relative isolate overflow-hidden">
+      <LedgerBg />
       <section className="mx-auto max-w-[1200px] px-4 pt-12 text-center sm:px-6 md:pt-24">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <div className="inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-mute sm:text-[12.5px]">
@@ -558,7 +560,7 @@ function StorySection() {
     { title: t('landing.story.s4.title'), text: t('landing.story.s4.text'), icon: 'M4 12h14M13 6l6 6-6 6', shot: 'activity' as ShotName },
   ]
   return (
-    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-6 py-20 md:py-24">
+    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-6 pt-10 pb-20 md:pt-14 md:pb-24">
       <div className="max-w-[640px]">
         <div className="text-[13px] text-mute">{t('landing.story.eyebrow')}</div>
         <h2 className={`${H2} mt-3`}>{t('landing.story.title')}</h2>

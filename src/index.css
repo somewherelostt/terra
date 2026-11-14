@@ -231,6 +231,9 @@ button:active { transform: scale(.98); }
    behind the product preview. Light mode: white fading into sky blue. */
 .hero-horizon::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  /* Fade the glow out over the last ~240px so it melts into the page instead of ending on a hard line. */
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - 260px), transparent 100%);
+          mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - 260px), transparent 100%);
   background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 22%, #061038 48%, #0b2fa8 67%, #2f7bff 81%, #8fc2ff 93%, #c9e2ff 100%);
 }
 :root[data-theme="light"] .hero-horizon::before {
@@ -418,3 +421,32 @@ button:active { transform: scale(.98); }
 .shot-browser { box-shadow: 0 30px 80px -30px rgba(47, 107, 255, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.02); }
 :root[data-theme="light"] .shot-browser { box-shadow: 0 30px 80px -30px rgba(47, 107, 255, 0.35); }
 .shot-phone { box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08); }
+
+/* ---------- Landing hero: ledger texture (dark only) ----------
+   Decorative rows of a group ledger, scrolling up slowly at the hero's sides.
+   Light mode: hidden. Reduced motion: holds still. */
+.fin-ledger { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; contain: strict;
+  /* keep the headline column quiet */
+  -webkit-mask-image: radial-gradient(ellipse 40% 32% at 50% 26%, transparent 45%, #000 100%);
+          mask-image: radial-gradient(ellipse 40% 32% at 50% 26%, transparent 45%, #000 100%); }
+:root[data-theme="light"] .fin-ledger { display: none; }
+.fin-ledger .col { position: absolute; top: 0; bottom: 0; width: min(25vw, 330px); overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 62%, transparent 92%);
+          mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 62%, transparent 92%);
+  font: 400 11.5px/1 var(--font-mono); color: rgba(245, 245, 244, .075); font-variant-numeric: tabular-nums; }
+.fin-ledger .col.l { left: 2.5%; }
+.fin-ledger .col.r { right: 2.5%; }
+.fin-ledger .col.l.b { left: calc(2.5% + min(25vw, 330px) + 12px); width: min(10vw, 140px); opacity: .45; }
+.fin-ledger .col.r.b { right: calc(2.5% + min(25vw, 330px) + 12px); width: min(10vw, 140px); opacity: .45; }
+.fin-ledger .tape { animation: fin-ledger var(--t, 80s) linear infinite; will-change: transform; }
+@keyframes fin-ledger { to { transform: translate3d(0, -50%, 0); } } /* the rows are doubled, so -50% loops seamlessly */
+.fin-ledger .ln { display: grid; grid-template-columns: 44px 1fr auto 14px; gap: 10px; align-items: center; height: 30px;
+  border-bottom: 1px solid rgba(245, 245, 244, .035); white-space: nowrap; }
+.fin-ledger .b .ln { grid-template-columns: 1fr 14px; }
+.fin-ledger .amt { text-align: right; }
+.fin-ledger .ok { color: rgba(200, 245, 96, .32); }
+.fin-ledger .out { color: rgba(226, 80, 31, .38); }
+.fin-ledger .rc { height: 30px; display: flex; align-items: center; gap: 8px; color: rgba(245, 245, 244, .06); }
+.fin-ledger .rc::before, .fin-ledger .rc::after { content: ""; flex: 1; border-top: 1px dashed rgba(245, 245, 244, .08); }
+@media (max-width: 760px) { .fin-ledger .col.b { display: none; } .fin-ledger .col { width: 44vw; } }
+@media (prefers-reduced-motion: reduce) { .fin-ledger .tape { animation: none; } }
