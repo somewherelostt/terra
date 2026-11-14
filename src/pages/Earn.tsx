@@ -83,7 +83,7 @@ export default function Earn() {
           <div className="border-b border-line py-5 text-[13.5px]">
             <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-muted">{t('earn.validator')}</span>
-              <a className="min-w-0 truncate font-mono text-[13px] text-accent-text hover:underline" href={accountUrl(STAKING_POOL)} target="_blank" rel="noreferrer">{STAKING_POOL}</a>
+              <a className="-my-3 min-w-0 truncate py-3 font-mono text-[13px] text-accent-text hover:underline" href={accountUrl(STAKING_POOL)} target="_blank" rel="noreferrer">{STAKING_POOL}</a>
               {pool && <Badge tone="good">{t('earn.active')}</Badge>}
             </div>
             {pool && (

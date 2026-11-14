@@ -29,7 +29,7 @@ export default function SignIn({ daoId }: { daoId: string | null }) {
   return (
     <div className="grid min-h-screen md:grid-cols-2">
       <div className="flex flex-col px-6 py-8 md:px-14 md:py-10">
-        <button onClick={() => openDao(null)} className="flex items-center gap-2 self-start">
+        <button onClick={() => openDao(null)} className="-my-2 flex min-h-11 items-center gap-2 self-start">
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
         </button>

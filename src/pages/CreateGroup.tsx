@@ -138,7 +138,7 @@ export default function CreateGroup() {
 
   return (
     <div className="mx-auto max-w-[560px] px-6 py-10 md:py-14">
-      <button onClick={() => openDao(null)} className="flex items-center gap-2">
+      <button onClick={() => openDao(null)} className="-my-2 flex min-h-11 items-center gap-2">
         <img src={ICON} alt="" className="size-7 rounded-[7px]" />
         <span className="text-[16px] font-medium tracking-tight">terra</span>
       </button>

@@ -197,7 +197,7 @@ function ResumeLink() {
   if (!id) return null
   return (
     <div className="rise mt-4 text-[13.5px]" style={{ ['--d' as string]: '500ms' } as React.CSSProperties}>
-      <button onClick={() => openDao(id)} className="text-mute underline-offset-2 hover:text-ink hover:underline">
+      <button onClick={() => openDao(id)} className="min-h-11 text-start text-mute underline-offset-2 hover:text-ink hover:underline">
         {tr('landing.resume', { id: <span className="font-mono text-[12.5px]">{id}</span> })} <span aria-hidden className="inline-block rtl:-scale-x-100">→</span>
       </button>
     </div>
@@ -362,16 +362,16 @@ export function LandingNav({
   }, [menu])
 
   const primary = !accountId && joinCta ? (
-    <button type="button" onClick={joinCta.onClick} className="inline-flex h-10 max-w-[11rem] items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong sm:max-w-none">
-      <span className="sm:hidden">{t('landing.nav.join')}</span>
-      <span className="hidden truncate sm:inline">{joinCta.label}</span>
+    <button type="button" onClick={joinCta.onClick} className="inline-flex h-11 max-w-[11rem] items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong md:h-10 lg:max-w-none">
+      <span className="lg:hidden">{t('landing.nav.join')}</span>
+      <span className="hidden truncate lg:inline">{joinCta.label}</span>
     </button>
   ) : accountId ? (
-    <button type="button" onClick={openTerra} className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
+    <button type="button" onClick={openTerra} className="inline-flex h-11 md:h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
       {t('landing.nav.openTerra')} <span aria-hidden className="ms-1.5 inline-block rtl:-scale-x-100">→</span>
     </button>
   ) : (
-    <a href="#connect" className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
+    <a href="#connect" className="inline-flex h-11 md:h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
       <span className="lg:hidden">{t('landing.nav.connect')}</span>
       <span className="hidden lg:inline">{t('landing.nav.connectTreasury')}</span>
     </a>
@@ -381,7 +381,7 @@ export function LandingNav({
     <header className={`sticky top-0 z-30 border-b transition-colors ${scrolled ? 'glass-bar border-line' : 'border-transparent bg-transparent'}`}>
       <AccountHosts />
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
-        <a href={home || '#'} className="-ms-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label={t('common.terraHome')}>
+        <a href={home || '#'} className="-ms-1 flex h-11 items-center gap-2 rounded-lg px-1 md:h-10" aria-label={t('common.terraHome')}>
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
         </a>

@@ -14,10 +14,11 @@ export function Globe({ className = 'size-4' }: { className?: string }) {
 }
 
 /**
- * `up` opens the list above the button (footer); `align` pins it to the button's start or end edge.
+ * `up` opens the list above the button (footer); `align` pins it to the button's start or end edge ; `end-md` is start on
+ * phones and end from md up (the footer's bottom row wraps on phones, so the picker sits at the start there).
  * `variant="row"` renders a full-width menu row (account menu) instead of a compact button.
  */
-export default function LanguagePicker({ up = false, align = 'start', variant = 'button', className = '' }: { up?: boolean; align?: 'start' | 'end'; variant?: 'button' | 'row'; className?: string }) {
+export default function LanguagePicker({ up = false, align = 'start', variant = 'button', className = '' }: { up?: boolean; align?: 'start' | 'end' | 'end-md'; variant?: 'button' | 'row'; className?: string }) {
   const t = useT()
   const code = useLocale()
   const [open, setOpen] = useState(false)
@@ -54,7 +55,7 @@ export default function LanguagePicker({ up = false, align = 'start', variant = 
       className={
         variant === 'row'
           ? 'mt-1 grid grid-cols-2 gap-0.5 border-t border-line pt-1'
-          : `glass glass-menu absolute z-50 max-h-[min(420px,70vh)] w-56 overflow-y-auto rounded-xl border border-line bg-card p-1 text-ink ${up ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'} ${align === 'end' ? 'end-0' : 'start-0'}`
+          : `glass glass-menu absolute z-50 max-h-[min(420px,70vh)] w-56 overflow-y-auto rounded-xl border border-line bg-card p-1 text-ink ${up ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'} ${align === 'end' ? 'end-0' : align === 'end-md' ? 'start-0 md:start-auto md:end-0' : 'start-0'}`
       }
     >
       {LOCALES.map((l) => (
@@ -64,11 +65,10 @@ export default function LanguagePicker({ up = false, align = 'start', variant = 
             role="option"
             aria-selected={l.code === code}
             lang={l.code}
-            dir={l.dir ?? 'ltr'}
             onClick={() => choose(l.code)}
             className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-start text-[13.5px] hover:bg-soft sm:min-h-10 ${l.code === code ? 'font-medium text-ink' : 'text-muted hover:text-ink'}`}
           >
-            <span className="truncate">{l.name}</span>
+            <span className="truncate" dir={l.dir ?? 'ltr'}>{l.name}</span>
             {l.code === code && (
               <svg viewBox="0 0 24 24" className="size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M5 12.5l4.5 4.5L19 7.5" />
