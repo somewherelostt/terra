@@ -338,17 +338,23 @@ export function RequestCard({ p }: { p: Proposal }) {
       {meta.notes && <p className={`mt-1 text-[13px] ${sub}`}>{meta.notes}</p>}
 
       <div className={`mt-6 border-t pt-4 text-[13px] ${rule}`}>
-        {theyGet ? (
+        {theyGet && (
           <div className="flex items-baseline justify-between gap-3">
             <span className={sub}>{t('common.theyGet')}</span>
             <span className="tnum text-end">{theyGet}</span>
           </div>
-        ) : transfer ? (
-          <div className="flex items-baseline justify-between gap-3">
+        )}
+        {/* "They get" is free text from the description; the account that actually receives the NEAR is always shown,
+            with its full id, since a display name comes from the receiver's own profile and can copy a member's. */}
+        {transfer && (
+          <div className={`flex items-baseline justify-between gap-3 ${theyGet ? 'mt-2' : ''}`}>
             <span className={`shrink-0 ${sub}`}>{t('approve.card.paidTo')}</span>
-            <span className="tnum min-w-0 truncate">{t('approve.card.paidToValue', { amount: yoctoToNear(transfer.amount), name: displayName(transfer.receiver_id) })}</span>
+            <span className="min-w-0 text-end">
+              <span className="tnum block truncate">{t('approve.card.paidToValue', { amount: yoctoToNear(transfer.amount), name: displayName(transfer.receiver_id) })}</span>
+              <span className={`block truncate font-mono text-[11.5px] ${sub}`} title={transfer.receiver_id}>{transfer.receiver_id}</span>
+            </span>
           </div>
-        ) : null}
+        )}
         {arrives && (
           <div className="mt-2 flex items-baseline justify-between gap-3">
             <span className={sub}>{t('common.arrives')}</span>
