@@ -123,6 +123,14 @@ The dollar limits of each tier are enforced by the app, not by the contract. See
 - **Named accounts.** Every screen shows readable `name.testnet` accounts. Records, tiers, approvals and profiles all key on the account name.
 - **Wallets and reads.** NEAR Connect (`@hot-labs/near-connect`) handles sign-in and signing on testnet. Reads go over JSON-RPC: FastNEAR first, then dRPC (`near-testnet.drpc.org`), then FastNEAR's archival RPC. The app fails over and backs off on rate limits, caps parallel requests, and caches activity for a minute. The activity feed uses the NearBlocks testnet API.
 
+## Architecture
+
+<p align="center">
+  <a href="docs/architecture.svg"><img src="docs/architecture.svg" alt="Terra architecture: the web app and the member's wallet on their device; reads through NEAR RPC and NearBlocks; signed transactions to the group's Sputnik DAO, NEAR Social, the allowance contract and a staking pool on NEAR testnet; live quotes from NEAR Intents 1Click on mainnet; and the six steps of a request" width="100%" /></a>
+</p>
+
+Terra is a static web app with no server of its own. The member's wallet (through near-connect) signs every write, and Terra never holds keys or money. Each group is a Sputnik DAO on NEAR testnet. Profiles, comments, encrypted DMs and the My groups list live on NEAR Social. The allowance contract and the staking pool are reached through DAO `FunctionCall` requests. Reads go to NEAR RPC (FastNEAR, then dRPC, then archival) and NearBlocks, and quotes come live from NEAR Intents 1Click on mainnet. The green numbers match the six steps of a request along the bottom, and the red box repeats the honest limits. The source is [`docs/architecture.excalidraw`](docs/architecture.excalidraw); open it at [excalidraw.com](https://excalidraw.com) to edit.
+
 ## Try it
 
 You need a browser. Steps 1–7 need no account. Steps 8–12 need **two NEAR testnet accounts**: any NEAR wallet on testnet, funded from the testnet faucet. Intear works on phones and Meteor on desktop; see [Android app](#android-app).
@@ -218,7 +226,8 @@ terra/
 ├── scripts/
 │   ├── android/            # build-apk.sh
 │   └── intents-payout/     # keyless script for one real mainnet Intents payout
-├── docs/screenshots/       # images in this README
+├── docs/                   # architecture diagram (Excalidraw source, SVG, PNG)
+│   └── screenshots/        # images in this README
 ├── public/                 # icons and web manifest
 └── vercel.json             # Vercel build settings
 ```
@@ -304,7 +313,7 @@ No starter template; the project was scaffolded with plain Vite. All code in thi
 
 ## Team
 
-- Built by [@somewherelostt](https://github.com/somewherelostt).
+- Built by [@Maaztwts](https://x.com/Maaztwts).
 
 ## License
 
