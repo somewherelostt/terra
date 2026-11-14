@@ -4,6 +4,8 @@ import { DEMO_DAO, shareUrl } from '../lib/store'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { LandingNav } from './Landing'
 import SiteFooter from '../components/SiteFooter'
+import Faq from '../components/Faq'
+import { faqIdFromHash } from '../lib/faq'
 
 /**
  * Public docs at #/docs. Section links are `#/docs?s=<id>` so they survive the hash router
@@ -52,8 +54,6 @@ const GROUPS: { label: string; items: Sec[] }[] = [
 const SECTIONS: [string, string][] = GROUPS.flatMap((g) => g.items.map((i): [string, string] => [i.id, i.title]))
 const groupOf = (id: string) => GROUPS.find((g) => g.items.some((i) => i.id === id))?.label ?? ''
 
-/** The approved FAQ list goes here. While it's empty, the FAQ section shows a short note. */
-const FAQ: { q: string; a: ReactNode }[] = []
 
 const PROOFS: { what: string; links: [string, string][] }[] = [
   { what: 'Create a group', links: [['City Club', 'Hy3hR85myJ9UoJ7rHDm9zxkpxTGe9MFP2bpFELSSvDo6'], ['nearHack Community', '9gqdtL16KSqXAVHu6p61ZkkUHWBWZL86j419bRzLGeD9']] },
@@ -107,7 +107,8 @@ export default function Docs() {
   useEffect(() => {
     const go = (smooth: boolean) => {
       const s = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('s')
-      if (s && SECTIONS.some(([id]) => id === s)) requestAnimationFrame(() => scrollToSection(s, smooth))
+      const q = s === 'faq' ? faqIdFromHash() : null
+      if (s && SECTIONS.some(([id]) => id === s)) requestAnimationFrame(() => scrollToSection(q ? `faq-${q}` : s, smooth))
       else window.scrollTo(0, 0)
     }
     go(false)
@@ -408,21 +409,8 @@ export default function Docs() {
           </Section>
 
           <Section id="faq" title="FAQ">
-            {FAQ.length ? (
-              <div className="mt-4 border-t border-line">
-                {FAQ.map((f) => (
-                  <details key={f.q} className="group border-b border-line">
-                    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 py-3 text-[15px] font-medium">
-                      {f.q}
-                      <span aria-hidden className="text-mute transition-transform group-open:rotate-45">+</span>
-                    </summary>
-                    <div className="pb-4 text-[15px] leading-7 text-mute">{f.a}</div>
-                  </details>
-                ))}
-              </div>
-            ) : (
-              <P>Answers to common questions are on the way. Until then, <A href="https://github.com/somewherelostt/terra/issues" external>ask on GitHub</A>.</P>
-            )}
+            <P>The questions people ask most, in the order the story goes: your treasury, approvals by record, payouts on any chain through NEAR Intents, and the public record on NEAR.</P>
+            <Faq variant="list" hrefFor={(id) => `#/docs?s=faq&q=${id}`} />
           </Section>
         </main>
 

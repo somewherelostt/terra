@@ -9,6 +9,7 @@ import { RECORDED_QUOTE, getTokens, quotePayout, type QuoteResult } from '../lib
 import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
 import SiteFooter from '../components/SiteFooter'
+import Faq from '../components/Faq'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -163,6 +164,27 @@ export default function Landing() {
 
       <ConnectCta />
 
+      {/* FAQ: one story, from the treasury to NEAR Intents payouts to the public record */}
+      <section id="faq" aria-labelledby="faq-h" className="scroll-mt-16 border-t border-line">
+        <div className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
+          <Faq
+            variant="landing"
+            hrefFor={(id) => `#faq-${id}`}
+            intro={
+              <>
+                <h2 id="faq-h" className={H2}>Questions, answered.</h2>
+                <p className="mt-4 max-w-[440px] text-[16px] leading-7 text-mute">
+                  Read them in order and they tell one story: your money stays in your own treasury, members approve by record, NEAR Intents pays anyone on any chain, and all of it is public on NEAR.
+                </p>
+                <a href="#/docs?s=faq" className="mt-6 inline-flex min-h-11 items-center gap-1.5 text-[14px] text-mute hover:text-ink">
+                  More in the docs <span aria-hidden>→</span>
+                </a>
+              </>
+            }
+          />
+        </div>
+      </section>
+
       <SiteFooter boardUrl={boardUrl} />
     </div>
   )
@@ -307,6 +329,7 @@ const NAV_LINKS: [string, string][] = [
   ['how', 'How it works'],
   ['approvals', 'Approvals'],
   ['trust', 'Trust'],
+  ['faq', 'FAQ'],
 ]
 
 /**
