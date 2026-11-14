@@ -136,7 +136,6 @@ function Inbox({ me, myKey, members, other }: { me: string; myKey: DmKey; member
   const [convs, setConvs] = useState<Conversation[] | null>(null)
   const [pks, setPks] = useState<Map<string, string | null>>(new Map())
   const [err, setErr] = useState(false)
-  const [picking, setPicking] = useState(false)
   const others = members.filter((m) => m !== me)
   prefetchProfiles(members)
 
@@ -159,27 +158,15 @@ function Inbox({ me, myKey, members, other }: { me: string; myKey: DmKey; member
 
   const list = (
     <div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-[13px] text-muted">Conversations</div>
-        <button className="min-h-11 px-1 text-[13px] text-muted underline-offset-2 hover:text-ink hover:underline md:min-h-0" onClick={() => setPicking((p) => !p)}>
-          {picking ? 'Close' : 'New message'}
-        </button>
-      </div>
-      {picking && <MemberPicker others={others} pks={pks} onPick={(m) => (setPicking(false), go('messages', { with: m }))} />}
+      <PeopleStrip others={others} pks={pks} active={other} />
+      <div className="mt-5 text-[13px] text-muted">Conversations</div>
       {convs === null ? (
         <div className="mt-4 space-y-3" aria-busy>
           <div className="skeleton h-10 w-full" />
           <div className="skeleton h-10 w-5/6" />
         </div>
       ) : convs.length === 0 ? (
-        !picking &&
-        (other ? (
-          <p className="mt-3 text-[13px] text-muted">No other conversations yet.</p>
-        ) : (
-          <EmptyState icon="people" className="mt-3" title="No messages yet" text="Start a private conversation with another member. Only the two of you can read it.">
-            <Button onClick={() => setPicking(true)}>Message a member</Button>
-          </EmptyState>
-        ))
+        <p className="mt-3 text-[13px] text-muted">{other ? 'No other conversations yet.' : 'No messages yet. Tap a member above to start one. Only the two of you can read it.'}</p>
       ) : (
         <ul className="mt-2 divide-y divide-line">
           {convs.map((c) => {
@@ -237,23 +224,33 @@ function Inbox({ me, myKey, members, other }: { me: string; myKey: DmKey; member
   )
 }
 
-function MemberPicker({ others, pks, onPick }: { others: string[]; pks: Map<string, string | null>; onPick: (m: string) => void }) {
+/** Everyone you can message, one tap away (like the people row at the top of a DM inbox). */
+function PeopleStrip({ others, pks, active }: { others: string[]; pks: Map<string, string | null>; active: string | null }) {
   const name = useNames()
-  if (!others.length) return <p className="mt-3 text-[13px] text-muted">You're the only member so far.</p>
+  if (!others.length) return <p className="text-[13px] text-muted">You're the only member so far.</p>
   return (
-    <ul className="mt-2 rounded-2xl border border-line bg-card p-1">
-      {others.map((m) => (
-        <li key={m}>
-          <button onClick={() => onPick(m)} className="flex min-h-12 w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-soft">
-            <Avatar id={m} size={28} />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13.5px]">{name(m)}</span>
-              <span className="block truncate font-mono text-[11px] text-muted">{m}</span>
-            </span>
-            {pks.get(m) === null && <span className="shrink-0 text-[11.5px] text-muted">Messages off</span>}
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <div className="text-[13px] text-muted">Members</div>
+      <ul className="-mx-1 mt-2 flex gap-1 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible" aria-label="Message a member">
+        {others.map((m) => {
+          const off = pks.get(m) === null
+          return (
+            <li key={m} className="shrink-0">
+              <button
+                onClick={() => go('messages', { with: m })}
+                className={`flex w-[72px] flex-col items-center gap-1.5 rounded-xl px-1 py-2 text-center ${m === active ? 'bg-card ring-1 ring-line' : 'hover:bg-soft'}`}
+                title={off ? `${m} · messages off` : `Message ${m}`}
+              >
+                <span className={off ? 'opacity-50' : ''}>
+                  <Avatar id={m} size={44} />
+                </span>
+                <span className="block w-full truncate text-[12px]">{name(m)}</span>
+                {off && <span className="-mt-1 text-[10.5px] text-muted">Messages off</span>}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
