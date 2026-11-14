@@ -2,7 +2,7 @@
 // through the wallet the member signed in with (see wallet.ts).
 
 export const NETWORK = 'testnet' as const
-export const RPC_URLS = ['https://test.rpc.fastnear.com', 'https://rpc.testnet.near.org']
+export const RPC_URLS = ['https://test.rpc.fastnear.com', 'https://archival-rpc.testnet.fastnear.com']
 export const FACTORY = 'sputnikv2.testnet'
 export const EXPLORER = 'https://testnet.nearblocks.io'
 

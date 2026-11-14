@@ -4,7 +4,7 @@
 import { isNearTransfer, type Dao } from './dao'
 
 const NEARBLOCKS_API = 'https://api-testnet.nearblocks.io/v1'
-const TX_RPCS = ['https://test.rpc.fastnear.com', 'https://rpc.testnet.near.org', 'https://archival-rpc.testnet.fastnear.com']
+const TX_RPCS = ['https://test.rpc.fastnear.com', 'https://archival-rpc.testnet.fastnear.com']
 
 export type ActivityKind = 'chip-in' | 'request' | 'approve' | 'reject' | 'vote' | 'payout' | 'other'
 
