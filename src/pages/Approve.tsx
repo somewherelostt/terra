@@ -295,11 +295,14 @@ export function RequestCard({ p }: { p: Proposal }) {
     <article
       className={`flex min-w-0 flex-col rounded-2xl p-6 transition-[transform,opacity] duration-300 ${snoozing ? 'translate-x-3 opacity-40' : ''} ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}
     >
-      <div className={`flex flex-col gap-1 text-[12px] sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${sub}`}>
-        <span className="flex min-w-0 items-center gap-2 truncate">
+      <div className={`flex flex-col gap-1 text-[12px] sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-3 ${sub}`}>
+        <span className="flex min-w-0 items-center gap-2">
           <Avatar id={p.proposer} size={20} />
-          {t(join && join.member === p.proposer ? 'approve.card.wantsToJoin' : 'approve.card.asking', { name: displayName(p.proposer), when: timeAgo(nanoToDate(p.submission_time)) })}
-          {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ` · ${t('approve.card.newMember')}` : ''}
+          {/* Its own box: an ellipsis needs a block, not loose text in a flex row. Phones have the full row, so it wraps there. */}
+          <span className="min-w-0 sm:truncate">
+            {t(join && join.member === p.proposer ? 'approve.card.wantsToJoin' : 'approve.card.asking', { name: displayName(p.proposer), when: timeAgo(nanoToDate(p.submission_time)) })}
+            {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ` · ${t('approve.card.newMember')}` : ''}
+          </span>
         </span>
         <span className="shrink-0">
           {noApprover ? t('approve.card.noRole') : hero && canVote ? t('approve.card.smallYouDecide') : t('approve.card.progress', { tier: tierWord, approvals, needed })}
