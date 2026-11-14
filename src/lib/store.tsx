@@ -179,6 +179,7 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
 
   const loadedFor = useRef<string | null>(null)
   const hasData = useRef(false)
+  const loadSeq = useRef(0)
   const refresh = useCallback(async () => {
     if (!daoId) return
     setLoading(true)
@@ -186,18 +187,24 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
     // The first load may use the short-lived cache; later refreshes follow a transaction.
     if (loadedFor.current === daoId) invalidateActivity(daoId)
     loadedFor.current = daoId
+    // Only the newest load may land: after a group switch, a slower read of the previous group
+    // must not replace the group now on screen.
+    const seq = ++loadSeq.current
+    const current = () => seq === loadSeq.current
     try {
       const d = await loadDao(daoId, STAKING_POOL)
+      if (!current()) return
       setDao(d)
       hasData.current = true
       setLoading(false)
       writeSnap('dao', daoId, d)
       // Saved at every stage, so even the first, payouts-only paint is ready next time.
       loadActivity(d, (r) => {
-        setActivity(r)
         writeSnap('act', daoId, r)
+        if (current()) setActivity(r)
       }).catch(() => undefined)
     } catch (e) {
+      if (!current()) return
       // With a recent snapshot on screen, a failed refresh keeps it rather than blanking the page.
       if (!hasData.current) setError(friendlyLoadError(daoId, e instanceof Error ? e.message : String(e)))
       setLoading(false)
