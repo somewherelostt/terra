@@ -47,14 +47,15 @@ export default function SignIn({ daoId }: { daoId: string | null }) {
           <button onClick={() => signIn().catch(() => undefined)} className="mt-8 w-full rounded-lg bg-accent py-3 text-[14px] font-medium text-on-accent">
             Sign in with NEAR
           </button>
+          <p className="mt-1.5 text-center text-[12px] text-muted">Uses NEAR testnet</p>
           <button disabled className="mt-2 w-full cursor-not-allowed rounded-lg border border-line bg-card py-3 text-[14px] font-medium text-muted" title="Coming next">
             Continue with a passkey · coming next
           </button>
           <p className="mt-5 text-[12.5px] text-muted">
-            Use any NEAR testnet wallet, like Meteor or Intear. Passkey accounts (no seed phrase) come next: the passkey wallet runs on mainnet only for now.
+            Use any NEAR wallet, like Meteor or Intear. Passkey accounts (no seed phrase) are coming next.
           </p>
         </div>
-        <div className="text-[12px] text-muted">Testnet demo · Terra never holds your money</div>
+        <div className="text-[12px] text-muted">Terra never holds your money</div>
       </div>
 
       <div className="flex items-center justify-center border-t border-line bg-card p-8 md:border-l md:border-t-0 md:p-14">

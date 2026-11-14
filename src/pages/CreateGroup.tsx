@@ -101,7 +101,7 @@ export default function CreateGroup() {
     : yocto < MIN_DEPOSIT
       ? `Start with at least ${yoctoToNear(MIN_DEPOSIT, 0)} NEAR: about 5.4 NEAR stays locked to store the DAO contract.`
       : myBalance != null && yocto + GAS_RESERVE > myBalance
-        ? `Your account can spend ${yoctoToNear(myBalance)} NEAR. Lower the deposit or top up from the testnet faucet.`
+        ? `Your account can spend ${yoctoToNear(myBalance)} NEAR. Lower the deposit or top up your account.`
         : null
 
   async function create() {
@@ -175,7 +175,7 @@ export default function CreateGroup() {
                 />
                 <span className="text-muted">.{FACTORY}</span>
               </div>
-              <span className="mt-1 block text-[12px] text-muted">{taken === false ? 'Available' : taken ? 'Taken: pick another address' : 'A standard Sputnik DAO from the official testnet factory. You own it, not Terra.'}</span>
+              <span className="mt-1 block text-[12px] text-muted">{taken === false ? 'Available' : taken ? 'Taken: pick another address' : 'A standard Sputnik DAO from the official factory. You own it, not Terra.'}</span>
             </label>
             <label className={line}>
               <span className="text-[12px] text-muted">What is it for? (optional)</span>
@@ -209,7 +209,7 @@ export default function CreateGroup() {
       {step === 2 && (
         <>
           <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Invite members</h1>
-          <p className="mt-2 text-[14px] text-muted">Add NEAR testnet accounts now; you can invite more later from Members. Anyone, member or not, can file a request.</p>
+          <p className="mt-2 text-[14px] text-muted">Add NEAR accounts now; you can invite more later from Members. Anyone, member or not, can file a request.</p>
           <div className="mt-10 space-y-8">
             <label className={line}>
               <span className="text-[12px] text-muted">Council · approves mid and large requests by majority</span>

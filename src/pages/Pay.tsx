@@ -157,7 +157,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const addrErr = mode === 'intents' && token && address.trim() ? addressProblem(token.blockchain, address.trim()) : null
   const errors: string[] = []
   if (!title.trim()) errors.push('Say what the money is for.')
-  if (!payTo || !isValidAccountId(payTo)) errors.push(mode === 'near' ? 'Enter a valid NEAR account to pay.' : 'Enter the NEAR account that receives the testnet payout.')
+  if (!payTo || !isValidAccountId(payTo)) errors.push(mode === 'near' ? 'Enter a valid NEAR account to pay.' : 'Enter the NEAR account that receives the payout.')
   if (!yocto || yocto <= 0n) errors.push(mode === 'near' ? 'Enter an amount.' : 'Get a quote first.')
   if (overBalance) errors.push("That's more than the treasury holds.")
   if (addrErr) errors.unshift(addrErr)
@@ -320,7 +320,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                 <input className={bare + ' font-mono text-[14px]'} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={token?.blockchain === 'sol' ? 'Solana address' : 'Address on their chain'} spellCheck={false} />
               </label>
               <label className={line}>
-                <span className="text-[12px] text-muted">NEAR account that receives it on testnet</span>
+                <span className="text-[12px] text-muted">NEAR account that receives the payout</span>
                 <input className={bare + ' font-mono text-[14px]'} value={standIn} onChange={(e) => setStandIn(e.target.value.toLowerCase())} placeholder="you.testnet" spellCheck={false} />
               </label>
             </>

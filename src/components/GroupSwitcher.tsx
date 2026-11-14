@@ -300,7 +300,7 @@ function ConnectDao({ onDone }: { onDone: () => void }) {
     setErr(null)
     const ok = await isDao(id)
     setBusy(false)
-    if (!ok) return setErr('No Sputnik DAO at that address on testnet.')
+    if (!ok) return setErr('No Sputnik DAO at that address.')
     recordVisit(id)
     onDone()
     openDao(id)

@@ -167,7 +167,7 @@ export default function Landing() {
             terra
           </span>
           <span>The members' app for community treasuries.</span>
-          <span className="ml-auto rounded-full bg-warn-soft px-2 py-0.5 text-[11.5px] font-medium text-warn">NEAR testnet</span>
+          <span className="ml-auto rounded-full border border-line px-2 py-0.5 text-[11.5px] text-mute">NEAR testnet</span>
           <a href="https://github.com/somewherelostt/terra" className="-my-3 py-3 hover:text-ink">GitHub</a>
         </div>
       </footer>
@@ -645,7 +645,7 @@ function ConnectCta() {
     const ok = await isDao(id)
     setChecking(false)
     if (!ok) {
-      setError(`Couldn't find that treasury. ${id} isn't a Sputnik DAO on testnet.`)
+      setError(`Couldn't find that treasury. ${id} isn't a Sputnik DAO.`)
       return
     }
     openDao(id, accountId ? 'home' : 'signin')

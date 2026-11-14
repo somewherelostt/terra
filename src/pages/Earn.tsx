@@ -88,7 +88,7 @@ export default function Earn() {
                 Fee {(pool.fee * 100).toFixed(0)}% of rewards · {Number(yoctoToNear(pool.totalStaked, 0).replace(/,/g, '')).toLocaleString('en-US')} NEAR staked in total
               </div>
             )}
-            <p className="mt-2 text-[12px] text-muted">Rewards arrive once per epoch (about 12 hours on testnet), so a fresh stake shows close to zero rewards at first.</p>
+            <p className="mt-2 text-[12px] text-muted">Rewards arrive once per epoch (about 12 hours), so a fresh stake shows close to zero rewards at first.</p>
           </div>
           {pending.length > 0 && (
             <div className="mt-4 text-sm">

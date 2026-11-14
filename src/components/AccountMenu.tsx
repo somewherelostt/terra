@@ -151,6 +151,7 @@ function AccountHeader({ accountId }: { accountId: string }) {
       <div className="min-w-0">
         <div className="truncate text-[14px] font-medium">{name || middleEllipsis(accountId, 24)}</div>
         <div className="break-all font-mono text-[11.5px] leading-snug text-muted">{accountId}</div>
+        <div className="mt-1 text-[11.5px] text-muted">Network · NEAR testnet</div>
       </div>
     </div>
   )

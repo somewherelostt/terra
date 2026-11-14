@@ -148,7 +148,7 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
             <p className="mt-3 text-center text-[12.5px] text-muted">
               No NEAR account?{' '}
               <a href={NEW_ACCOUNT_URL} target="_blank" rel="noreferrer" className="relative text-ink underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']">
-                Create a free testnet one
+                Create one free
               </a>
               , then come back to this page.
             </p>
@@ -250,10 +250,9 @@ function Frame({ children, panel }: { children: React.ReactNode; panel?: React.R
             <img src={ICON} alt="" className="size-7 rounded-[7px]" />
             <span className="text-[16px] font-medium tracking-tight">terra</span>
           </button>
-          <span className="rounded-full bg-warn-soft px-2 py-0.5 text-[11.5px] font-medium text-warn">Testnet</span>
         </div>
         <main className="page-enter w-full max-w-[400px] pt-8 md:my-auto md:py-12">{children}</main>
-        <div className="mt-8 hidden text-[12px] text-muted md:block">Testnet demo · Terra never holds your money</div>
+        <div className="mt-8 hidden text-[12px] text-muted md:block">Terra never holds your money</div>
       </div>
       <div className="flex items-center justify-center border-t border-line bg-card px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:px-6 md:border-t-0 md:border-l md:p-14">
         <div className="w-full max-w-[420px]">

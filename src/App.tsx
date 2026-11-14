@@ -79,7 +79,7 @@ function DaoGate({ children }: { children: ReactNode }) {
         </h1>
         <p className="mt-2 text-[13.5px] text-muted">
           {/fetch|network|timeout|429|502|503/i.test(error)
-            ? "The testnet RPC didn't answer. This is usually brief, so try again in a moment."
+            ? "NEAR didn't answer. This is usually brief, so try again in a moment."
             : error}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -279,7 +279,7 @@ export function prettyName(name: string): string {
     .join(' ')
 }
 
-function TopBar({ daoId }: { daoId: string | null }) {
+function TopBar(_props: { daoId: string | null }) {
   const { accountId, signIn, ready } = useWallet()
   return (
     <header className="glass-bar sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line px-4 py-3 md:px-8">
@@ -287,10 +287,7 @@ function TopBar({ daoId }: { daoId: string | null }) {
         <Logo compact />
         <MobileGroupName />
       </div>
-      <div className="hidden text-xs text-muted md:block">
-        <span className="rounded-full bg-warn-soft px-2 py-0.5 font-medium text-warn">Testnet</span>
-        {daoId && <span className="ml-2">Connected to {daoId}</span>}
-      </div>
+      <div className="hidden md:block" aria-hidden />
       <AccountHosts />
       <div className="flex items-center gap-2">
         {!ready ? (
