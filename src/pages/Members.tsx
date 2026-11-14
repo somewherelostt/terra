@@ -138,7 +138,7 @@ export default function Members() {
               <div key={r.accountId} className="flex items-center gap-3 border-b border-line py-3 last:border-0">
                 <Avatar id={r.accountId} size={28} />
                 <span className="min-w-0 flex-1 truncate">
-                  <Account id={r.accountId} className="!font-normal" />
+                  <MemberName id={r.accountId} card />
                   <span className="text-muted">
                     {' '}
                     · {r.approved} of {r.requested} paid{r.chippedIn > 0n ? ' · chipped in' : ''}
