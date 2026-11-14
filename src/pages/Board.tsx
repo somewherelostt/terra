@@ -164,7 +164,7 @@ export default function Board() {
                             <>
                               <TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />
                               <button
-                                className="ml-3 text-[12px] text-muted hover:text-ink"
+                                className="-my-3 ml-1 px-2 py-3 text-[12px] text-muted hover:text-ink"
                                 title="Comments"
                                 onClick={() =>
                                   openRequestSheet({ daoId: dao.id, proposalId: p.id, title: meta.title, detail: `Paid · ${when}`, amount: t ? money(t.amount) : undefined })
