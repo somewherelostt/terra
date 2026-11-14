@@ -1,6 +1,6 @@
 // Member records and payout tiers, computed only from the DAO's own history.
 
-import { allMembers, approvalRules, isExpired, isNearTransfer, roleMembers, type Dao, type Proposal } from './dao'
+import { allMembers, approvalRules, isExpired, isNearTransfer, isRole, roleMembers, type Dao, type Proposal } from './dao'
 import type { ActivityItem } from './activity'
 import { yoctoToNumber } from './format'
 
@@ -62,7 +62,7 @@ export function computeRecords(dao: Dao, activity: ActivityItem[]): Map<string, 
 
 export function isTrusted(r: MemberRecord | undefined): boolean {
   if (!r) return false
-  if (r.roles.includes('council') || r.roles.includes('trusted')) return true
+  if (r.roles.some((n) => isRole(n, 'council') || isRole(n, 'trusted'))) return true
   return r.approved >= 1 && r.rejected === 0
 }
 
@@ -100,8 +100,8 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
   const amount = isNearTransfer(p.kind) ? yoctoToNumber(p.kind.Transfer.amount) * nearUsd : Infinity
   const tier = tierFor(amount)
   const rules = approvalRules(dao.policy, p.kind)
-  const council = rules.find((r) => r.role === 'council') ?? rules[0]
-  const trusted = rules.find((r) => r.role === 'trusted')
+  const council = rules.find((r) => isRole(r.role, 'council')) ?? rules[0]
+  const trusted = rules.find((r) => isRole(r.role, 'trusted'))
   const clean = isTrusted(records.get(p.proposer))
   let effectiveTier: Tier = tier
   let noNodder = false

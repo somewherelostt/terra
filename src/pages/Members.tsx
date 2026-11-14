@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { addMemberProposalTx, can, roleMembers } from '../lib/dao'
+import { addMemberProposalTx, can, isRole, roleMembers } from '../lib/dao'
 import { isValidAccountId } from '../lib/near'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, isTrusted, type MemberRecord } from '../lib/record'
@@ -14,7 +14,7 @@ type Filter = 'All' | Standing
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function standingOf(r: MemberRecord): Standing {
-  if (r.roles.includes('council')) return 'Council'
+  if (r.roles.some((n) => isRole(n, 'council'))) return 'Council'
   if (isTrusted(r)) return 'Trusted'
   return 'New'
 }
@@ -168,23 +168,29 @@ export default function Members() {
           of the trusted role who isn't them. Requests up to ${TIER_LIMITS_USD.mid}, and bigger ones, need the council's majority; big ones stay on the public board while open. The council
           and the trusted role are set in the DAO's policy, and every record is computed from the DAO's own history on NEAR.
         </p>
+        {!dao.policy.roles.some((r) => isRole(r.name, 'trusted')) && (
+          <p className="mt-3 text-[13px] leading-relaxed text-muted">
+            This DAO wasn't set up by Terra and has no trusted role, so there is no fast lane: {dao.policy.roles.some((r) => isRole(r.name, 'council')) ? 'its council decides' : 'the roles that can vote decide'}{' '}
+            every request at the DAO's own thresholds.
+          </p>
+        )}
       </div>
     </div>
   )
 }
 
-function memberFacts(r: MemberRecord, nearUsd: number) {
+function memberFacts(r: MemberRecord, nearUsd: number, fastLane = true) {
   const s = standingOf(r)
   const badge = { Trusted: 'bg-accent text-on-accent', Council: 'border border-line', New: 'bg-soft text-muted' }[s]
   const money = r.chippedIn === 0n ? '—' : isFinite(nearUsd) ? usd(yoctoToNumber(r.chippedIn) * nearUsd) : `${yoctoToNear(r.chippedIn)} NEAR`
-  const lane = s === 'New' ? 'Council decides' : '$' + TIER_LIMITS_USD.small
+  const lane = !fastLane ? 'No fast lane' : s === 'New' ? 'Council decides' : '$' + TIER_LIMITS_USD.small
   return { s, badge, money, lane }
 }
 
 /** Phone layout: one card per member. */
 function MemberCard({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boolean; onAvatar?: () => void; canMessage?: boolean }) {
-  const { nearUsd } = useDao()
-  const f = memberFacts(r, nearUsd)
+  const { nearUsd, dao } = useDao()
+  const f = memberFacts(r, nearUsd, !!dao?.policy.roles.some((x) => isRole(x.name, 'trusted')))
   return (
     <div className="rounded-2xl border border-line bg-card p-4">
       <div className="flex items-center gap-3">
@@ -227,7 +233,8 @@ function MemberCard({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: bo
 }
 
 function MemberRow({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boolean; onAvatar?: () => void; canMessage?: boolean }) {
-  const { nearUsd } = useDao()
+  const { nearUsd, dao } = useDao()
+  const fastLane = !!dao?.policy.roles.some((x) => isRole(x.name, 'trusted'))
   const s = standingOf(r)
   const badge = {
     Trusted: 'bg-accent text-on-accent',
@@ -264,7 +271,7 @@ function MemberRow({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boo
       </span>
       <span className="tnum">{money}</span>
       <span className="tnum">{r.requested ? `${r.approved} of ${r.requested}` : '—'}</span>
-      <span className="tnum text-right">{s === 'New' ? <span className="text-muted">Council decides</span> : `$${TIER_LIMITS_USD.small}`}</span>
+      <span className="tnum text-right">{!fastLane ? <span className="text-muted">No fast lane</span> : s === 'New' ? <span className="text-muted">Council decides</span> : `$${TIER_LIMITS_USD.small}`}</span>
     </div>
   )
 }

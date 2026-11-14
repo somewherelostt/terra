@@ -6,7 +6,7 @@ import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner, WrongNetworkBanner } from './components/ui'
 import { prefetchProfiles, useNames } from './lib/profile'
 import { isTrusted, openRequests } from './lib/record'
-import { allMembers } from './lib/dao'
+import { allMembers, can, isRole } from './lib/dao'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
 import Pay from './pages/Pay'
@@ -237,13 +237,15 @@ function GroupCard() {
   const mine = accountId ? records.get(accountId) : undefined
   const status = !accountId
     ? 'Viewing as a guest'
-    : mine?.roles.includes('council')
+    : mine?.roles.some((n: string) => isRole(n, 'council'))
       ? "You're on the council"
       : isTrusted(mine)
         ? "You're a trusted member"
         : members.includes(accountId)
           ? "You're a member"
-          : 'You can request money here'
+          : can(dao.policy, accountId, 'transfer', 'AddProposal')
+            ? 'Not a member yet · you can still request money'
+            : 'Not a member yet · ask to join'
   return (
     <div className="mt-auto rounded-2xl bg-soft p-4">
       <div className="flex -space-x-1.5">

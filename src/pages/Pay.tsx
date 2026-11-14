@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { addTransferProposalTx, can, roleMembers } from '../lib/dao'
+import { addTransferProposalTx, can, isRole, roleMembers } from '../lib/dao'
 import { isValidAccountId, ONE_NEAR } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { POPULAR, RECORDED_QUOTE, isDeprecated, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
@@ -129,7 +129,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const tier = isFinite(amountUsd) ? tierFor(amountUsd) : null
   const trusted = accountId ? isTrusted(records.get(accountId)) : false
   // Same routing as Approve (routeRequest): the fast lane needs a trusted member other than you.
-  const trustedRole = dao.policy.roles.find((r) => r.name === 'trusted')
+  const trustedRole = dao.policy.roles.find((r) => isRole(r.name, 'trusted'))
   const nodders = trustedRole ? roleMembers(trustedRole).filter((m) => m !== accountId) : []
   const effectiveTier = tier === 'small' && (!trusted || !nodders.length) ? 'mid' : tier
   const canPropose = can(dao.policy, accountId, 'transfer', 'AddProposal')
@@ -172,7 +172,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   }
 
   function approverCount(kind: 'small' | 'council'): number {
-    const roles = dao!.policy.roles.filter((r) => (kind === 'small' ? ['trusted'] : ['council']).includes(r.name))
+    const roles = dao!.policy.roles.filter((r) => isRole(r.name, kind === 'small' ? 'trusted' : 'council'))
     const set = new Set(roles.flatMap((r) => (typeof r.kind === 'object' && 'Group' in r.kind ? r.kind.Group : [])))
     if (accountId) set.delete(accountId)
     return set.size
@@ -402,7 +402,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                   Send request
                 </Button>
               )}
-              {accountId && errors.length > 0 && <p className="mt-2 text-[12px] text-muted">{errors[0]}</p>}
+              {accountId && canPropose && errors.length > 0 && <p className="mt-2 text-[12px] text-muted">{errors[0]}</p>}
             </div>
             <div className="mt-3 space-y-3">
               <TxStatus state={tx.state} doneText="Request sent. Members can approve it now." />

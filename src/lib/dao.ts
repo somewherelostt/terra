@@ -102,6 +102,11 @@ export function kindLabel(kind: ProposalKind): string {
   return KIND_LABELS[kindName(kind)] ?? kindName(kind)
 }
 
+/** Role names are free text in Sputnik ("council", "Council"); compare them loosely. */
+export function isRole(name: string, wanted: 'council' | 'trusted'): boolean {
+  return name.trim().toLowerCase() === wanted
+}
+
 export function roleMembers(role: Role): string[] {
   if (typeof role.kind === 'object' && 'Group' in role.kind) return role.kind.Group
   if (typeof role.kind === 'object' && 'Member' in role.kind) return [role.kind.Member]

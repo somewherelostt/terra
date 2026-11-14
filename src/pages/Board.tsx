@@ -1,5 +1,5 @@
 import { openDao, useDao } from '../lib/store'
-import { allMembers, approvalRules, decodeDescription, isNearTransfer } from '../lib/dao'
+import { allMembers, approvalRules, decodeDescription, isNearTransfer, isRole } from '../lib/dao'
 import { nanoToDate, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, openRequests, tierFor } from '../lib/record'
 import { Avatar, RowText, TxLink } from '../components/ui'
@@ -138,7 +138,7 @@ export default function Board() {
                   const yes = Object.values(p.votes).filter((v) => v === 'Approve').length
                   const amountUsd = t ? yoctoToNumber(t.amount) * nearUsd : NaN
                   const tier = isFinite(amountUsd) ? tierFor(amountUsd) : null
-                  const council = approvalRules(dao.policy, p.kind).find((r) => r.role === 'council')
+                  const council = approvalRules(dao.policy, p.kind).find((r) => isRole(r.role, 'council'))
                   const approvedBy =
                     tier === 'small' && yes <= 1
                       ? '1 trusted member'
@@ -185,7 +185,7 @@ export default function Board() {
             </div>
 
             <p className="mt-8 text-[12px] text-muted">
-              Small payouts (up to ${TIER_LIMITS_USD.small}) can be approved by one trusted member; up to ${TIER_LIMITS_USD.mid} by the council; anything bigger is a full council vote.
+              Small payouts (up to ${TIER_LIMITS_USD.small}) to people with a clean record can be approved by one trusted member; bigger ones need a council majority. Open requests are listed here until they are decided.
             </p>
           </>
         )}
