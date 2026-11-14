@@ -22,6 +22,13 @@
   --color-bad-soft: var(--bad-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  /* Aliases matching the design spec's names, so mockup classes copy across. */
+  --color-panel: var(--panel);
+  --color-mute: var(--mute);
+  --color-sand: var(--sand);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-moss: var(--moss);
 }
 
 /* Dark is the default. Near-black, lime accent, lime for money coming in. */
@@ -81,3 +88,7 @@ body {
 }
 
 .tnum, .tabular-nums { font-variant-numeric: tabular-nums; }
+
+@keyframes terra-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
+.skeleton { background: var(--sand); border-radius: 6px; animation: terra-pulse 1.4s ease-in-out infinite; }
+html { scroll-behavior: smooth; }

@@ -33,7 +33,7 @@ Terra sits on top of a community's **existing Sputnik DAO** (the contract Trezu 
 |---|---|
 | Use the community's existing DAO or Trezu treasury for custody and approvals; no new multisig | Type any Sputnik DAO name and Terra reads and writes to it. Money only moves through `add_proposal` / `act_proposal` on that DAO. |
 | Reputation tied to named accounts, traceable | Member records are computed only from the DAO's proposals and transactions; every row links to the chain. |
-| Tiers: small auto-approves for trusted contributors, mid needs one council member, large is a normal proposal | **Fast lane** (up to $25, requester with a clean record): one trusted member's approval executes it. **Council nod** ($25–$250, or no record yet): the council's threshold. **Full vote** (over $250): the council votes, shown to every member on the board. |
+| Tiers: small auto-approves for trusted contributors, mid needs one council member, large is a normal proposal | **Fast lane** (up to $50, requester with a clean record): one trusted member's approval executes it. **Council nod** ($50–$500, or no record yet): the council's threshold. **Full vote** (over $500): the council votes, shown to every member on the board. |
 | A public board | `?dao=<dao>#/board`: read-only balance, open requests, payouts and records. |
 | Shared budgets and collective ownership | Chip-ins go straight to the DAO account; idle money can be staked in the DAO's own name. |
 

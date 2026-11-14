@@ -1,5 +1,5 @@
-import { useEffect, type ReactNode } from 'react'
-import { DaoProvider, go, lastDao, openDao, useDao, useRoute, type Page } from './lib/store'
+import { type ReactNode } from 'react'
+import { DaoProvider, go, openDao, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner } from './components/ui'
 import { shortName } from './lib/format'
@@ -18,12 +18,6 @@ import CreateGroup from './pages/CreateGroup'
 export default function App() {
   const route = useRoute()
 
-  useEffect(() => {
-    if (!route.daoId && route.page !== 'create') {
-      const last = lastDao()
-      if (last) openDao(last, route.page)
-    }
-  }, [route.daoId, route.page])
 
   if (route.page === 'create') {
     return (
@@ -235,7 +229,15 @@ function TopBar({ daoId }: { daoId: string | null }) {
 
 export function Logo({ compact }: { compact?: boolean }) {
   return (
-    <a href="#/home" className="flex items-center gap-2.5">
+    <a
+      href="./"
+      onClick={(e) => {
+        e.preventDefault()
+        openDao(null)
+      }}
+      className="flex items-center gap-2.5"
+      title="Terra home"
+    >
       <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-6 w-6" />
       {!compact && <span className="text-[15px] font-medium tracking-tight">terra</span>}
     </a>

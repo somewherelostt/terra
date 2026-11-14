@@ -68,7 +68,7 @@ export function isTrusted(r: MemberRecord | undefined): boolean {
 
 export type Tier = 'small' | 'mid' | 'large'
 
-export const TIER_LIMITS_USD = { small: 25, mid: 250 }
+export const TIER_LIMITS_USD = { small: 50, mid: 500 }
 
 export function tierFor(amountUsd: number): Tier {
   if (amountUsd <= TIER_LIMITS_USD.small) return 'small'
