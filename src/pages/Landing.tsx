@@ -373,7 +373,8 @@ export function LandingNav({
 
   const primary = !accountId && joinCta ? (
     <button type="button" onClick={joinCta.onClick} className="inline-flex h-10 max-w-[11rem] items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong sm:max-w-none">
-      <span className="truncate">{joinCta.label}</span>
+      <span className="sm:hidden">Join</span>
+      <span className="hidden truncate sm:inline">{joinCta.label}</span>
     </button>
   ) : accountId ? (
     <button type="button" onClick={openTerra} className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
