@@ -75,11 +75,20 @@ export async function readBack(check: () => Promise<boolean>, tries = 8, gapMs =
   return false
 }
 
-/** Strip control and bidi characters, collapse whitespace, cap the length. Plain text only. */
+/**
+ * Strip control and bidi characters, normalise line endings, collapse whitespace, cap the length
+ * (in code points, so an emoji is never cut in half). Plain text only.
+ */
 export function cleanText(s: unknown, maxLen: number): string {
   if (typeof s !== 'string') return ''
-  // eslint-disable-next-line no-control-regex
-  return s.replace(/[\u0000-\u0008\u000b-\u001f\u007f​-‏‪-‮⁦-⁩]/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, maxLen)
+  const t = s
+    .replace(/\r\n?/g, '\n') // before the strip below, which would eat a bare \r
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000b-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  return [...t].slice(0, maxLen).join('').trim()
 }
 
 function max(a: bigint, b: bigint) {

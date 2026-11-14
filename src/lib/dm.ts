@@ -7,8 +7,8 @@
 // on chain. Who talks to whom, and when, is public.
 
 import nacl from 'tweetnacl'
-import { ONE_NEAR, TGAS, view } from './near'
-import { SOCIAL_CONTRACT } from './avatar'
+import { view } from './near'
+import { SOCIAL_CONTRACT, cleanText as cleanSocialText, socialSetTx, type SocialTree } from './social'
 import type { Tx } from './dao'
 
 export const DM_MAX = 500
@@ -81,50 +81,22 @@ export async function readPublicKeys(ids: string[]): Promise<Map<string, string 
 
 // ---------- SocialDB writes ----------
 
-/**
- * A signed SocialDB `set` under the member's own account. Adds a storage deposit only when
- * their SocialDB storage can't hold the new bytes (0.05 NEAR on a first write covers ~5 kB).
- */
-async function socialSetTx(accountId: string, value: object): Promise<{ tx: Tx; deposit: bigint }> {
-  const data = { [accountId]: value }
-  const bytes = new TextEncoder().encode(JSON.stringify(data)).length
-  const keys = JSON.stringify(value).split(':').length
-  const need = BigInt(bytes + keys * 60 + 200)
-  const perByte = 10n ** 19n
-  let deposit = 0n
-  try {
-    const st = await view<{ used_bytes: number; available_bytes: number } | null>(SOCIAL_CONTRACT, 'get_account_storage', { account_id: accountId })
-    if (!st) deposit = max(ONE_NEAR / 20n, need * perByte)
-    else if (BigInt(st.available_bytes) < need) deposit = max(ONE_NEAR / 20n, (need - BigInt(st.available_bytes) + 500n) * perByte)
-  } catch {
-    deposit = ONE_NEAR / 20n
-  }
-  return {
-    deposit,
-    tx: {
-      receiverId: SOCIAL_CONTRACT,
-      actions: [{ type: 'FunctionCall', params: { methodName: 'set', args: { data }, gas: (100n * TGAS).toString(), deposit: deposit.toString() } }],
-    },
-  }
-}
-
-function max(a: bigint, b: bigint) {
-  return a > b ? a : b
+/** A SocialDB `set` (shared helper in social.ts) plus the storage deposit it carries, for the UI. */
+async function dmSetTx(accountId: string, value: SocialTree): Promise<{ tx: Tx; deposit: bigint }> {
+  const tx = await socialSetTx(accountId, value)
+  const a = tx.actions[0]
+  return { tx, deposit: BigInt(a.params.deposit) }
 }
 
 export function publishKeyTx(accountId: string, key: DmKey) {
-  return socialSetTx(accountId, { terra: { dmkey: toB64(key.publicKey) } })
+  return dmSetTx(accountId, { terra: { dmkey: toB64(key.publicKey) } })
 }
 
 // ---------- messages ----------
 
-/** Plain text only: no control or bidi-override characters, at most DM_MAX characters. */
+/** Plain text only (see cleanText in social.ts), at most DM_MAX characters. */
 export function cleanText(s: string): string {
-  // eslint-disable-next-line no-control-regex
-  return [...s.replace(/[\u0000-\u0008\u000b-\u001f\u007f‪-‮⁦-⁩]/g, '').replace(/\r\n?/g, '\n')]
-    .slice(0, DM_MAX)
-    .join('')
-    .trim()
+  return cleanSocialText(s, DM_MAX)
 }
 
 /** The on-chain value of one message. */
@@ -169,7 +141,7 @@ export async function sendMessageTx(from: string, to: string, text: string, me: 
   if (!clean) throw new Error('Write a message first.')
   const env = encryptMessage(clean, me, theirPkB64)
   const id = newId()
-  const { tx, deposit } = await socialSetTx(from, { terra: { dm: { [to]: { [id]: JSON.stringify(env) } } } })
+  const { tx, deposit } = await dmSetTx(from, { terra: { dm: { [to]: { [id]: JSON.stringify(env) } } } })
   return { tx, deposit, id, envelope: env, text: clean }
 }
 
