@@ -39,10 +39,6 @@ export default function Landing() {
             <span className="live size-1.5 rounded-full bg-accent" />
             <span className="truncate">{tr('landing.hero.badge', { wide: (c) => <span className="hidden sm:inline">{c}</span> })}</span>
           </div>
-          <a href={REPO} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-ink transition-colors hover:border-ink/40 sm:text-[12.5px]">
-            <GitHubMark className="size-3.5" />
-            {t('landing.hero.openSource')}
-          </a>
         </div>
         <h1 className="mx-auto mt-7 max-w-[1120px] text-[40px] leading-[1] font-light tracking-[-0.045em] text-balance sm:text-[52px] md:text-[60px] md:leading-[0.98] lg:text-[68px]">
           <Words text={t('landing.hero.line1')} start={60} />

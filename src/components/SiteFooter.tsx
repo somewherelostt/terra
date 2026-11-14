@@ -44,9 +44,8 @@ export default function SiteFooter({ home = '', boardUrl }: { home?: string; boa
             {links.map(([label, href]) => (
               <a key={label} href={href} className={link}>{label}</a>
             ))}
-            <a href={REPO} target="_blank" rel="noreferrer" className={`${link} gap-2`}>
+            <a href={REPO} target="_blank" rel="noreferrer" aria-label={t('footer.github')} className={`${link} min-w-11 justify-center`}>
               <GitHubMark />
-              {t('footer.github')}
             </a>
           </nav>
         </div>

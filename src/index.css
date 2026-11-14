@@ -369,8 +369,6 @@ button:active { transform: scale(.98); }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-plus { transition: transform var(--dur-2) var(--ease-out); }
 .faq-item[open] > summary .faq-plus { transform: rotate(45deg); }
-.faq-chev { transition: transform var(--dur-2) var(--ease-out); }
-.faq-chapter[open] > summary .faq-chev { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .faq-item::details-content { transition: none; }
 }
