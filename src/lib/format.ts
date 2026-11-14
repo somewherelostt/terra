@@ -51,3 +51,12 @@ export function shortName(accountId: string): string {
   if (/^[0-9a-f]{64}$/.test(accountId)) return accountId.slice(0, 6) + '…' + accountId.slice(-4)
   return accountId.split('.')[0]
 }
+
+/** "$1,240.00" → ["$1,240", ".00"], so cents can be muted. */
+export function splitUsd(n: number): [string, string] {
+  if (!isFinite(n)) return ['$—', '']
+  const s = n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const i = s.lastIndexOf('.')
+  return i < 0 ? [s, ''] : [s.slice(0, i), s.slice(i)]
+}
+

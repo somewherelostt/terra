@@ -2,20 +2,12 @@ import { useRef, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { allMembers, chipInTx, decodeDescription, isNearTransfer } from '../lib/dao'
-import { nearToYocto, shortName, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { nearToYocto, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests } from '../lib/record'
 import type { ActivityItem } from '../lib/activity'
 import { Button, Spinner, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
-
-/** "$1,240.00" → ["$1,240", ".00"], so cents can be muted. */
-// eslint-disable-next-line react-refresh/only-export-components
-export function splitUsd(n: number): [string, string] {
-  if (!isFinite(n)) return ['$—', '']
-  const s = n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const i = s.lastIndexOf('.')
-  return i < 0 ? [s, ''] : [s.slice(0, i), s.slice(i)]
-}
+import { RequestCard } from './Approve'
 
 export default function Home() {
   const { dao, nearUsd, activity, refresh } = useDao()
@@ -80,10 +72,10 @@ export default function Home() {
           <HomeActivity items={activity?.items.slice(0, 7)} loading={!activity} nearUsd={nearUsd} />
         </div>
         <div className="space-y-5">
-          {open.length > 0 && (
-            <button onClick={() => go('approve')} className="block w-full rounded-2xl border border-line p-5 text-left hover:bg-soft">
-              <div className="text-[12px] text-muted">{open.length === 1 ? '1 request needs a decision' : `${open.length} requests need a decision`}</div>
-              <div className="mt-1 text-[15px]">{decodeDescription(open[0].description).title}</div>
+          {open.length > 0 && <RequestCard p={open[0]} />}
+          {open.length > 1 && (
+            <button onClick={() => go('approve')} className="text-[13px] text-muted hover:text-ink">
+              {open.length - 1} more waiting in Approve →
             </button>
           )}
           <ChipIn inputRef={chipRef} daoId={dao.id} signedIn={!!accountId} nearUsd={nearUsd} onDone={refresh} name={name} />

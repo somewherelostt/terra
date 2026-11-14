@@ -5,8 +5,9 @@ import { addTransferProposalTx, can } from '../lib/dao'
 import { isValidAccountId, ONE_NEAR } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { POPULAR, RECORDED_QUOTE, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
-import { TIER_COPY, isTrusted, tierFor } from '../lib/record'
-import { Badge, Button, Card, Field, SectionTitle, Spinner, TxStatus, inputCls, useTx } from '../components/ui'
+import { isTrusted, tierFor, TIER_COPY } from '../lib/record'
+import { Button, Spinner, TxStatus, useTx } from '../components/ui'
+import { prettyName } from '../App'
 
 type Mode = 'near' | 'intents'
 
@@ -134,173 +135,188 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     return shareUrl(dao!.id, 'pay', q)
   }
 
+  const quick = popular.slice(0, 3)
+  const name = prettyName(dao.config.name)
+  const tierWord = tier ? { small: 'Small request.', mid: 'Mid-size request.', large: 'Large request.' }[tier] : null
+  const tierNote =
+    effectiveTier === 'small'
+      ? 'One trusted member can approve it, because of your record.'
+      : tier === 'small'
+        ? "You don't have a record here yet, so the council approves it. After one approved request you get the fast lane."
+        : effectiveTier === 'mid'
+          ? 'The council approves it at its usual threshold.'
+          : 'The council votes on it, and every member sees it on the board.'
+  const line = 'block border-b border-line pb-3'
+  const bare = 'mt-1 w-full bg-transparent outline-none placeholder:text-muted/60'
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight">Ask for money</h1>
-        <p className="mt-1 text-sm text-muted">Your request goes to the treasury as a payment the members approve. Once approved, the treasury pays it out itself.</p>
-      </div>
+    <div>
+      <div className="text-[13px] text-muted">Pay</div>
+      <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">Request money</h1>
+      <p className="mt-1 text-[13.5px] text-muted">{name} pays them directly, on the chain they use, once members approve.</p>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="space-y-5 lg:col-span-3">
-          <Field label="What is it for?">
-            <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Poster design for the winter meetup" maxLength={140} />
-          </Field>
-
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="space-y-8">
+          <label className={line}>
+            <span className="text-[12px] text-muted">{mode === 'near' ? 'Amount in NEAR' : `Amount they get${token ? ` in ${token.symbol}` : ''}`}</span>
+            <input
+              className={bare + ' tnum text-[56px] font-light leading-none tracking-[-0.05em] sm:text-[72px]'}
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0"
+              aria-label="Amount"
+            />
+            {mode === 'near' && yocto && isFinite(nearUsd) && <span className="text-[12px] text-muted">≈ {usd(amountUsd)}</span>}
+          </label>
+          <label className={line}>
+            <span className="text-[12px] text-muted">What it's for</span>
+            <input className={bare + ' text-[17px]'} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Poster design for the meetup" maxLength={140} />
+          </label>
           <div>
-            <span className="mb-1.5 block text-sm font-medium">Who gets paid?</span>
-            <div className="inline-flex rounded-xl border border-line bg-soft p-1 text-sm">
-              {(['near', 'intents'] as Mode[]).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`rounded-lg px-3 py-1.5 font-medium ${mode === m ? 'bg-card ' : 'text-muted'}`}
-                >
-                  {m === 'near' ? 'A NEAR account' : 'Someone on another chain'}
-                </button>
-              ))}
+            <span className="text-[12px] text-muted">They want</span>
+            <div className="mt-2 flex flex-wrap gap-2 text-[13.5px]">
+              {quick.map((t) => {
+                const on = mode === 'intents' && tokenId === t.assetId
+                return (
+                  <button
+                    key={t.assetId}
+                    onClick={() => {
+                      setMode('intents')
+                      setTokenId(t.assetId)
+                    }}
+                    className={`rounded-lg border px-4 py-2.5 ${on ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}
+                  >
+                    {t.symbol} <span className="text-muted">on {chainName(t.blockchain)}</span>
+                  </button>
+                )
+              })}
+              <button onClick={() => setMode('near')} className={`rounded-lg border px-4 py-2.5 ${mode === 'near' ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}>
+                NEAR <span className="text-muted">account</span>
+              </button>
+              <select
+                aria-label="Other tokens"
+                className={`rounded-lg border bg-transparent px-3 py-2.5 ${mode === 'intents' && token && !quick.includes(token) ? 'border-ink' : 'border-line text-muted'}`}
+                value={mode === 'intents' && token && !quick.includes(token) ? tokenId : ''}
+                onChange={(e) => {
+                  if (!e.target.value) return
+                  setMode('intents')
+                  setTokenId(e.target.value)
+                }}
+              >
+                <option value="">More tokens…</option>
+                {[...popular.slice(3), ...others].map((t) => (
+                  <option key={t.assetId} value={t.assetId}>{t.symbol} on {chainName(t.blockchain)}</option>
+                ))}
+              </select>
             </div>
           </div>
-
           {mode === 'near' ? (
-            <>
-              <Field label="NEAR account">
-                <input className={inputCls} value={receiver} onChange={(e) => setReceiver(e.target.value.toLowerCase())} placeholder="designer.testnet" />
-              </Field>
-              <Field label="Amount (NEAR)" hint={yocto && isFinite(nearUsd) ? `≈ ${usd(amountUsd)}` : ' '}>
-                <input className={inputCls} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="5" />
-              </Field>
-            </>
+            <label className={line}>
+              <span className="text-[12px] text-muted">Their NEAR account</span>
+              <input className={bare + ' font-mono text-[14px]'} value={receiver} onChange={(e) => setReceiver(e.target.value.toLowerCase())} placeholder="designer.testnet" spellCheck={false} />
+            </label>
           ) : (
             <>
-              <Field label="They want" hint="Paid out through NEAR Intents. 230+ tokens on 30+ chains.">
-                <select className={inputCls} value={tokenId} onChange={(e) => setTokenId(e.target.value)}>
-                  {!tokens.length && <option>Loading tokens…</option>}
-                  {popular.length > 0 && (
-                    <optgroup label="Popular">
-                      {popular.map((t) => (
-                        <option key={t.assetId} value={t.assetId}>{t.symbol} on {chainName(t.blockchain)}</option>
-                      ))}
-                    </optgroup>
-                  )}
-                  {others.length > 0 && (
-                    <optgroup label="All tokens">
-                      {others.map((t) => (
-                        <option key={t.assetId} value={t.assetId}>{t.symbol} on {chainName(t.blockchain)}</option>
-                      ))}
-                    </optgroup>
-                  )}
-                </select>
-              </Field>
-              <Field label={`Their ${token ? chainName(token.blockchain) : ''} address`}>
-                <input className={inputCls + ' font-mono'} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={token?.blockchain === 'sol' ? 'Solana address' : '0x… or chain address'} spellCheck={false} />
-              </Field>
-              <Field label={`Amount they receive${token ? ` (${token.symbol})` : ''}`}>
-                <input className={inputCls} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="20" />
-              </Field>
-              <QuoteBox quote={quote} token={token} loading={quoting} error={quoteErr} nearUsd={nearUsd} />
-              <Field
-                label="Testnet stand-in: NEAR account that receives the payout"
-                hint="NEAR Intents runs on mainnet only. On testnet the treasury pays this account the quoted NEAR; on mainnet it would pay the Intents deposit address and the recipient gets the token on their chain."
-              >
-                <input className={inputCls} value={standIn} onChange={(e) => setStandIn(e.target.value.toLowerCase())} placeholder="you.testnet" />
-              </Field>
+              <label className={line}>
+                <span className="text-[12px] text-muted">Their {token ? chainName(token.blockchain) : ''} address</span>
+                <input className={bare + ' font-mono text-[14px]'} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={token?.blockchain === 'sol' ? 'Solana address' : 'Address on their chain'} spellCheck={false} />
+              </label>
+              <label className={line}>
+                <span className="text-[12px] text-muted">Testnet stand-in: the NEAR account that receives the payout</span>
+                <input className={bare + ' font-mono text-[14px]'} value={standIn} onChange={(e) => setStandIn(e.target.value.toLowerCase())} placeholder="you.testnet" spellCheck={false} />
+                <span className="mt-1 block text-[12px] text-muted">
+                  NEAR Intents runs on mainnet only. On testnet the treasury pays this account the quoted NEAR; on mainnet it pays the Intents deposit address and they get the token on their chain.
+                </span>
+              </label>
             </>
           )}
-        </Card>
+        </div>
 
-        <div className="space-y-6 lg:col-span-2">
-          <Card>
-            <SectionTitle>Summary</SectionTitle>
-            <dl className="space-y-2 text-sm">
-              <Row k="Treasury sends" v={yocto ? `${yoctoToNear(yocto)} NEAR` : '—'} />
-              <Row k="Worth about" v={yocto && isFinite(amountUsd) ? usd(amountUsd) : '—'} />
-              <Row k="Treasury can spend" v={`${yoctoToNear(dao.spendable)} NEAR`} />
-              <Row k="Request bond (returned)" v={`${yoctoToNear(dao.policy.proposal_bond)} NEAR`} />
-            </dl>
-            {effectiveTier && (
-              <div className="mt-4 rounded-xl bg-brand-soft p-3">
-                <div className="flex items-center gap-2">
-                  <Badge tone="brand">{TIER_COPY[effectiveTier].label}</Badge>
-                  <span className="text-xs text-muted">{tier === 'small' ? `under $25` : tier === 'mid' ? '$25–$250' : 'over $250'}</span>
+        <div className="space-y-4">
+          <div className="h-fit rounded-2xl border border-line bg-card p-6">
+            {mode === 'intents' ? (
+              <>
+                <div className="flex items-center justify-between text-[12px] text-muted">
+                  <span>{quote?.recorded ? 'Sample quote' : 'Live quote · NEAR Intents'}</span>
+                  {quote && (
+                    <span className="flex items-center gap-1.5">
+                      <span className={`size-1.5 rounded-full ${quote.recorded ? 'bg-warn' : 'animate-pulse bg-good'}`} />
+                      {new Date(quote.timestamp).toISOString().slice(11, 16)} UTC
+                    </span>
+                  )}
                 </div>
-                <p className="mt-2 text-sm">{TIER_COPY[effectiveTier].rule}.</p>
-                {tier === 'small' && !trusted && (
-                  <p className="mt-1 text-xs text-muted">You don't have a track record in this group yet, so this goes to the council. After one approved request you'll get the fast lane.</p>
-                )}
+                <div className="mt-5 text-[12px] text-muted">They get exactly</div>
+                <div className="tnum mt-1 text-[44px] font-light leading-none tracking-[-0.045em]">
+                  {quote ? Number(quote.quote.amountOutFormatted).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: token && token.decimals > 6 ? 6 : 2 }) : amount || '0'} <span className="text-[18px] tracking-normal text-muted">{token?.symbol ?? ''}</span>
+                </div>
+                <div className="mt-6 text-[13.5px]">
+                  <Line k={`${name} sends`} v={quoting ? '…' : quote ? `${Number(quote.quote.amountInFormatted).toFixed(2)} NEAR · ${usd(Number(quote.quote.amountInUsd))}` : '—'} />
+                  <Line k="Arrives" v={quote ? `about ${quote.quote.timeEstimate} seconds` : '—'} />
+                  <Line k="Fees" v={quote ? usd(Math.max(0, Number(quote.quote.amountInUsd) - Number(quote.quote.amountOutUsd))) : '—'} />
+                </div>
+                {quoting && <div className="mt-2 flex items-center gap-2 text-[12px] text-muted"><Spinner /> Asking NEAR Intents solvers…</div>}
+                {!quote && !quoting && !quoteErr && <div className="mt-2 text-[12px] text-muted">Add their address and an amount to get a live quote.</div>}
+                {quoteErr && <p className="mt-2 text-[12px] text-bad">{quoteErr}</p>}
+              </>
+            ) : (
+              <>
+                <div className="text-[12px] text-muted">They get</div>
+                <div className="tnum mt-1 text-[44px] font-light leading-none tracking-[-0.045em]">
+                  {yocto ? yoctoToNear(yocto) : '0'} <span className="text-[18px] tracking-normal text-muted">NEAR</span>
+                </div>
+                <div className="mt-6 text-[13.5px]">
+                  <Line k="Worth about" v={yocto && isFinite(amountUsd) ? usd(amountUsd) : '—'} />
+                  <Line k="Arrives" v="as soon as it's approved" />
+                </div>
+              </>
+            )}
+            <div className="text-[13.5px]">
+              <Line k={`${name} can spend`} v={`${yoctoToNear(dao.spendable)} NEAR`} />
+              <Line k="Request bond, returned" v={`${yoctoToNear(dao.policy.proposal_bond)} NEAR`} />
+            </div>
+            {tierWord && (
+              <div className="mt-2 rounded-xl bg-soft px-4 py-3 text-[13px]">
+                <span className="font-medium text-accent-text">{tierWord}</span> <span className="text-muted">{tierNote}</span>
               </div>
             )}
-            <div className="mt-5 space-y-3">
+            <div className="mt-5">
               {!accountId ? (
-                <Button className="w-full" onClick={signIn}>Sign in to ask</Button>
+                <Button className="w-full !py-3" onClick={signIn}>Sign in to send the request</Button>
               ) : !canPropose ? (
-                <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">This DAO's policy doesn't let your account file payment requests.</p>
+                <p className="rounded-xl bg-warn-soft px-3 py-2 text-[13px] text-warn">This DAO's policy doesn't let your account file payment requests.</p>
               ) : (
-                <Button className="w-full" disabled={errors.length > 0 || tx.state.status === 'signing'} onClick={submit}>
+                <Button className="w-full !py-3" disabled={errors.length > 0 || tx.state.status === 'signing'} onClick={submit}>
                   Send request
                 </Button>
               )}
-              {accountId && errors.length > 0 && <p className="text-xs text-muted">{errors[0]}</p>}
+              {accountId && errors.length > 0 && <p className="mt-2 text-[12px] text-muted">{errors[0]}</p>}
+            </div>
+            <div className="mt-3 space-y-3">
               <TxStatus state={tx.state} doneText="Request sent. Members can approve it now." />
               {tx.state.status === 'done' && (
                 <Button variant="secondary" className="w-full" onClick={() => go('approve')}>See it in Approve</Button>
               )}
             </div>
-          </Card>
-          <Card>
-            <SectionTitle>Request link</SectionTitle>
-            <p className="text-sm text-muted">Share a link that opens this form already filled in, for a contributor or a member to send.</p>
-            <Button
-              variant="secondary"
-              className="mt-3 w-full"
-              disabled={!title.trim() || !amount}
-              onClick={() => navigator.clipboard?.writeText(requestLink()).then(() => setCopied(true)).catch(() => setCopied(false))}
-            >
-              {copied ? 'Link copied' : 'Copy request link'}
-            </Button>
-          </Card>
+          </div>
+          <button
+            className="text-[13px] text-muted hover:text-ink disabled:opacity-50"
+            disabled={!title.trim() || !amount}
+            onClick={() => navigator.clipboard?.writeText(requestLink()).then(() => setCopied(true)).catch(() => setCopied(false))}
+          >
+            {copied ? 'Request link copied' : 'Copy a link that opens this request, filled in →'}
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-function Row({ k, v }: { k: string; v: string }) {
+function Line({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-muted">{k}</dt>
-      <dd className="font-medium tabular-nums">{v}</dd>
-    </div>
-  )
-}
-
-function QuoteBox({ quote, token, loading, error, nearUsd }: { quote: QuoteResult | null; token?: IntentsToken; loading: boolean; error: string | null; nearUsd: number }) {
-  return (
-    <div className="rounded-xl border border-line bg-soft p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted">NEAR Intents quote</span>
-        {quote && !quote.recorded && <Badge tone="good">Live</Badge>}
-        {quote?.recorded && <Badge tone="warn">Sample</Badge>}
-      </div>
-      {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted"><Spinner /> Asking NEAR Intents solvers…</div>
-      ) : quote && token ? (
-        <div className="space-y-1">
-          <div className="text-sm">
-            The treasury sends about <b>{Number(quote.quote.amountInFormatted).toFixed(2)} NEAR</b>
-            {isFinite(nearUsd) && <span className="text-muted"> ({usd(Number(quote.quote.amountInUsd))})</span>}
-          </div>
-          <div className="text-sm">
-            They receive <b>{quote.quote.amountOutFormatted} {token.symbol}</b> on {chainName(token.blockchain)}
-          </div>
-          <div className="text-xs text-muted">
-            About {quote.quote.timeEstimate} seconds · {quote.recorded ? 'recorded' : 'quoted'} {new Date(quote.timestamp).toISOString().slice(11, 16)} UTC · saved into the request so voters see it
-          </div>
-        </div>
-      ) : (
-        <div className="text-sm text-muted">Pick a token, paste their address and an amount to get a live quote.</div>
-      )}
-      {error && <p className="mt-2 text-xs text-bad">{error}</p>}
+    <div className="flex justify-between gap-3 border-t border-line py-3">
+      <span className="text-muted">{k}</span>
+      <span className="tnum text-right">{v}</span>
     </div>
   )
 }
