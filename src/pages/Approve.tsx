@@ -252,7 +252,7 @@ export function RequestCard({ p }: { p: Proposal }) {
     <article
       className={`flex min-w-0 flex-col rounded-2xl p-6 transition-[transform,opacity] duration-300 ${snoozing ? 'translate-x-3 opacity-40' : ''} ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}
     >
-      <div className={`flex items-center justify-between gap-3 text-[12px] ${sub}`}>
+      <div className={`flex flex-col gap-1 text-[12px] sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${sub}`}>
         <span className="flex min-w-0 items-center gap-2 truncate">
           <Avatar id={p.proposer} size={20} />
           {displayName(p.proposer)} {join && join.member === p.proposer ? 'wants to join' : 'is asking'} · {timeAgo(nanoToDate(p.submission_time))}
