@@ -129,7 +129,7 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
       const d = await loadDao(daoId, STAKING_POOL)
       setDao(d)
       setLoading(false)
-      loadActivity(d).then(setActivity).catch(() => setActivity(null))
+      loadActivity(d, setActivity).catch(() => undefined)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       setLoading(false)

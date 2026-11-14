@@ -222,12 +222,11 @@ export async function loadDao(id: string, stakingPool?: string | null): Promise<
     view<number>(id, 'get_last_proposal_id'),
   ])
   if (!account) throw new Error(`Account ${id} not found`)
-  const proposals: Proposal[] = []
   const from = Math.max(0, lastProposalId - 200)
-  for (let i = from; i < lastProposalId; i += 100) {
-    const page = await view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 })
-    proposals.push(...page)
-  }
+  const starts: number[] = []
+  for (let i = from; i < lastProposalId; i += 100) starts.push(i)
+  const pages = await Promise.all(starts.map((i) => view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 })))
+  const proposals: Proposal[] = pages.flat()
   let staked = 0n
   if (stakingPool) {
     try {

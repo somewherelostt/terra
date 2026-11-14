@@ -51,7 +51,7 @@ const decodeCache = new Map<string, DecodedCall | null>()
 let active = 0
 const queue: (() => void)[] = []
 async function limited<T>(fn: () => Promise<T>): Promise<T> {
-  if (active >= 3) await new Promise<void>((r) => queue.push(r))
+  if (active >= 6) await new Promise<void>((r) => queue.push(r))
   active++
   try {
     return await fn()
@@ -191,10 +191,12 @@ export interface ActivityResult {
   source: 'nearblocks' | 'proposals-only'
 }
 
-export async function loadActivity(dao: Dao): Promise<ActivityResult> {
-  const proposalTx = new Map<number, string>()
-  const payoutTx = new Map<number, string>()
-  const items: ActivityItem[] = []
+/**
+ * Builds the feed in stages so it never sits on a skeleton: payouts straight from the DAO,
+ * then rows from the indexer, then the same rows enriched as transactions are decoded.
+ */
+export async function loadActivity(dao: Dao, onUpdate?: (r: ActivityResult) => void): Promise<ActivityResult> {
+  onUpdate?.(buildActivity(dao, [], [], 'nearblocks'))
   let txns: NbTxn[] = []
   let source: ActivityResult['source'] = 'nearblocks'
   try {
@@ -202,18 +204,34 @@ export async function loadActivity(dao: Dao): Promise<ActivityResult> {
   } catch {
     source = 'proposals-only'
   }
+  const decoded: (DecodedCall | null)[] = txns.map((t) => decodeCache.get(t.transaction_hash) ?? readStored(t.transaction_hash) ?? null)
+  onUpdate?.(buildActivity(dao, txns, decoded, source))
 
-  const byId = new Map(dao.proposals.map((p) => [p.id, p]))
-
-  const decoded = await Promise.all(
-    txns.map(async (t) => {
+  let last = Date.now()
+  await Promise.all(
+    txns.map(async (t, i) => {
+      if (decoded[i]) return
       const a = t.actions[0]
       if (a?.action === 'TRANSFER' || (a?.action === 'FUNCTION_CALL' && (a.method === 'add_proposal' || a.method === 'act_proposal'))) {
-        return decodeTx(t.transaction_hash, t.signer_account_id)
+        decoded[i] = await decodeTx(t.transaction_hash, t.signer_account_id)
+        // Re-render at most every 300 ms while decodes stream in.
+        if (onUpdate && Date.now() - last > 300) {
+          last = Date.now()
+          onUpdate(buildActivity(dao, txns, decoded, source))
+        }
       }
-      return null
     }),
   )
+  const result = buildActivity(dao, txns, decoded, source)
+  onUpdate?.(result)
+  return result
+}
+
+function buildActivity(dao: Dao, txns: NbTxn[], decoded: (DecodedCall | null)[], source: ActivityResult['source']): ActivityResult {
+  const proposalTx = new Map<number, string>()
+  const payoutTx = new Map<number, string>()
+  const items: ActivityItem[] = []
+  const byId = new Map(dao.proposals.map((p) => [p.id, p]))
 
   // Oldest first so the last approving vote on an approved proposal is the payout.
   const ordered = txns.map((t, i) => ({ t, d: decoded[i] })).reverse()
