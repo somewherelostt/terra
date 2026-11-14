@@ -12,7 +12,8 @@ import SiteFooter from '../components/SiteFooter'
 import Faq from '../components/Faq'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 import { formatDate, formatNumber, tr, useT } from '../i18n'
-import { splitUsd } from '../lib/format'
+import { splitUsd, usd } from '../lib/format'
+import { Avatar } from '../components/ui'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 const DEMO_SOL_ADDRESS = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'
@@ -36,7 +37,7 @@ export default function Landing() {
           <span className="live size-1.5 rounded-full bg-accent" />
           <span className="truncate">{tr('landing.hero.badge', { wide: (c) => <span className="hidden sm:inline">{c}</span> })}</span>
         </div>
-        <h1 className="mx-auto mt-7 max-w-[900px] text-[40px] leading-[1] font-light tracking-[-0.045em] sm:text-[52px] md:text-[72px] md:leading-[0.98]">
+        <h1 className="mx-auto mt-7 max-w-[1120px] text-[40px] leading-[1] font-light tracking-[-0.045em] text-balance sm:text-[52px] md:text-[60px] md:leading-[0.98] lg:text-[68px]">
           <Words text={t('landing.hero.line1')} start={60} />
           <br />
           <Words text={t('landing.hero.line2')} start={60 + t('landing.hero.line1').split(' ').length * 50} />
@@ -46,14 +47,20 @@ export default function Landing() {
         </p>
         <div className="rise mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium" style={{ ['--d' as string]: '460ms' } as React.CSSProperties}>
           <button onClick={() => go('create')} className="rounded-lg bg-accent px-5 py-3 text-on-accent">{t('landing.hero.start')}</button>
-          <a href="#connect" className="rounded-lg border border-line bg-panel px-5 py-3">{t('landing.hero.connect')}</a>
+          <a href={boardUrl} className="rounded-lg border border-line bg-panel px-5 py-3">{t('landing.hero.seeLive')}</a>
         </div>
         <ResumeLink />
         <ProductPreview />
       </section>
       </div>
 
-      {/* Proof strip */}
+      {/* The story: what Terra is, in four plain steps with real bits of the app (the "How it works" target). */}
+      <StorySection />
+
+      {/* Why not a bank account or one treasurer */}
+      <WhySection />
+
+      {/* Proof strip: the technical facts, below the plain story */}
       <section className="border-y border-line">
         <div className="mx-auto grid max-w-[1200px] grid-cols-2 px-6 text-[13px] md:grid-cols-4">
           {[
@@ -71,7 +78,7 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
+      <section id="steps" className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end md:gap-10">
           <h2 className={H2}>{tr('landing.how.title', { br: <br /> })}</h2>
           <p className="max-w-[360px] text-[14.5px] text-mute">{t('landing.how.lead')}</p>
@@ -540,6 +547,129 @@ function useReveal() {
 }
 
 /** How it works: a line draws across the four steps once the panel is in view. */
+/** Four cards that tell one concrete story, each with a small piece of the real app. Reveals in order. */
+function StorySection() {
+  const t = useT()
+  const card = 'reveal relative flex flex-col rounded-2xl border border-line bg-panel p-5'
+  const ui = 'mt-5 rounded-xl border border-line bg-bg p-4 text-start'
+  const steps = [
+    {
+      title: t('landing.story.s1.title'),
+      text: t('landing.story.s1.text'),
+      icon: 'M12 3v18M5 8h11a3 3 0 010 6H8a3 3 0 000 6h11',
+      ui: (
+        <div className={ui}>
+          <div className="text-[11.5px] text-mute">{t('landing.story.s1.ui')}</div>
+          <div className="tnum mt-1 text-[30px] leading-none font-light tracking-[-0.04em]">{usd(1240)}</div>
+          <div className="mt-3 flex -space-x-1.5">
+            {['priya', 'ravi', 'ana', 'ben'].map((id) => (
+              <span key={id} className="rounded-full ring-2 ring-[var(--bg)]"><Avatar id={id} size={22} shape="circle" /></span>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: t('landing.story.s2.title'),
+      text: t('landing.story.s2.text'),
+      icon: 'M12 5v14M5 12h14',
+      ui: (
+        <div className={ui}>
+          <div className="flex items-center gap-2 text-[11.5px] text-mute">
+            <Avatar id="ravi" size={18} shape="circle" />
+            {t('landing.story.s2.who')}
+          </div>
+          <div className="tnum mt-2 text-[26px] leading-none font-light tracking-[-0.04em]">{usd(20)}</div>
+          <div className="mt-1.5 text-[12.5px]">{t('landing.story.s2.ui')}</div>
+        </div>
+      ),
+    },
+    {
+      title: t('landing.story.s3.title'),
+      text: t('landing.story.s3.text'),
+      icon: 'M5 13l4 4L19 7',
+      ui: (
+        <div className={ui}>
+          <div className="flex items-center justify-between text-[11.5px] text-mute">
+            <span className="flex -space-x-1.5">
+              {['priya', 'ana'].map((id) => (
+                <span key={id} className="rounded-full ring-2 ring-[var(--bg)]"><Avatar id={id} size={20} shape="circle" /></span>
+              ))}
+            </span>
+            {t('landing.story.s3.count')}
+          </div>
+          <div className="mt-3 h-[3px] rounded-full bg-sand"><div className="h-[3px] w-full rounded-full bg-accent" /></div>
+          <div className="mt-3 grid place-items-center rounded-lg bg-accent py-2 text-[13px] font-medium text-on-accent">{t('landing.story.s3.ui')}</div>
+        </div>
+      ),
+    },
+    {
+      title: t('landing.story.s4.title'),
+      text: t('landing.story.s4.text'),
+      icon: 'M4 12h14M13 6l6 6-6 6',
+      ui: (
+        <div className={ui}>
+          <div className="flex items-center gap-2 text-[11.5px] text-mute">
+            <span className="grid size-4 place-items-center rounded-full bg-accent text-on-accent">
+              <svg viewBox="0 0 24 24" className="size-2.5" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 13l4 4L19 7" /></svg>
+            </span>
+            {t('landing.story.s4.ui')}
+          </div>
+          <div className="tnum mt-2 text-[22px] leading-tight font-light tracking-[-0.03em]">{t('landing.story.s4.amount')}</div>
+        </div>
+      ),
+    },
+  ]
+  return (
+    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 md:py-24">
+      <div className="max-w-[640px]">
+        <div className="text-[13px] text-mute">{t('landing.story.eyebrow')}</div>
+        <h2 className={`${H2} mt-3`}>{t('landing.story.title')}</h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-mute">{t('landing.story.lead')}</p>
+      </div>
+      <ol className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map((st, i) => (
+          <li key={i} className={card} style={{ ['--d' as string]: `${i * 120}ms` } as React.CSSProperties}>
+            <div className="flex items-center gap-3">
+              <span className="grid size-9 place-items-center rounded-full border border-line text-ink" aria-hidden>
+                <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d={st.icon} /></svg>
+              </span>
+              <span className="text-[12px] text-mute">{t('landing.story.step', { n: String(i + 1) })}</span>
+            </div>
+            <h3 className="mt-4 text-[17px] font-medium tracking-[-0.01em]">{st.title}</h3>
+            <p className="mt-1.5 text-[14px] leading-relaxed text-mute">{st.text}</p>
+            <div className="mt-auto">{st.ui}</div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+/** "Why not just a bank account or one treasurer?" in three plain benefits. */
+function WhySection() {
+  const t = useT()
+  const items = [
+    ['M12 11V7a4 4 0 118 0M5 11h14v10H5z', t('landing.why.b1.title'), t('landing.why.b1.text')],
+    ['M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z', t('landing.why.b2.title'), t('landing.why.b2.text')],
+    ['M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18', t('landing.why.b3.title'), t('landing.why.b3.text')],
+  ]
+  return (
+    <section className="mx-auto max-w-[1200px] px-4 pb-20 sm:px-6 md:pb-28">
+      <h2 className={`${H2} max-w-[720px]`}>{t('landing.why.title')}</h2>
+      <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
+        {items.map(([d, title, text], i) => (
+          <div key={i} className="reveal bg-panel p-6" style={{ ['--d' as string]: `${i * 100}ms` } as React.CSSProperties}>
+            <svg viewBox="0 0 24 24" className="size-5 text-ink" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={d} /></svg>
+            <h3 className="mt-4 text-[16px] font-medium">{title}</h3>
+            <p className="mt-1.5 text-[14px] leading-relaxed text-mute">{text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function HowSteps({ steps }: { steps: string[][] }) {
   const [reached, setReached] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
