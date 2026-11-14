@@ -418,9 +418,6 @@ button:active { transform: scale(.98); }
 
 /* Real screenshots on the landing: show the one matching the theme. */
 :root:not([data-theme="light"]) .theme-light-only, :root[data-theme="light"] .theme-dark-only { display: none; }
-.shot-browser { box-shadow: 0 30px 80px -30px rgba(47, 107, 255, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.02); }
-:root[data-theme="light"] .shot-browser { box-shadow: 0 30px 80px -30px rgba(47, 107, 255, 0.35); }
-.shot-phone { box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08); }
 
 /* ---------- Landing hero: ledger texture (dark only) ----------
    Decorative rows of a group ledger, scrolling up slowly at the hero's sides.

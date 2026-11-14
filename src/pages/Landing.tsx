@@ -549,7 +549,6 @@ const PROOF_CELL = [
 
 /** Four cards that tell one concrete story, each ending in a cropped phone showing that step's real screen. */
 const STORY_TIME = '9:41'
-const SHOT_HOST = 'useterra.app'
 
 function StorySection() {
   const t = useT()
@@ -624,7 +623,7 @@ function Phone({ shot, className = 'h-[300px] max-w-[250px]' }: { shot: ShotName
   )
 }
 
-/** "See it in action": the real desktop app in a browser frame, with two phone screens overlapping it. */
+/** "See it in action": the real app (desktop plus two phones), composed at 2x in light and dark. */
 function ShotsSection() {
   const t = useT()
   return (
@@ -633,19 +632,8 @@ function ShotsSection() {
         <h2 className={H2}>{t('landing.shots.title')}</h2>
         <p className="mt-4 text-[15px] leading-relaxed text-mute">{t('landing.shots.lead')}</p>
       </div>
-      <div className="relative mt-10 lg:me-24">
-        <div className="shot-browser reveal overflow-hidden rounded-2xl border border-line bg-panel">
-          <div className="flex h-9 items-center gap-1.5 border-b border-line px-4" aria-hidden>
-            <span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" /><span className="size-2.5 rounded-full bg-line" />
-            <span className="mx-auto rounded-md bg-bg px-10 py-0.5 text-[11px] text-mute">{SHOT_HOST}</span>
-          </div>
-          <Shot src="desktop-home" w={1800} h={1125} alt={t('landing.shots.alt.desktop')} />
-        </div>
-        <div className="reveal pointer-events-none absolute -end-2 bottom-[-40px] hidden w-[220px] lg:-end-24 lg:block" style={{ ['--d' as string]: '150ms' } as React.CSSProperties}>
-          <div className="shot-phone overflow-hidden rounded-[28px] border-[5px] border-[#151517]">
-            <Shot src="phone-approve" w={780} h={1688} alt={t('landing.shots.alt.approve')} className="aspect-[390/700] object-cover object-top" />
-          </div>
-        </div>
+      <div className="reveal mt-10 overflow-hidden rounded-3xl border border-line">
+        <Shot src="terra-hero" w={2400} h={1350} alt={t('landing.shots.alt.desktop')} />
       </div>
     </section>
   )

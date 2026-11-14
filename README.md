@@ -31,33 +31,16 @@ Terra is that app. It sits on top of a community's **existing Sputnik DAO** and 
 
 ## See it
 
-Real screens from City Club, a demo group on NEAR testnet. They follow your GitHub theme.
+The real app, running on City Club (a demo group on NEAR testnet). The images follow your GitHub theme.
 
 <div align="center">
-  <picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/desktop-home-dark.webp" /><img src="public/shots/desktop-home-light.webp" alt="Terra on desktop: the group home with balance, activity and an open request" width="820" /></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/terra-hero-dark.webp" /><img src="public/shots/terra-hero-light.webp" alt="Terra on desktop with the My groups switcher open, plus two phones: requesting money with a live NEAR Intents quote, and open requests to approve" width="880" /></picture>
+  <p><sub><b>One app for the whole group.</b> Switch between your groups, chip in, ask for money with a live quote, and approve.</sub></p>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/terra-screens-dark.webp" /><img src="public/shots/terra-screens-light.webp" alt="Four phone screens: Home with the balance, Request money, Approve, and Activity" width="880" /></picture>
+  <p><sub><b>Chip in</b> · <b>Ask</b> · <b>Approve</b> · <b>Paid</b>. Every payout is public.</sub></p>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/terra-account-dark.webp" /><img src="public/shots/terra-account-light.webp" alt="The account menu open on the Approve page: profile, my groups, theme and language" width="880" /></picture>
+  <p><sub><b>Your account, your record.</b> Names come from NEAR Social profiles; the account id always stays visible.</sub></p>
 </div>
-
-<table align="center">
-  <tr>
-    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-home-dark.webp" /><img src="public/shots/phone-home-light.webp" alt="Home: the group balance with Chip in and Request money" width="180" /></picture></td>
-    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-pay-dark.webp" /><img src="public/shots/phone-pay-light.webp" alt="Request money with a live NEAR Intents quote" width="180" /></picture></td>
-    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-approve-dark.webp" /><img src="public/shots/phone-approve-light.webp" alt="Open requests waiting for approval" width="180" /></picture></td>
-    <td align="center" width="25%"><picture><source media="(prefers-color-scheme: dark)" srcset="public/shots/phone-activity-dark.webp" /><img src="public/shots/phone-activity-light.webp" alt="Activity: every payout the group made" width="180" /></picture></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Chip in</b><br/><sub>One balance, in dollars</sub></td>
-    <td align="center"><b>Ask</b><br/><sub>Live quote on any chain</sub></td>
-    <td align="center"><b>Approve</b><br/><sub>Your record sets the lane</sub></td>
-    <td align="center"><b>Paid</b><br/><sub>Every payout is public</sub></td>
-  </tr>
-</table>
-
-<table align="center">
-  <tr>
-    <td align="center" width="50%"><img src="docs/screenshots/members.jpg" alt="Member records" width="400" /><br/><sub><b>Records decide the lane.</b> Standing, chip-ins and paid requests, from the DAO's own history.</sub></td>
-    <td align="center" width="50%"><img src="docs/screenshots/board.jpg" alt="Public board" width="400" /><br/><sub><b>A public board.</b> No sign-in: balance, open requests and every payout with a receipt.</sub></td>
-  </tr>
-</table>
 
 ## What it does
 
