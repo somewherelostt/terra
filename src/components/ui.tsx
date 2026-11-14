@@ -230,13 +230,25 @@ export function Toaster() {
   )
 }
 
-/** A one-line row label: the reason truncates, the muted detail never gets cut mid-sentence. */
+/**
+ * A row label. From `sm` up it is one line: the reason truncates, the muted detail stays whole.
+ * On a phone the detail drops to its own muted line, so the reason gets the full width.
+ */
 export function RowText({ main, detail, extra }: { main: ReactNode; detail?: ReactNode; extra?: ReactNode }) {
   return (
-    <span className="flex min-w-0 items-baseline gap-1.5">
+    <span className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-1.5">
       <span className="min-w-0 truncate">{main}</span>
-      {detail && <span className="shrink-0 whitespace-nowrap text-muted">· {detail}</span>}
-      {extra && <span className="shrink-0">{extra}</span>}
+      {(detail || extra) && (
+        <span className="flex min-w-0 items-baseline gap-1.5 text-[12.5px] sm:contents sm:text-[length:inherit]">
+          {detail && (
+            <span className="min-w-0 truncate text-muted sm:shrink-0 sm:overflow-visible sm:whitespace-nowrap">
+              <span className="hidden sm:inline">· </span>
+              {detail}
+            </span>
+          )}
+          {extra && <span className="shrink-0">{extra}</span>}
+        </span>
+      )}
     </span>
   )
 }
