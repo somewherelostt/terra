@@ -68,14 +68,14 @@ export default function Landing() {
           <span className="truncate">Works with any Sputnik DAO or Trezu treasury<span className="hidden sm:inline"> on NEAR</span></span>
         </div>
         <h1 className="mx-auto mt-7 max-w-[900px] text-[40px] leading-[1] font-light tracking-[-0.045em] sm:text-[52px] md:text-[72px] md:leading-[0.98]">
-          <Words text="Your community's money," start={120} />
+          <Words text="Your community's money," start={60} />
           <br />
-          <Words text="run by its members." start={120 + 3 * 70} />
+          <Words text="run by its members." start={60 + 3 * 50} />
         </h1>
-        <p className="rise mx-auto mt-6 max-w-[560px] text-[17px] leading-relaxed text-mute" style={{ ['--d' as string]: '650ms' } as React.CSSProperties}>
+        <p className="rise mx-auto mt-6 max-w-[560px] text-[17px] leading-relaxed text-mute" style={{ ['--d' as string]: '380ms' } as React.CSSProperties}>
           Chip in, ask for money, approve it. Your record decides how fast. The treasury pays anyone, in the coin they want, on the chain they use.
         </p>
-        <div className="rise mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium" style={{ ['--d' as string]: '760ms' } as React.CSSProperties}>
+        <div className="rise mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium" style={{ ['--d' as string]: '460ms' } as React.CSSProperties}>
           <a href="#connect" className="rounded-lg bg-accent px-5 py-3 text-on-accent">Connect your treasury</a>
           <a href={boardUrl} className="rounded-lg border border-line bg-panel px-5 py-3">See a live board</a>
         </div>
@@ -247,9 +247,9 @@ function ProductPreview() {
   }, [])
   return (
     <div className="relative mx-auto mt-16 max-w-[1080px]" style={{ perspective: '1600px' }}>
-      <FloatCard side="left" delay={1700} title="Paid · 2 min ago" text="20.00 USDC arrived on Solana" />
-      <FloatCard side="right" delay={1850} title="ravi approved" text="Fast lane · 1 of 1" />
-      <div className="rise" style={{ ['--d' as string]: '850ms', animationDuration: '1s' } as React.CSSProperties}>
+      <FloatCard side="left" delay={1300} title="Paid · 2 min ago" text="20.00 USDC arrived on Solana" />
+      <FloatCard side="right" delay={1450} title="ravi approved" text="Fast lane · 1 of 1" />
+      <div className="rise" style={{ ['--d' as string]: '540ms', animationDuration: '1s' } as React.CSSProperties}>
     <div
       className="relative rounded-t-2xl border border-b-0 border-line bg-panel p-2 pb-0 text-left"
       aria-hidden
@@ -337,7 +337,7 @@ function Words({ text, start }: { text: string; start: number }) {
       {text.split(' ').map((w, i) => (
         <span key={i}>
           <span className="wr">
-            <span style={{ ['--d' as string]: `${start + i * 70}ms` } as React.CSSProperties}>{w}</span>
+            <span style={{ ['--d' as string]: `${start + i * 50}ms` } as React.CSSProperties}>{w}</span>
           </span>
           {i < text.split(' ').length - 1 ? ' ' : ''}
         </span>
