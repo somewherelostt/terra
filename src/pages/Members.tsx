@@ -27,11 +27,15 @@ export default function Members() {
   const asked = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('invite')
   const [inviting, setInviting] = useState(false)
   const [addingById, setAddingById] = useState(!!asked)
+  const [inviteFor, setInviteFor] = useState(asked ?? '')
   const [joinCopied, setJoinCopied] = useState(false)
   if (!dao) return null
   // Members are accounts in a role; anyone else with history is a contributor, not listed here.
   const memberIds = new Set(dao.policy.roles.flatMap(roleMembers))
   const rows = [...records.values()].filter((r) => memberIds.has(r.accountId))
+  // People who chipped in or asked for money but aren't in a role yet.
+  const others = [...records.values()].filter((r) => !memberIds.has(r.accountId) && (r.requested > 0 || r.chippedIn > 0n))
+  const canInvite = can(dao.policy, accountId, 'add_member_to_role', 'AddProposal')
   const counts = { Council: 0, Trusted: 0, New: 0 }
   rows.forEach((r) => counts[standingOf(r)]++)
   const shown = rows
@@ -40,8 +44,8 @@ export default function Members() {
 
   return (
     <div>
-      {inviting && <InviteSheet onClose={() => setInviting(false)} onAddByAccount={() => { setInviting(false); setAddingById(true) }} />}
-      {addingById && <InviteDialog initial={asked ?? ''} onClose={() => setAddingById(false)} />}
+      {inviting && <InviteSheet onClose={() => setInviting(false)} onAddByAccount={() => { setInviting(false); setInviteFor(''); setAddingById(true) }} />}
+      {addingById && <InviteDialog initial={inviteFor} onClose={() => setAddingById(false)} />}
       <div className="text-[13px] text-muted">Members</div>
       <div className="mt-3 flex items-end justify-between gap-4">
         <h1 className="text-[32px] font-light tracking-[-0.03em]">
@@ -60,7 +64,15 @@ export default function Members() {
             {joinCopied ? 'Link copied' : 'Ask to join'}
           </Button>
         ) : (
-          <Button variant="secondary" onClick={() => setInviting(true)}>Invite</Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setInviteFor('')
+              setInviting(true)
+            }}
+          >
+            Invite
+          </Button>
         )}
       </div>
       {joinCopied && (
@@ -118,12 +130,43 @@ export default function Members() {
         </EmptyState>
       )}
 
+      {others.length > 0 && (
+        <div className="mt-10 max-w-[720px]">
+          <div className="text-[13px] text-muted">Not members yet · anyone can chip in or ask for money</div>
+          <div className="mt-2 text-[13.5px]">
+            {others.map((r) => (
+              <div key={r.accountId} className="flex items-center gap-3 border-b border-line py-3 last:border-0">
+                <Avatar id={r.accountId} size={28} />
+                <span className="min-w-0 flex-1 truncate">
+                  <Account id={r.accountId} className="!font-normal" />
+                  <span className="text-muted">
+                    {' '}
+                    · {r.approved} of {r.requested} paid{r.chippedIn > 0n ? ' · chipped in' : ''}
+                  </span>
+                </span>
+                {canInvite && (
+                  <button
+                    className="min-h-11 shrink-0 text-[13px] font-medium hover:underline sm:min-h-0"
+                    onClick={() => {
+                      setInviteFor(r.accountId)
+                      setAddingById(true)
+                    }}
+                  >
+                    Invite
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mt-10 max-w-[560px] rounded-2xl border border-line bg-card p-6">
         <div className="text-[14px] font-medium">How standing works</div>
         <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
-          New members' requests go to the council. After one paid request and nothing turned down, a member becomes trusted: their requests up to ${TIER_LIMITS_USD.small} need just one
-          nod from a trusted member. Requests up to ${TIER_LIMITS_USD.mid} go to the council; bigger ones are a full council vote. The council and the trusted role are set in the DAO's
-          policy, and every record is computed from the DAO's own history on NEAR.
+          A first request goes to the council. After one paid request and nothing turned down, someone's requests up to ${TIER_LIMITS_USD.small} take the fast lane: one nod from a member
+          of the trusted role who isn't them. Requests up to ${TIER_LIMITS_USD.mid}, and bigger ones, need the council's majority; big ones stay on the public board while open. The council
+          and the trusted role are set in the DAO's policy, and every record is computed from the DAO's own history on NEAR.
         </p>
       </div>
     </div>
@@ -282,7 +325,12 @@ function InviteDialog({ onClose, initial }: { onClose: () => void; initial: stri
           )}
         </div>
         <div className="mt-3">
-          <TxStatus state={tx.state} doneText="Invite request sent. The council can approve it in Approve." />
+          <TxStatus state={tx.state} doneText="Invite request sent. It needs the council's votes, yours included." />
+          {tx.state.status === 'done' && (
+            <Button variant="secondary" className="mt-2 w-full" onClick={() => go('approve')}>
+              Approve it now
+            </Button>
+          )}
         </div>
       </div>
     </div>
