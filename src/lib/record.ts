@@ -107,7 +107,11 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
   if (tier === 'small' && !clean) effectiveTier = 'mid'
 
   if (effectiveTier === 'small' && trusted) {
-    return { tier, effectiveTier, voters: [...new Set([...trusted.members, ...(council?.members ?? [])])], needed: 1, reason: 'Small request from a member with a clean record' }
+    // Fast lane: one trusted member who isn't the requester. Only the trusted role's
+    // threshold is 1, so council-only members can't give the single nod.
+    const nodders = trusted.members.filter((m) => m !== p.proposer)
+    if (nodders.length) return { tier, effectiveTier, voters: nodders, needed: 1, reason: 'Small request from a member with a clean record' }
+    effectiveTier = 'mid'
   }
   if (effectiveTier !== 'large' && council) {
     return {
