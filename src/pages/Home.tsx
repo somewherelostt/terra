@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { allMembers, chipInTx, decodeDescription, isNearTransfer } from '../lib/dao'
+import { allMembers, chipInTx, decodeDescription } from '../lib/dao'
 import { nearToYocto, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests } from '../lib/record'
 import type { ActivityItem } from '../lib/activity'
-import { Button, Spinner, TxLink, TxStatus, useTx } from '../components/ui'
+import { Avatar, Button, Spinner, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
 import { RequestCard } from './Approve'
 
@@ -13,29 +13,50 @@ export default function Home() {
   const { dao, nearUsd, activity, refresh } = useDao()
   const { accountId } = useWallet()
   const [copied, setCopied] = useState(false)
-  const chipRef = useRef<HTMLInputElement>(null)
+  const [chipOpen, setChipOpen] = useState(false)
   if (!dao) return null
   const open = openRequests(dao)
   const members = allMembers(dao.policy)
   const total = dao.spendable + dao.staked
   const [dollars, cents] = splitUsd(yoctoToNumber(total) * nearUsd)
-  const payouts = dao.proposals.filter((p) => p.status === 'Approved' && isNearTransfer(p.kind))
-  const paidOut = payouts.reduce((s, p) => s + (isNearTransfer(p.kind) ? BigInt(p.kind.Transfer.amount) : 0n), 0n)
   const name = prettyName(dao.config.name)
+  const empty = total === 0n
+  const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime()
+  const paidThisYear = (activity?.items ?? []).filter((a) => a.kind === 'payout' && a.time.getTime() >= yearStart).reduce((s, a) => s + BigInt(a.amount ?? '0'), 0n)
+  const waits = (activity?.items ?? [])
+    .filter((a) => a.kind === 'payout' && a.txHash && a.proposalId != null)
+    .map((a) => {
+      const p = dao.proposals.find((x) => x.id === a.proposalId)
+      return p ? (a.time.getTime() - Number(BigInt(p.submission_time) / 1_000_000n)) / 60000 : NaN
+    })
+    .filter((m) => isFinite(m) && m >= 0)
+    .sort((a, b) => a - b)
+  const median = waits.length ? waits[Math.floor(waits.length / 2)] : NaN
+  const mine = open.filter((p) => !accountId || !p.votes[accountId])
+  const next = [...mine].sort((a, b) => a.id - b.id)[0]
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 
   return (
     <div>
+      {chipOpen && <ChipInDialog daoId={dao.id} signedIn={!!accountId} nearUsd={nearUsd} onDone={refresh} name={name} onClose={() => setChipOpen(false)} />}
       <div className="flex items-center justify-between text-[13px] text-muted">
         <span>Home</span>
-        <span>{today}</span>
+        {accountId ? (
+          <span className="flex items-center gap-2" title={accountId}>
+            {accountId}
+            <Avatar id={accountId} size={24} />
+          </span>
+        ) : (
+          <span>{today}</span>
+        )}
       </div>
 
       <div className="mt-10 text-[13px] text-muted">{name} holds</div>
-      <div className="tnum mt-3 text-[64px] font-light leading-[0.9] tracking-[-0.055em] sm:text-[96px] lg:text-[112px]">
+      <div className={`tnum mt-3 text-[64px] font-light leading-[0.88] tracking-[-0.055em] sm:text-[96px] lg:text-[112px] ${empty ? 'text-muted' : ''}`}>
         {dollars}
         <span className="text-muted">{cents}</span>
       </div>
+      {empty && <p className="mt-4 max-w-md text-[14px] text-muted">Your treasury is ready. Be the first to chip in, then invite the others.</p>}
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-muted">
         <span className="tnum">{yoctoToNear(total)} NEAR</span>
         {dao.staked > 0n && (
@@ -47,7 +68,7 @@ export default function Home() {
         {isFinite(nearUsd) && <span className="tnum">1 NEAR = {usd(nearUsd)}</span>}
       </div>
       <div className="mt-8 flex flex-wrap gap-2">
-        <Button onClick={() => chipRef.current?.focus()}>Chip in</Button>
+        <Button onClick={() => setChipOpen(true)}>Chip in</Button>
         <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
         <Button
           variant="secondary"
@@ -59,8 +80,12 @@ export default function Home() {
 
       <div className="mt-12 grid grid-cols-3 border-y border-line">
         <Stat label="Members" value={String(members.length)} className="border-r border-line pr-5" />
-        <Stat label="Paid out" value={isFinite(nearUsd) ? usd(yoctoToNumber(paidOut) * nearUsd) : `${yoctoToNear(paidOut, 0)} NEAR`} className="border-r border-line px-5" />
-        <Stat label="Open requests" value={String(open.length)} className="px-5" />
+        <Stat
+          label="Paid out this year"
+          value={activity ? (isFinite(nearUsd) ? usd(yoctoToNumber(paidThisYear) * nearUsd) : `${yoctoToNear(paidThisYear, 0)} NEAR`) : null}
+          className="border-r border-line px-5"
+        />
+        <Stat label="Median time to pay" value={activity ? (isFinite(median) ? formatWait(median) : '—') : null} className="px-5" />
       </div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -69,29 +94,38 @@ export default function Home() {
             <span>Activity</span>
             <button className="hover:text-ink" onClick={() => go('activity')}>See all</button>
           </div>
-          <HomeActivity items={activity?.items.slice(0, 7)} loading={!activity} nearUsd={nearUsd} />
+          <HomeActivity items={activity?.items.slice(0, 4)} loading={!activity} nearUsd={nearUsd} />
         </div>
         <div className="space-y-5">
-          {open.length > 0 && <RequestCard p={open[0]} />}
-          {open.length > 1 && (
+          {next ? <RequestCard p={next} /> : <CaughtUp />}
+          {mine.length > 1 && (
             <button onClick={() => go('approve')} className="text-[13px] text-muted hover:text-ink">
-              {open.length - 1} more waiting in Approve →
+              {mine.length - 1} more waiting in Approve →
             </button>
           )}
-          <ChipIn inputRef={chipRef} daoId={dao.id} signedIn={!!accountId} nearUsd={nearUsd} onDone={refresh} name={name} />
         </div>
       </div>
     </div>
   )
 }
 
-function Stat({ label, value, className = '' }: { label: string; value: string; className?: string }) {
+function Stat({ label, value, className = '' }: { label: string; value: string | null; className?: string }) {
   return (
     <div className={`py-5 ${className}`}>
       <div className="text-[12px] text-muted">{label}</div>
-      <div className="tnum mt-1.5 text-[22px] font-light tracking-tight sm:text-[28px]">{value}</div>
+      {value == null ? (
+        <div className="skeleton mt-2.5 h-6 w-20" />
+      ) : (
+        <div className="tnum mt-1.5 text-[22px] font-light tracking-tight sm:text-[28px]">{value}</div>
+      )}
     </div>
   )
+}
+
+function formatWait(min: number): string {
+  if (min < 60) return `${Math.max(1, Math.round(min))} min`
+  if (min < 48 * 60) return `${Math.round(min / 60)} h`
+  return `${Math.round(min / 1440)} days`
 }
 
 function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loading: boolean; nearUsd: number }) {
@@ -149,62 +183,86 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
   )
 }
 
-function ChipIn({
-  inputRef,
+function CaughtUp() {
+  return (
+    <div className="rounded-2xl border border-line p-8 text-center">
+      <div className="mx-auto grid size-12 place-items-center rounded-full border border-line">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
+      </div>
+      <div className="mt-4 text-[15px]">You're all caught up</div>
+      <p className="mt-1 text-[13px] text-muted">No requests are waiting on you. New ones show up here.</p>
+    </div>
+  )
+}
+
+function ChipInDialog({
   daoId,
   signedIn,
   nearUsd,
   onDone,
   name,
+  onClose,
 }: {
-  inputRef: React.RefObject<HTMLInputElement | null>
   daoId: string
   signedIn: boolean
   nearUsd: number
   onDone: () => Promise<void>
   name: string
+  onClose: () => void
 }) {
   const [amount, setAmount] = useState('1')
   const { send, signIn } = useWallet()
   const tx = useTx()
   const yocto = nearToYocto(amount)
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    ref.current?.focus()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
   return (
-    <div className="rounded-2xl border border-line bg-card p-6">
-      <div className="text-[12px] text-muted">Chip in</div>
-      <p className="mt-1 text-[13.5px] text-muted">Goes straight to {name}'s treasury. Everyone sees it in the activity.</p>
-      <label className="mt-5 block border-b border-line pb-2">
-        <span className="text-[12px] text-muted">Amount</span>
-        <div className="mt-1 flex items-baseline gap-2">
-          <input
-            ref={inputRef}
-            className="tnum w-full bg-transparent text-[40px] font-light leading-none tracking-[-0.04em] outline-none"
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => {
-              setAmount(e.target.value)
-              tx.reset()
-            }}
-            aria-label="Chip in amount in NEAR"
-          />
-          <span className="text-[15px] text-muted">NEAR</span>
+    <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4" onClick={onClose} role="dialog" aria-modal aria-label="Chip in">
+      <div className="w-full max-w-[420px] rounded-2xl border border-line bg-card p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between text-[12px] text-muted">
+          <span>Chip in</span>
+          <button onClick={onClose} className="hover:text-ink" aria-label="Close">Close</button>
         </div>
-      </label>
-      <div className="mt-2 h-4 text-[12px] text-muted">{yocto && isFinite(nearUsd) ? `≈ ${usd(yoctoToNumber(yocto) * nearUsd)}` : ''}</div>
-      <div className="mt-4">
-        {signedIn ? (
-          <Button
-            className="w-full"
-            disabled={!yocto || yocto <= 0n || tx.state.status === 'signing'}
-            onClick={() => yocto && tx.run(() => send(chipInTx(daoId, yocto)), onDone)}
-          >
-            Chip in {yocto ? `${amount} NEAR` : ''}
-          </Button>
-        ) : (
-          <Button className="w-full" onClick={signIn}>Sign in to chip in</Button>
-        )}
-      </div>
-      <div className="mt-3">
-        <TxStatus state={tx.state} doneText="Thanks! It reached the treasury." />
+        <p className="mt-1 text-[13.5px] text-muted">Goes straight to {name}'s treasury. Everyone sees it in the activity.</p>
+        <label className="mt-6 block border-b border-line pb-2">
+          <span className="text-[12px] text-muted">Amount</span>
+          <div className="mt-1 flex items-baseline gap-2">
+            <input
+              ref={ref}
+              className="tnum w-full bg-transparent text-[56px] font-light leading-none tracking-[-0.05em] outline-none"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => {
+                setAmount(e.target.value)
+                tx.reset()
+              }}
+              aria-label="Chip in amount in NEAR"
+            />
+            <span className="text-[15px] text-muted">NEAR</span>
+          </div>
+        </label>
+        <div className="mt-2 h-4 text-[12px] text-muted">{yocto && isFinite(nearUsd) ? `≈ ${usd(yoctoToNumber(yocto) * nearUsd)}` : ''}</div>
+        <div className="mt-5">
+          {signedIn ? (
+            <Button
+              className="w-full !py-3"
+              disabled={!yocto || yocto <= 0n || tx.state.status === 'signing'}
+              onClick={() => yocto && tx.run(() => send(chipInTx(daoId, yocto)), onDone)}
+            >
+              Chip in {yocto ? `${amount} NEAR` : ''}
+            </Button>
+          ) : (
+            <Button className="w-full !py-3" onClick={signIn}>Sign in to chip in</Button>
+          )}
+        </div>
+        <div className="mt-3">
+          <TxStatus state={tx.state} doneText="Thanks! It reached the treasury." />
+        </div>
       </div>
     </div>
   )

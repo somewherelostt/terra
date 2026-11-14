@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { DaoProvider, go, openDao, useDao, useRoute, type Page } from './lib/store'
+import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner } from './components/ui'
 import { shortName } from './lib/format'
@@ -106,16 +106,21 @@ function Shell({ page, daoId, children }: { page: Page; daoId: string | null; ch
 function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean }) {
   const { dao } = useDaoSafe()
   const count = item.page === 'approve' && dao ? openRequests(dao).length : 0
+  const external = item.page === 'board' && dao
   return (
     <a
-      href={`#/${item.page}`}
+      href={external ? shareUrl(dao.id, 'board') : `#/${item.page}`}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noreferrer' : undefined}
       onClick={(e) => {
+        if (external) return
         e.preventDefault()
         go(item.page)
       }}
       className={`flex items-center rounded-lg px-3 py-2 text-[13.5px] transition ${active ? 'bg-card text-ink ring-1 ring-line' : 'text-muted hover:text-ink'}`}
     >
       <span className="flex-1">{item.label}</span>
+      {external && <span className="text-muted">↗</span>}
       {count > 0 && <span className="grid size-[18px] place-items-center rounded-full bg-brand text-[10.5px] font-medium text-on-brand">{count}</span>}
     </a>
   )
