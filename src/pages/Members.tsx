@@ -255,7 +255,8 @@ function MemberRow({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boo
       <span className="flex min-w-0 items-center gap-3">
         <Avatar id={r.accountId} size={28} />
         <span className="min-w-0">
-          <span className="block truncate">
+          {/* -m-1 p-1: room for the name button's focus ring inside the clipping box, same layout. */}
+          <span className="-m-1 block truncate p-1">
             <MemberName id={r.accountId} card />
             {you && <span className="text-muted"> · {t('members.you')}</span>}
           </span>

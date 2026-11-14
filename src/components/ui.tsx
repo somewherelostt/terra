@@ -281,7 +281,8 @@ export function RowText({ main, detail, extra }: { main: ReactNode; detail?: Rea
       {(detail || extra) && (
         <span className="flex min-w-0 items-baseline gap-1.5 text-[12.5px] sm:contents sm:text-[length:inherit]">
           {detail && (
-            <span className="min-w-0 truncate text-muted sm:shrink-0 sm:overflow-visible sm:whitespace-nowrap">
+            // -m-1 p-1: the detail can hold a member's name button; leaves room for its focus ring, same layout.
+            <span className="-m-1 min-w-0 truncate p-1 text-muted sm:shrink-0 sm:overflow-visible sm:whitespace-nowrap">
               <span className="hidden sm:inline">· </span>
               {detail}
             </span>
