@@ -1,0 +1,232 @@
+import { useEffect, type ReactNode } from 'react'
+import { DaoProvider, go, lastDao, openDao, useDao, useRoute, type Page } from './lib/store'
+import { useWallet } from './lib/wallet'
+import { Avatar, Button, Spinner } from './components/ui'
+import { shortName } from './lib/format'
+import { openRequests } from './lib/record'
+import Landing from './pages/Landing'
+import Home from './pages/Home'
+import Pay from './pages/Pay'
+import Approve from './pages/Approve'
+import Members from './pages/Members'
+import Activity from './pages/Activity'
+import Board from './pages/Board'
+import Earn from './pages/Earn'
+import CreateGroup from './pages/CreateGroup'
+
+export default function App() {
+  const route = useRoute()
+
+  useEffect(() => {
+    if (!route.daoId && route.page !== 'create') {
+      const last = lastDao()
+      if (last) openDao(last, route.page)
+    }
+  }, [route.daoId, route.page])
+
+  if (route.page === 'create') {
+    return (
+      <Shell page="create" daoId={null}>
+        <CreateGroup />
+      </Shell>
+    )
+  }
+  if (!route.daoId) return <Landing />
+
+  return (
+    <DaoProvider daoId={route.daoId}>
+      {route.page === 'board' ? (
+        <Board />
+      ) : (
+        <Shell page={route.page} daoId={route.daoId}>
+          <DaoGate>
+            {route.page === 'home' && <Home />}
+            {route.page === 'pay' && <Pay params={route.params} />}
+            {route.page === 'approve' && <Approve />}
+            {route.page === 'members' && <Members />}
+            {route.page === 'activity' && <Activity />}
+            {route.page === 'earn' && <Earn />}
+          </DaoGate>
+        </Shell>
+      )}
+    </DaoProvider>
+  )
+}
+
+function DaoGate({ children }: { children: ReactNode }) {
+  const { dao, loading, error } = useDao()
+  if (error)
+    return (
+      <div className="mx-auto max-w-lg py-16 text-center">
+        <h1 className="text-xl font-semibold">We couldn't open that treasury</h1>
+        <p className="mt-2 text-sm text-muted">{error}</p>
+        <Button className="mt-6" onClick={() => openDao(null)}>
+          Pick another community
+        </Button>
+      </div>
+    )
+  if (!dao || loading && !dao)
+    return (
+      <div className="flex items-center gap-2 py-16 text-muted">
+        <Spinner /> Reading the treasury from NEAR…
+      </div>
+    )
+  return <>{children}</>
+}
+
+const NAV: { page: Page; label: string; icon: string }[] = [
+  { page: 'home', label: 'Home', icon: 'M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z' },
+  { page: 'pay', label: 'Ask for money', icon: 'M12 5v14M5 12h14' },
+  { page: 'approve', label: 'Approve', icon: 'M5 13l4 4L19 7' },
+  { page: 'members', label: 'Members', icon: 'M16 11a4 4 0 10-8 0M4 20a8 8 0 0116 0' },
+  { page: 'activity', label: 'Activity', icon: 'M4 6h16M4 12h16M4 18h10' },
+  { page: 'earn', label: 'Earn', icon: 'M4 17l6-6 4 4 6-8' },
+  { page: 'board', label: 'Public board', icon: 'M4 4h16v12H4zM8 20h8' },
+]
+
+function Shell({ page, daoId, children }: { page: Page; daoId: string | null; children: ReactNode }) {
+  return (
+    <div className="min-h-screen md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-card px-4 py-5 md:flex">
+        <Logo />
+        {daoId ? <GroupSwitcher /> : <div className="mt-6" />}
+        <nav className="mt-4 flex flex-col gap-1">
+          {daoId &&
+            NAV.map((n) => <NavItem key={n.page} item={n} active={page === n.page} />)}
+        </nav>
+        <div className="mt-auto pt-6 text-xs leading-relaxed text-muted">
+          Runs on your community's own Sputnik DAO on NEAR testnet. Terra never holds the money.
+        </div>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar daoId={daoId} />
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-10">{children}</main>
+      </div>
+      {daoId && <MobileNav page={page} />}
+    </div>
+  )
+}
+
+function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean }) {
+  const { dao } = useDaoSafe()
+  const count = item.page === 'approve' && dao ? openRequests(dao).length : 0
+  return (
+    <a
+      href={`#/${item.page}`}
+      onClick={(e) => {
+        e.preventDefault()
+        go(item.page)
+      }}
+      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${active ? 'bg-brand-soft text-brand' : 'text-ink hover:bg-soft'}`}
+    >
+      <Icon d={item.icon} />
+      <span className="flex-1">{item.label}</span>
+      {count > 0 && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-on-brand">{count}</span>}
+    </a>
+  )
+}
+
+function MobileNav({ page }: { page: Page }) {
+  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'activity', 'members'].includes(n.page))
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-card md:hidden">
+      {items.map((n) => (
+        <a
+          key={n.page}
+          href={`#/${n.page}`}
+          className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${page === n.page ? 'text-brand' : 'text-muted'}`}
+        >
+          <Icon d={n.icon} />
+          {n.label === 'Ask for money' ? 'Ask' : n.label}
+        </a>
+      ))}
+    </nav>
+  )
+}
+
+function useDaoSafe() {
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useDao()
+  } catch {
+    return { dao: null }
+  }
+}
+
+function GroupSwitcher() {
+  const { dao } = useDao()
+  return (
+    <button
+      onClick={() => openDao(null)}
+      className="mt-6 flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left hover:bg-soft"
+      title="Switch community"
+    >
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
+        {(dao?.config.name ?? '?').slice(0, 1).toUpperCase()}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{dao ? prettyName(dao.config.name) : '…'}</span>
+        <span className="block truncate text-xs text-muted">{dao?.id}</span>
+      </span>
+      <span className="text-muted">⇄</span>
+    </button>
+  )
+}
+
+export function prettyName(name: string): string {
+  return name
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
+function TopBar({ daoId }: { daoId: string | null }) {
+  const { accountId, signIn, signOut, ready } = useWallet()
+  return (
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:px-8">
+      <div className="md:hidden">
+        <Logo compact />
+      </div>
+      <div className="hidden text-xs text-muted md:block">
+        <span className="rounded-full bg-warn-soft px-2 py-0.5 font-semibold text-warn">Testnet</span>
+        {daoId && <span className="ml-2">Connected to {daoId}</span>}
+      </div>
+      <div className="flex items-center gap-2">
+        {!ready ? (
+          <Spinner />
+        ) : accountId ? (
+          <>
+            <span className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-sm">
+              <Avatar id={accountId} size={26} />
+              <span title={accountId} className="max-w-40 truncate font-medium">
+                {shortName(accountId)}
+              </span>
+            </span>
+            <Button variant="ghost" onClick={signOut}>
+              Sign out
+            </Button>
+          </>
+        ) : (
+          <Button onClick={signIn}>Sign in</Button>
+        )}
+      </div>
+    </header>
+  )
+}
+
+export function Logo({ compact }: { compact?: boolean }) {
+  return (
+    <a href="#/home" className="flex items-center gap-2.5">
+      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-8 w-8" />
+      {!compact && <span className="text-lg font-bold tracking-tight">Terra</span>}
+    </a>
+  )
+}
+
+export function Icon({ d, className = 'h-5 w-5' }: { d: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  )
+}
