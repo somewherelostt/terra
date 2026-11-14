@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { addTransferProposalTx, can, isRole, roleMembers } from '../lib/dao'
@@ -29,6 +29,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const [quoteErr, setQuoteErr] = useState<string | null>(null)
   const [quoteDown, setQuoteDown] = useState(false)
   const [retry, setRetry] = useState(0)
+  const quoteSeq = useRef(0)
   const [countdown, setCountdown] = useState(5)
   const [flash, setFlash] = useState(0)
   const [quoting, setQuoting] = useState(false)
@@ -76,20 +77,30 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     if (mode !== 'intents' || !token || !dao) return
     const units = toUnits(tokenAmount, token.decimals)
     if (!units || address.trim().length < 8 || addressProblem(token.blockchain, address.trim())) return
+    // Every input change starts a new quote; only the newest one may land (see quoteSeq).
+    const mine = ++quoteSeq.current
+    let cancelled = false
+    const stale = () => cancelled || mine !== quoteSeq.current
     const t = setTimeout(async () => {
       setQuoting(true)
       try {
-        setQuote(await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: 'demo.near' }))
+        const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: 'demo.near' })
+        if (stale()) return
+        setQuote(q)
       } catch (e) {
+        if (stale()) return
         const msg = e instanceof Error ? e.message : String(e)
         // Address problems are the user's to fix; outages fall back to a labelled sample.
         if (/recipient|address|invalid/i.test(msg)) setQuoteErr(`NEAR Intents can't pay that address (${msg}). Check it, or pick another coin.`)
         else setQuoteDown(true)
       } finally {
-        setQuoting(false)
+        if (!stale()) setQuoting(false)
       }
     }, 500)
-    return () => clearTimeout(t)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
   }, [mode, token, tokenAmount, address, dao, retry])
 
   // Live quotes refresh every 5 s (the ring drains), keeping the old quote on screen meanwhile.
@@ -99,16 +110,21 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     if (!units) return
     setCountdown(5)
     const iv = setInterval(() => setCountdown((c) => (c <= 1 ? 1 : c - 1)), 1000)
+    const mine = quoteSeq.current
+    let cancelled = false
     const t = setTimeout(async () => {
       try {
         const q = await quotePayout({ destinationAsset: token.assetId, amountOutUnits: units, recipient: address.trim(), refundTo: 'demo.near' })
+        // Inputs changed while this refresh was in flight: drop it.
+        if (cancelled || mine !== quoteSeq.current) return
         setQuote(q)
         setFlash(Date.now())
       } catch {
-        setCountdown(5)
+        if (!cancelled) setCountdown(5)
       }
     }, 5000)
     return () => {
+      cancelled = true
       clearInterval(iv)
       clearTimeout(t)
     }
