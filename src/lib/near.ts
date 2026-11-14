@@ -53,7 +53,7 @@ function toBase64(s: string): string {
 export async function view<T>(accountId: string, method: string, args: object = {}): Promise<T> {
   const result = await rpc<{ result?: number[]; error?: string }>('query', {
     request_type: 'call_function',
-    finality: 'final',
+    finality: 'optimistic',
     account_id: accountId,
     method_name: method,
     args_base64: toBase64(JSON.stringify(args)),
@@ -72,7 +72,7 @@ export interface AccountState {
 
 export async function viewAccount(accountId: string): Promise<AccountState | null> {
   try {
-    return await rpc<AccountState>('query', { request_type: 'view_account', finality: 'final', account_id: accountId })
+    return await rpc<AccountState>('query', { request_type: 'view_account', finality: 'optimistic', account_id: accountId })
   } catch (e) {
     if (e instanceof RpcError && /UNKNOWN_ACCOUNT|does not exist/i.test(e.cause + e.message)) return null
     throw e
