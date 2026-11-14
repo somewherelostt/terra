@@ -108,10 +108,50 @@ interface DaoState {
 // eslint-disable-next-line react-refresh/only-export-components
 export const DaoContext = createContext<DaoState | null>(null)
 
+// ---------- last-seen snapshot ----------
+// The last copy of each group (and its activity) is kept in this browser, so opening a group or
+// its board paints at once and refreshes from NEAR in the background. A week old at most.
+const SNAP_MAX_AGE = 7 * 24 * 3600 * 1000
+const snapKey = (kind: 'dao' | 'act', id: string) => `terra:snap:${kind}:${id}`
+function writeSnap(kind: 'dao' | 'act', id: string, value: unknown) {
+  try {
+    const json = JSON.stringify({ v: 1, at: Date.now(), value }, (_k, v) =>
+      typeof v === 'bigint' ? { __big: v.toString() } : v instanceof Map ? { __map: [...v] } : v,
+    )
+    if (json.length < 1_500_000) localStorage.setItem(snapKey(kind, id), json)
+  } catch {
+    /* storage full or unavailable: the snapshot is only a speed-up */
+  }
+}
+function readSnap<T>(kind: 'dao' | 'act', id: string, dates = false): T | null {
+  try {
+    const raw = localStorage.getItem(snapKey(kind, id))
+    if (!raw) return null
+    const o = JSON.parse(raw, (k, v) => {
+      if (v && typeof v === 'object' && typeof v.__big === 'string') return BigInt(v.__big)
+      if (v && typeof v === 'object' && Array.isArray(v.__map)) return new Map(v.__map)
+      if (dates && k === 'time' && typeof v === 'string') return new Date(v)
+      return v
+    })
+    if (o?.v !== 1 || Date.now() - o.at > SNAP_MAX_AGE) return null
+    return o.value as T
+  } catch {
+    return null
+  }
+}
+function readPrice(): number {
+  try {
+    const o = JSON.parse(localStorage.getItem('terra:nearUsd') ?? 'null')
+    return o && Date.now() - o.at < 3600 * 1000 && isFinite(o.v) ? o.v : NaN
+  } catch {
+    return NaN
+  }
+}
+
 export function DaoProvider({ daoId, children }: { daoId: string | null; children: ReactNode }) {
   const [dao, setDao] = useState<Dao | null>(null)
   const [activity, setActivity] = useState<ActivityResult | null>(null)
-  const [nearUsd, setNearUsd] = useState(NaN)
+  const [nearUsd, setNearUsd] = useState(readPrice)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tracks, setTracks] = useState<Record<number, Track>>({})
@@ -125,10 +165,20 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
   }, [])
 
   useEffect(() => {
-    getNearUsdPrice().then(setNearUsd).catch(() => setNearUsd(NaN))
+    getNearUsdPrice()
+      .then((v) => {
+        setNearUsd(v)
+        try {
+          localStorage.setItem('terra:nearUsd', JSON.stringify({ v, at: Date.now() }))
+        } catch {
+          /* ignore */
+        }
+      })
+      .catch(() => setNearUsd((p) => p))
   }, [])
 
   const loadedFor = useRef<string | null>(null)
+  const hasData = useRef(false)
   const refresh = useCallback(async () => {
     if (!daoId) return
     setLoading(true)
@@ -139,19 +189,29 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
     try {
       const d = await loadDao(daoId, STAKING_POOL)
       setDao(d)
+      hasData.current = true
       setLoading(false)
-      loadActivity(d, setActivity).catch(() => undefined)
+      writeSnap('dao', daoId, d)
+      // Saved at every stage, so even the first, payouts-only paint is ready next time.
+      loadActivity(d, (r) => {
+        setActivity(r)
+        writeSnap('act', daoId, r)
+      }).catch(() => undefined)
     } catch (e) {
-      setError(friendlyLoadError(daoId, e instanceof Error ? e.message : String(e)))
+      // With a recent snapshot on screen, a failed refresh keeps it rather than blanking the page.
+      if (!hasData.current) setError(friendlyLoadError(daoId, e instanceof Error ? e.message : String(e)))
       setLoading(false)
     }
   }, [daoId])
 
   useEffect(() => {
-    setDao(null)
-    setActivity(null)
+    const snap = daoId ? readSnap<Dao>('dao', daoId) : null
+    const act = daoId && snap ? readSnap<ActivityResult>('act', daoId, true) : null
+    hasData.current = !!snap
+    setDao(snap)
+    setActivity(act)
     refresh()
-  }, [refresh])
+  }, [daoId, refresh])
 
   // Dev builds only: lets the motion be checked in the browser without signing.
   useEffect(() => {

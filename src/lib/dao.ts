@@ -225,6 +225,14 @@ export async function isDao(id: string): Promise<boolean> {
 const settledPages = new Map<string, Map<number, Proposal[]>>()
 
 export async function loadDao(id: string, stakingPool?: string | null): Promise<Dao> {
+  const cache = settledPages.get(id) ?? new Map<number, Proposal[]>()
+  settledPages.set(id, cache)
+  // Start the first proposals page and the staking balance together with the config, so a
+  // DAO with under 100 proposals (most of them) loads in one round trip instead of two.
+  const page0 = cache.get(0) ? Promise.resolve(cache.get(0)!) : view<Proposal[]>(id, 'get_proposals', { from_index: 0, limit: 100 }).catch(() => null)
+  const stakedP: Promise<bigint> = stakingPool
+    ? view<string>(stakingPool, 'get_account_total_balance', { account_id: id }).then((s) => BigInt(s)).catch(() => 0n)
+    : Promise.resolve(0n)
   const [config, policy, account, lastProposalId] = await Promise.all([
     view<DaoConfig>(id, 'get_config'),
     view<Policy>(id, 'get_policy'),
@@ -235,28 +243,20 @@ export async function loadDao(id: string, stakingPool?: string | null): Promise<
   // The whole history, so member records remember every paid and turned-down request.
   // Pages of 100 go out together; near.ts caps how many run at once. A full page whose
   // proposals are all decided can't change, so it's reused instead of fetched again.
-  const cache = settledPages.get(id) ?? new Map<number, Proposal[]>()
-  settledPages.set(id, cache)
   const starts: number[] = []
   for (let i = 0; i < lastProposalId; i += 100) starts.push(i)
   const pages = await Promise.all(
     starts.map(async (i) => {
       const hit = cache.get(i)
       if (hit) return hit
-      const page = await view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 })
+      const early = i === 0 ? await page0 : null
+      const page = early ?? (await view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 }))
       if (page.length === 100 && page.every((p) => p.status !== 'InProgress')) cache.set(i, page)
       return page
     }),
   )
   const proposals: Proposal[] = pages.flat()
-  let staked = 0n
-  if (stakingPool) {
-    try {
-      staked = BigInt(await view<string>(stakingPool, 'get_account_total_balance', { account_id: id }))
-    } catch {
-      staked = 0n
-    }
-  }
+  const staked = await stakedP
   return {
     id,
     config,
