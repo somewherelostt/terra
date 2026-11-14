@@ -189,7 +189,7 @@ function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean
 
 function MobileNav({ page }: { page: Page }) {
   const { dao } = useDaoSafe()
-  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'members', 'messages', 'board'].includes(n.page))
+  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'members', 'messages'].includes(n.page))
   const count = dao ? openRequests(dao).length : 0
   return (
     <nav aria-label="Main" className="glass fixed inset-x-3 bottom-[calc(10px+env(safe-area-inset-bottom))] z-20 flex gap-0.5 rounded-[30px] p-1.5 md:hidden">

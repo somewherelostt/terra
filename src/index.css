@@ -89,6 +89,9 @@ body {
 
 .tnum, .tabular-nums { font-variant-numeric: tabular-nums; }
 
+/* No grey tap flash on phones; pressed states are styled instead. */
+a, button { -webkit-tap-highlight-color: transparent; }
+
 /* One keyboard focus ring everywhere; mouse clicks don't show it. */
 @layer base {
   :where(a, button, select, summary, [tabindex]):focus-visible {
@@ -154,19 +157,21 @@ button:active { transform: scale(.98); }
 
 
 /* Page enter: each page's top-level blocks rise in order, only on navigation */
-.page-enter > * > * { opacity: 0; transform: translateY(10px); animation: rise var(--dur-3) var(--ease-out) forwards; }
+/* Switching pages never shows an empty screen: content starts visible and settles in. */
+.page-enter > * > * { animation: pageIn 260ms var(--ease-out) both; }
+@keyframes pageIn { from { opacity: .4; transform: translateY(6px); } }
 .page-enter > * > *:nth-child(1) { animation-delay: 0ms; }
-.page-enter > * > *:nth-child(2) { animation-delay: 45ms; }
-.page-enter > * > *:nth-child(3) { animation-delay: 90ms; }
-.page-enter > * > *:nth-child(4) { animation-delay: 135ms; }
-.page-enter > * > *:nth-child(5) { animation-delay: 180ms; }
-.page-enter > * > *:nth-child(6) { animation-delay: 225ms; }
-.page-enter > * > *:nth-child(7) { animation-delay: 270ms; }
-.page-enter > * > *:nth-child(8) { animation-delay: 315ms; }
-.page-enter > * > *:nth-child(9) { animation-delay: 360ms; }
-.page-enter > * > *:nth-child(10) { animation-delay: 405ms; }
-.page-enter > * > *:nth-child(11) { animation-delay: 450ms; }
-.page-enter > * > *:nth-child(12) { animation-delay: 495ms; }
+.page-enter > * > *:nth-child(2) { animation-delay: 15ms; }
+.page-enter > * > *:nth-child(3) { animation-delay: 30ms; }
+.page-enter > * > *:nth-child(4) { animation-delay: 45ms; }
+.page-enter > * > *:nth-child(5) { animation-delay: 60ms; }
+.page-enter > * > *:nth-child(6) { animation-delay: 75ms; }
+.page-enter > * > *:nth-child(7) { animation-delay: 90ms; }
+.page-enter > * > *:nth-child(8) { animation-delay: 105ms; }
+.page-enter > * > *:nth-child(9) { animation-delay: 120ms; }
+.page-enter > * > *:nth-child(10) { animation-delay: 135ms; }
+.page-enter > * > *:nth-child(11) { animation-delay: 150ms; }
+.page-enter > * > *:nth-child(12) { animation-delay: 165ms; }
 
 /* Toast spring */
 .toast-in { animation: toastIn var(--dur-3) var(--ease-spring); }

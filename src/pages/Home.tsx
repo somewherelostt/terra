@@ -132,12 +132,13 @@ export default function Home() {
   )
 }
 
-/** On a phone the bottom bar has room for six pages; the rest live here, under Home. */
+/** On a phone the bottom bar has room for five pages; the rest live here, under Home. */
 function PhoneMore() {
   const rows: [Page, string, string][] = [
     ['activity', 'Activity', 'Everything in and out'],
     ['earn', 'Earn', 'Let idle money earn'],
     ['allowances', 'Allowances', 'Small budgets with hard limits'],
+    ['board', 'Board', 'The public record anyone can see'],
   ]
   return (
     <nav className="mt-12 md:hidden" aria-label="More pages">
