@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { reduceMotion } from '../lib/motion'
-import { DEMO_DAO, go, openDao, shareUrl } from '../lib/store'
+import { DEMO_DAO, go, lastDao, openDao, shareUrl } from '../lib/store'
 import { isDao } from '../lib/dao'
 import { FACTORY, isValidAccountId } from '../lib/near'
 import { useWallet } from '../lib/wallet'
@@ -76,9 +76,13 @@ export default function Landing() {
           Chip in, ask for money, approve it. Your record decides how fast. The treasury pays anyone, in the coin they want, on the chain they use.
         </p>
         <div className="rise mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium" style={{ ['--d' as string]: '460ms' } as React.CSSProperties}>
-          <a href="#connect" className="rounded-lg bg-accent px-5 py-3 text-on-accent">Connect your treasury</a>
-          <a href={boardUrl} className="rounded-lg border border-line bg-panel px-5 py-3">See a live board</a>
+          <button onClick={() => go('create')} className="rounded-lg bg-accent px-5 py-3 text-on-accent">Start a group</button>
+          <a href="#connect" className="rounded-lg border border-line bg-panel px-5 py-3">Connect your treasury</a>
         </div>
+        <ResumeLink />
+        <p className="rise mt-4 text-[12.5px] text-mute" style={{ ['--d' as string]: '540ms' } as React.CSSProperties}>
+          Runs on NEAR testnet. Cross-chain payouts are quoted live by NEAR Intents and simulated on testnet.
+        </p>
         <ProductPreview />
       </section>
 
@@ -87,8 +91,8 @@ export default function Landing() {
         <div className="mx-auto grid max-w-[1200px] grid-cols-2 px-6 text-[13px] md:grid-cols-4">
           {[
             ['Holds the money', 'Your own DAO, not us'],
-            ['Pays out to', 'Any chain, via NEAR Intents'],
-            ['Small requests', 'Approved in minutes'],
+            ['Quotes payouts on', 'Any chain, via NEAR Intents'],
+            ['Small requests', 'Paid on one trusted nod'],
             ['Every payout', 'Public, with a receipt'],
           ].map(([k, v], i) => (
             <div key={k} className={`border-line py-6 ${i % 2 === 0 ? 'border-r pr-6' : 'pl-6 md:border-r md:px-6'} ${i === 3 ? 'md:border-r-0' : ''} ${i < 2 ? 'border-b md:border-b-0' : ''}`}>
@@ -107,11 +111,11 @@ export default function Landing() {
             <br />
             in four steps.
           </h2>
-          <p className="max-w-[360px] text-[14.5px] text-mute">No new wallet for the group and no new contract. Terra sits on top of the treasury you already have.</p>
+          <p className="max-w-[360px] text-[14.5px] text-mute">No new wallet for the group and no contract of our own. Terra sits on top of the Sputnik DAO you have, or creates a standard one for you.</p>
         </div>
         <div className="reveal mt-12 rounded-2xl border border-line bg-panel p-8" data-how>
           <HowSteps steps={[
-              ['01', 'Connect', 'Connect your treasury', "Type your DAO's name. Members sign in with their NEAR account."],
+              ['01', 'Connect', 'Connect or start a treasury', "Type your DAO's name, or start one in a minute. Members sign in with their NEAR account."],
               ['02', 'Chip in', 'Members chip in', 'Everyone sees one balance in dollars, and where every cent went.'],
               ['03', 'Request', 'Ask for money', "Say what it's for and who gets paid. A live quote shows what they receive."],
               ['04', 'Approve', 'Approve and pay', 'Enough approvals and the treasury pays out itself. No one holds the keys alone.'],
@@ -129,7 +133,8 @@ export default function Landing() {
             they actually use.
           </h2>
           <p className="mt-5 max-w-[440px] text-[15px] leading-relaxed text-mute">
-            A designer wants USDC on Solana. A venue wants NEAR. Terra shows a live quote before anyone approves, so the group knows exactly what leaves and what arrives.
+            A designer wants USDC on Solana. A venue wants NEAR. Terra shows a live quote before anyone approves, so the group knows exactly what leaves and what arrives. On
+            testnet the swap itself is simulated: the treasury pays the quoted NEAR to a NEAR account instead.
           </p>
           <ul className="mt-8 space-y-3 text-[14px]">
             {['Amounts in dollars first, tokens second', 'USDC on Solana, Base, Ethereum, or NEAR', 'The quote is saved with the request'].map((t) => (
@@ -159,9 +164,9 @@ export default function Landing() {
             </p>
           </div>
           <div className="reveal mt-12 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
-            <Tier name="Small" amount={`Up to $${TIER_LIMITS_USD.small}`} text="One trusted member approves. Paid in minutes." badge />
-            <Tier name="Mid" amount={`Up to $${TIER_LIMITS_USD.mid}`} text="The council signs off." />
-            <Tier name="Large" amount={`Over $${TIER_LIMITS_USD.mid}`} text="The council votes, and every member sees it on the board." />
+            <Tier name="Small" amount={`Up to $${TIER_LIMITS_USD.small}`} text="Once you have a record, one trusted member approves and the treasury pays right then." badge />
+            <Tier name="Mid" amount={`Up to $${TIER_LIMITS_USD.mid}`} text="A council majority signs off. First requests start here too." />
+            <Tier name="Large" amount={`Over $${TIER_LIMITS_USD.mid}`} text="A council majority votes, and it stays on the public board while it's open." />
           </div>
         </div>
       </section>
@@ -179,7 +184,7 @@ export default function Landing() {
           <TrustItem
             icon={<><circle cx="12" cy="12" r="8" /><path d="M4 12h16M12 4c2.5 2.5 2.5 13.5 0 16M12 4c-2.5 2.5-2.5 13.5 0 16" /></>}
             title="Cross-chain, without bridges"
-            text="Payouts to other chains go through NEAR Intents. Recipients don't need a NEAR account."
+            text="On mainnet, payouts to other chains go through NEAR Intents and recipients don't need a NEAR account. On testnet that leg is simulated."
           />
         </div>
         <div className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-8 text-[13px] text-mute">
@@ -236,7 +241,20 @@ function TrustItem({ icon, title, text }: { icon: React.ReactNode; title: string
   )
 }
 
-/** Static preview of Home with demo data (not interactive). */
+/** "Continue to <group>" for someone who has opened a group on this device before. */
+function ResumeLink() {
+  const id = lastDao()
+  if (!id) return null
+  return (
+    <div className="rise mt-4 text-[13.5px]" style={{ ['--d' as string]: '500ms' } as React.CSSProperties}>
+      <button onClick={() => openDao(id)} className="text-mute underline-offset-2 hover:text-ink hover:underline">
+        Continue to <span className="font-mono text-[12.5px]">{id}</span> →
+      </button>
+    </div>
+  )
+}
+
+/** Static preview of Home with made-up numbers (not interactive). */
 function ProductPreview() {
   const [tilt, setTilt] = useState(10)
   useEffect(() => {
