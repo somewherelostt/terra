@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
-import { ProfileSheetHost, openProfileSheet } from './components/ProfileSheet'
+import { openProfileSheet } from './components/ProfileSheet'
+import { AccountChip, AccountHosts, ThemeButton } from './components/AccountMenu'
 import GroupSwitcher from './components/GroupSwitcher'
 import { DaoProvider, go, openDao, shareUrl, useDao, useRoute, type Page } from './lib/store'
 import { useWallet } from './lib/wallet'
@@ -281,8 +282,7 @@ export function prettyName(name: string): string {
 }
 
 function TopBar({ daoId }: { daoId: string | null }) {
-  const { accountId, signIn, signOut, ready } = useWallet()
-  const name = useNames()
+  const { accountId, signIn, ready } = useWallet()
   return (
     <header className="glass-bar sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line px-4 py-3 md:px-8">
       <div className="-ml-2.5 flex min-w-0 items-center md:hidden">
@@ -293,23 +293,14 @@ function TopBar({ daoId }: { daoId: string | null }) {
         <span className="rounded-full bg-warn-soft px-2 py-0.5 font-medium text-warn">Testnet</span>
         {daoId && <span className="ml-2">Connected to {daoId}</span>}
       </div>
+      <AccountHosts />
       <div className="flex items-center gap-2">
         {!ready ? (
           <Spinner />
         ) : accountId ? (
           <>
-            <ProfileSheetHost />
-            <button
-              onClick={openProfileSheet}
-              title={`${accountId} · Edit profile`}
-              className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-sm hover:bg-soft"
-            >
-              <Avatar id={accountId} size={26} />
-              <span className="hidden max-w-40 truncate font-medium sm:inline">{name(accountId)}</span>
-            </button>
-            <Button variant="ghost" onClick={signOut}>
-              Sign out
-            </Button>
+            <ThemeButton className="max-sm:hidden" />
+            <AccountChip />
           </>
         ) : (
           <Button variant="secondary" onClick={signIn}>Sign in</Button>

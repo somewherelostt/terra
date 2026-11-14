@@ -1,65 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { reduceMotion } from '../lib/motion'
 import { DEMO_DAO, go, lastDao, openDao, shareUrl } from '../lib/store'
 import { isDao } from '../lib/dao'
 import { FACTORY, isValidAccountId } from '../lib/near'
 import { useWallet } from '../lib/wallet'
-import { shortName } from '../lib/format'
-import { applyTheme, getTheme, type Theme } from '../lib/theme'
 import { RECORDED_QUOTE, getTokens, quotePayout, type QuoteResult } from '../lib/intents'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
+import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 const DEMO_SOL_ADDRESS = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'
 const H2 = 'text-[34px] leading-none font-light tracking-[-0.035em] md:text-[44px]'
 
 export default function Landing() {
-  const { accountId, signOut } = useWallet()
-  const [theme, setTheme] = useState<Theme>(getTheme)
   const boardUrl = shareUrl(DEMO_DAO, 'board')
   useReveal()
 
   return (
     <div className="min-h-screen">
-      {/* Nav */}
-      <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4 sm:gap-8 sm:px-6">
-          <a href="#" className="flex items-center gap-2">
-            <img src={ICON} alt="" className="size-7 rounded-[7px]" />
-            <span className="text-[16px] font-medium tracking-tight">terra</span>
-          </a>
-          <nav className="hidden gap-6 text-[13.5px] text-mute md:flex">
-            <a href="#how" className="hover:text-ink">How it works</a>
-            <a href="#approvals" className="hover:text-ink">Approvals</a>
-            <a href="#trust" className="hover:text-ink">Trust</a>
-            <a href={boardUrl} className="hover:text-ink">Live board</a>
-          </nav>
-          <div className="ml-auto flex items-center gap-1 whitespace-nowrap text-[13.5px] font-medium sm:gap-2">
-            <button
-              className="hidden rounded-lg px-3 py-2 text-mute hover:text-ink sm:block"
-              onClick={() => {
-                const next = theme === 'dark' ? 'light' : 'dark'
-                applyTheme(next)
-                setTheme(next)
-              }}
-            >
-              {theme === 'dark' ? 'Light' : 'Dark'}
-            </button>
-            {accountId ? (
-              <button className="rounded-lg px-3 py-2 text-mute hover:text-ink" onClick={signOut} title={accountId}>
-                {shortName(accountId)} · Sign out
-              </button>
-            ) : (
-              <button className="rounded-lg px-3 py-2.5 hover:bg-sand sm:py-2" onClick={() => go('signin')}>Sign in</button>
-            )}
-            <a href="#connect" className="rounded-lg bg-accent px-3 py-2.5 text-on-accent sm:px-4 sm:py-2">
-              <span className="sm:hidden">Connect</span>
-              <span className="hidden sm:inline">Connect a treasury</span>
-            </a>
-          </div>
-        </div>
-      </header>
+      <LandingNav boardUrl={boardUrl} />
 
       {/* Hero */}
       <section className="mx-auto max-w-[1200px] px-4 pt-12 text-center sm:px-6 md:pt-24">
@@ -346,6 +307,145 @@ function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay
         </div>
       </div>
     </div>
+  )
+}
+
+const NAV_LINKS: [string, string][] = [
+  ['how', 'How it works'],
+  ['approvals', 'Approvals'],
+  ['trust', 'Trust'],
+]
+
+/** Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in. */
+function LandingNav({ boardUrl }: { boardUrl: string }) {
+  const { accountId } = useWallet()
+  const [scrolled, setScrolled] = useState(false)
+  const [active, setActive] = useState<string | null>(null)
+  const [menu, setMenu] = useState(false)
+
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 8)
+    on()
+    window.addEventListener('scroll', on, { passive: true })
+    return () => window.removeEventListener('scroll', on)
+  }, [])
+
+  // Highlight the section in view: the one crossing a band just under the nav.
+  useEffect(() => {
+    if (!('IntersectionObserver' in window)) return
+    const els = NAV_LINKS.map(([id]) => document.getElementById(id)).filter((e): e is HTMLElement => !!e)
+    const seen = new Map<string, boolean>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => seen.set(e.target.id, e.isIntersecting))
+        setActive(NAV_LINKS.map(([id]) => id).find((id) => seen.get(id)) ?? null)
+      },
+      { rootMargin: '-80px 0px -55% 0px' },
+    )
+    els.forEach((e) => io.observe(e))
+    return () => io.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!menu) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menu])
+
+  const primary = accountId ? (
+    <button type="button" onClick={openTerra} className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
+      Open Terra <span aria-hidden className="ml-1.5">→</span>
+    </button>
+  ) : (
+    <a href="#connect" className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
+      <span className="lg:hidden">Connect</span>
+      <span className="hidden lg:inline">Connect a treasury</span>
+    </a>
+  )
+
+  return (
+    <header className={`sticky top-0 z-30 border-b transition-colors ${scrolled ? 'glass-bar border-line' : 'border-transparent bg-transparent'}`}>
+      <AccountHosts />
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
+        <a href="#" className="-ml-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label="Terra home">
+          <img src={ICON} alt="" className="size-7 rounded-[7px]" />
+          <span className="text-[16px] font-medium tracking-tight">terra</span>
+        </a>
+
+        <nav aria-label="Sections" className="ml-6 hidden items-center gap-1 text-[13.5px] md:flex">
+          {NAV_LINKS.map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              aria-current={active === id ? 'true' : undefined}
+              className={`relative flex h-10 items-center rounded-lg px-3 transition-colors ${active === id ? 'text-ink' : 'text-mute hover:text-ink'}`}
+            >
+              {label}
+              {active === id && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
+            </a>
+          ))}
+          <a href={boardUrl} className="flex h-10 items-center rounded-lg px-3 text-mute hover:text-ink">Live board</a>
+        </nav>
+
+        <div className="ml-auto hidden items-center gap-2 md:flex">
+          <ThemeButton />
+          {accountId ? (
+            <AccountChip />
+          ) : (
+            <button type="button" onClick={() => go('signin')} className="inline-flex h-10 items-center rounded-lg px-3 text-[13.5px] font-medium hover:bg-sand">
+              Sign in
+            </button>
+          )}
+          {primary}
+        </div>
+
+        <div className="ml-auto flex items-center gap-1.5 md:hidden">
+          {primary}
+          <button
+            type="button"
+            onClick={() => setMenu(true)}
+            aria-label="Open menu"
+            aria-expanded={menu}
+            className="grid size-11 place-items-center rounded-lg text-ink hover:bg-sand"
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden>
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {menu && createPortal(
+        <div className="fixed inset-0 z-50 grid items-end glass-scrim md:hidden" onClick={() => setMenu(false)} role="dialog" aria-modal aria-label="Menu">
+          <div
+            className="max-h-[90vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-3 pb-[max(env(safe-area-inset-bottom),12px)] text-ink"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <nav aria-label="Sections" className="flex flex-col">
+              {NAV_LINKS.map(([id, label]) => (
+                <a key={id} href={`#${id}`} onClick={() => setMenu(false)} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">
+                  {label}
+                </a>
+              ))}
+              <a href={boardUrl} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">Live board</a>
+            </nav>
+            <div className="my-2 h-px bg-line" />
+            {accountId ? (
+              <AccountMenuItems onDone={() => setMenu(false)} />
+            ) : (
+              <div className="flex items-center justify-between gap-2 px-1">
+                <button type="button" onClick={() => go('signin')} className="inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-line bg-card text-[14px] font-medium">
+                  Sign in
+                </button>
+                <ThemeButton className="size-11 border border-line" />
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body,
+      )}
+    </header>
   )
 }
 
