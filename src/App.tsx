@@ -14,6 +14,7 @@ import Activity from './pages/Activity'
 import Board from './pages/Board'
 import Earn from './pages/Earn'
 import CreateGroup from './pages/CreateGroup'
+import SignIn from './pages/SignIn'
 
 export default function App() {
   const route = useRoute()
@@ -24,6 +25,15 @@ export default function App() {
       <Shell page="create" daoId={null}>
         <CreateGroup />
       </Shell>
+    )
+  }
+  if (route.page === 'signin') {
+    return route.daoId ? (
+      <DaoProvider daoId={route.daoId}>
+        <SignIn daoId={route.daoId} />
+      </DaoProvider>
+    ) : (
+      <SignIn daoId={null} />
     )
   }
   if (!route.daoId) return <Landing />

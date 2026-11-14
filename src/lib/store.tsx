@@ -9,8 +9,8 @@ export const STAKING_POOL = import.meta.env.VITE_STAKING_POOL || 'aurora.pool.f8
 
 // ---------- tiny router: ?dao=<id>#/<page> ----------
 
-export type Page = 'home' | 'pay' | 'approve' | 'members' | 'activity' | 'board' | 'earn' | 'create'
-const PAGES: Page[] = ['home', 'pay', 'approve', 'members', 'activity', 'board', 'earn', 'create']
+export type Page = 'home' | 'pay' | 'approve' | 'members' | 'activity' | 'board' | 'earn' | 'create' | 'signin'
+const PAGES: Page[] = ['home', 'pay', 'approve', 'members', 'activity', 'board', 'earn', 'create', 'signin']
 
 function readRoute(): { page: Page; daoId: string | null; params: URLSearchParams } {
   const url = new URL(window.location.href)
@@ -80,7 +80,8 @@ interface DaoState {
   refresh: () => Promise<void>
 }
 
-const DaoContext = createContext<DaoState | null>(null)
+// eslint-disable-next-line react-refresh/only-export-components
+export const DaoContext = createContext<DaoState | null>(null)
 
 export function DaoProvider({ daoId, children }: { daoId: string | null; children: ReactNode }) {
   const [dao, setDao] = useState<Dao | null>(null)

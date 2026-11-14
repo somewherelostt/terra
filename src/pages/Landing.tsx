@@ -14,7 +14,7 @@ const DEMO_SOL_ADDRESS = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'
 const H2 = 'text-[34px] leading-none font-light tracking-[-0.035em] md:text-[44px]'
 
 export default function Landing() {
-  const { accountId, signIn, signOut } = useWallet()
+  const { accountId, signOut } = useWallet()
   const [theme, setTheme] = useState<Theme>(getTheme)
   const boardUrl = shareUrl(DEMO_DAO, 'board')
 
@@ -49,7 +49,7 @@ export default function Landing() {
                 {shortName(accountId)} · Sign out
               </button>
             ) : (
-              <button className="rounded-lg px-3 py-2 hover:bg-sand" onClick={signIn}>Sign in</button>
+              <button className="rounded-lg px-3 py-2 hover:bg-sand" onClick={() => go('signin')}>Sign in</button>
             )}
             <a href="#connect" className="rounded-lg bg-accent px-4 py-2 text-on-accent">Connect a treasury</a>
           </div>
@@ -372,7 +372,7 @@ function ConnectCta() {
   const [name, setName] = useState('')
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { accountId, signIn } = useWallet()
+  const { accountId } = useWallet()
 
   async function connect() {
     let id = name.trim().toLowerCase()
@@ -390,8 +390,7 @@ function ConnectCta() {
       setError(`Couldn't find that treasury. ${id} isn't a Sputnik DAO on testnet.`)
       return
     }
-    openDao(id)
-    if (!accountId) signIn().catch(() => undefined)
+    openDao(id, accountId ? 'home' : 'signin')
   }
 
   return (
