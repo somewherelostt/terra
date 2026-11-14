@@ -218,6 +218,58 @@ button:active { transform: scale(.98); }
 .palette { transform: translateY(-6px) scale(.98); transition: transform var(--dur-2) var(--ease-out); }
 .palette-bg.open .palette { transform: none; }
 
+/* ---------- Glass (phone chrome and sheets) ----------
+   Frosted, translucent surfaces for things that float over content: the phone tab bar,
+   the top bar and bottom sheets. Unlayered, so .glass wins over bg-card / border-line.
+   No gradients, no shadows: the glass edge is a 1px border, a touch brighter on top. */
+:root {
+  --glass-bg: rgba(24, 24, 27, 0.6);
+  --glass-edge: rgba(255, 255, 255, 0.08);
+  --glass-edge-top: rgba(255, 255, 255, 0.16);
+  --glass-active: rgba(255, 255, 255, 0.1);
+  --glass-handle: rgba(255, 255, 255, 0.24);
+  --scrim: rgba(0, 0, 0, 0.4);
+}
+:root[data-theme="light"] {
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-edge: rgba(11, 11, 12, 0.08);
+  --glass-edge-top: rgba(255, 255, 255, 0.95);
+  --glass-active: rgba(11, 11, 12, 0.06);
+  --glass-handle: rgba(11, 11, 12, 0.18);
+  --scrim: rgba(11, 11, 12, 0.22);
+}
+.glass, .glass-bar {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+.glass { border: 1px solid var(--glass-edge); border-top-color: var(--glass-edge-top); }
+.glass-bar { border-bottom-color: var(--glass-edge); }
+.glass-scrim { background-color: var(--scrim); animation: scrimIn var(--dur-2, 200ms) var(--ease-out); }
+@keyframes scrimIn { from { opacity: 0; } }
+
+/* Sheets: rise from the bottom on a phone with a grab handle; a soft fade-and-lift from sm up. */
+.glass-sheet { animation: sheetUp var(--dur-3) var(--ease-out); }
+.glass-sheet::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 999px; background: var(--glass-handle); margin: -6px auto 14px; }
+@keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } }
+@media (min-width: 640px) {
+  .glass-sheet { animation-name: sheetIn; }
+  .glass-sheet::before { display: none; }
+}
+@keyframes sheetIn { from { transform: translateY(8px) scale(.985); opacity: 0; } }
+
+/* The active tab's pill slides its fill in; tabs dip slightly when pressed. */
+.glass-tab { transition: background-color var(--dur-2, 200ms) var(--ease-out), color var(--dur-2, 200ms), transform 120ms var(--ease-out); }
+.glass-tab:active { transform: scale(.94); }
+
+/* No blur support, or the viewer asked for less transparency: solid panels. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass, .glass-bar { background-color: var(--panel); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .glass-bar { background-color: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
   .rise, .reveal, .wr > span, .stagger > *, .page-enter > * > * { opacity: 1 !important; transform: none !important; }

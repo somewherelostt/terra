@@ -142,7 +142,7 @@ function Shell({ page, daoId, children }: { page: Page; daoId: string | null; ch
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar daoId={daoId} />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 md:px-10 md:pb-12 md:pt-8 xl:px-14">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-32 pt-6 md:px-10 md:pb-12 md:pt-8 xl:px-14">
           <NetworkCheck />
           <div key={page} className="page-enter">
             {children}
@@ -191,14 +191,15 @@ function MobileNav({ page }: { page: Page }) {
   const items = NAV.filter((n) => ['home', 'pay', 'approve', 'members', 'messages', 'board'].includes(n.page))
   const count = dao ? openRequests(dao).length : 0
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav aria-label="Main" className="glass fixed inset-x-3 bottom-[calc(10px+env(safe-area-inset-bottom))] z-20 flex gap-0.5 rounded-[30px] p-1.5 md:hidden">
       {items.map((n) => {
         const href = n.page === 'board' && dao ? shareUrl(dao.id, 'board') : `#/${n.page}`
         return (
           <a
             key={n.page}
             href={href}
-            className={`relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium ${page === n.page ? 'text-ink' : 'text-muted'}`}
+            aria-current={page === n.page ? 'page' : undefined}
+            className={`glass-tab relative flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[24px] text-[10.5px] font-medium ${page === n.page ? 'bg-[var(--glass-active)] text-ink' : 'text-muted'}`}
           >
             <Icon d={n.icon} />
             {n.label}
@@ -283,7 +284,7 @@ function TopBar({ daoId }: { daoId: string | null }) {
   const { accountId, signIn, signOut, ready } = useWallet()
   const name = useNames()
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:px-8">
+    <header className="glass-bar sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line px-4 py-3 md:px-8">
       <div className="-ml-2.5 flex min-w-0 items-center md:hidden">
         <Logo compact />
         <MobileGroupName />

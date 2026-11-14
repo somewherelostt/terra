@@ -58,9 +58,9 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator
 
   return (
-    <div className="fixed inset-0 z-40 grid items-end bg-black/60 sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Invite people">
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Invite people">
       <div
-        className="max-h-[94vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[440px] sm:rounded-2xl sm:p-6"
+        className="max-h-[94vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[440px] sm:rounded-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between text-[12px] text-muted">

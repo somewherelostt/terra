@@ -233,9 +233,9 @@ export function RequestSheetHost() {
   }, [r])
   if (!r) return null
   return createPortal(
-    <div className="fixed inset-0 z-40 grid items-end bg-black/60 sm:place-items-center sm:p-4" onClick={() => setR(null)} role="dialog" aria-modal aria-label={r.title}>
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={() => setR(null)} role="dialog" aria-modal aria-label={r.title}>
       <div
-        className="max-h-[88vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-card p-5 pb-[max(env(safe-area-inset-bottom),20px)] text-ink sm:max-w-[480px] sm:rounded-2xl sm:p-6"
+        className="max-h-[88vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[max(env(safe-area-inset-bottom),20px)] text-ink sm:max-w-[480px] sm:rounded-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">

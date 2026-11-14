@@ -251,7 +251,7 @@ export function Toaster() {
   }, [])
   if (!msg) return null
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex justify-center px-4 md:bottom-8" role="status">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(96px+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 md:bottom-8" role="status">
       <div key={msg.id} className="toast-in pointer-events-auto flex items-center gap-3 rounded-full bg-hero py-2.5 pl-4 pr-2 text-[13.5px] text-on-hero ring-1 ring-[var(--hero-ring)]">
         <span className="size-1.5 rounded-full bg-accent" />
         <span>{msg.text}</span>

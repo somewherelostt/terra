@@ -144,9 +144,9 @@ function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-40 flex items-end bg-black/60 sm:items-center sm:justify-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="My groups">
+    <div className="fixed inset-0 z-40 flex items-end glass-scrim sm:items-center sm:justify-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="My groups">
       <div
-        className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl border-t border-line bg-card p-2 pb-[max(env(safe-area-inset-bottom),8px)] text-ink sm:max-w-[440px] sm:rounded-2xl sm:border"
+        className="max-h-[85vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border-t border-line bg-card p-2 pb-[max(env(safe-area-inset-bottom),8px)] text-ink sm:max-w-[440px] sm:rounded-2xl sm:border"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto my-2 h-1 w-9 rounded-full bg-line" aria-hidden />

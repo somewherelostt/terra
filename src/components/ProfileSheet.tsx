@@ -157,9 +157,9 @@ export function ProfileSheet({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 grid items-end bg-black/60 sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Edit profile">
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Edit profile">
       <form
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[480px] sm:rounded-2xl sm:p-6"
+        className="max-h-[92vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[480px] sm:rounded-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
