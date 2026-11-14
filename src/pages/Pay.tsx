@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { addTransferProposalTx, can } from '../lib/dao'
+import { addTransferProposalTx, can, roleMembers } from '../lib/dao'
 import { isValidAccountId, ONE_NEAR } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { POPULAR, RECORDED_QUOTE, isDeprecated, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
@@ -128,7 +128,10 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const amountUsd = yocto ? yoctoToNumber(yocto) * nearUsd : NaN
   const tier = isFinite(amountUsd) ? tierFor(amountUsd) : null
   const trusted = accountId ? isTrusted(records.get(accountId)) : false
-  const effectiveTier = tier === 'small' && !trusted ? 'mid' : tier
+  // Same routing as Approve (routeRequest): the fast lane needs a trusted member other than you.
+  const trustedRole = dao.policy.roles.find((r) => r.name === 'trusted')
+  const nodders = trustedRole ? roleMembers(trustedRole).filter((m) => m !== accountId) : []
+  const effectiveTier = tier === 'small' && (!trusted || !nodders.length) ? 'mid' : tier
   const canPropose = can(dao.policy, accountId, 'transfer', 'AddProposal')
   const overBalance = yocto != null && yocto > dao.spendable
 
@@ -169,7 +172,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   }
 
   function approverCount(kind: 'small' | 'council'): number {
-    const roles = dao!.policy.roles.filter((r) => (kind === 'small' ? ['trusted', 'council'] : ['council']).includes(r.name))
+    const roles = dao!.policy.roles.filter((r) => (kind === 'small' ? ['trusted'] : ['council']).includes(r.name))
     const set = new Set(roles.flatMap((r) => (typeof r.kind === 'object' && 'Group' in r.kind ? r.kind.Group : [])))
     if (accountId) set.delete(accountId)
     return set.size
@@ -207,11 +210,13 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   const tierNote =
     effectiveTier === 'small'
       ? 'One trusted member can approve it, because of your record.'
-      : tier === 'small'
-        ? "You don't have a record here yet, so the council approves it. After one approved request you get the fast lane."
+      : tier === 'small' && !trusted
+        ? "You don't have a record here yet, so the council approves it. After one paid request and none turned down, your small requests take the fast lane."
+        : tier === 'small'
+          ? 'No other trusted member can give the fast-lane nod yet, so the council approves it.'
         : effectiveTier === 'mid'
           ? 'The council approves it at its usual threshold.'
-          : 'The council votes on it, and every member sees it on the board.'
+          : 'The council votes on it at its usual threshold, and it shows on the public board while open.'
   const line = 'block border-b border-line pb-2 transition-colors focus-within:border-ink'
   const bare = 'w-full bg-transparent py-3 outline-none placeholder:text-muted/60 sm:py-2'
 
@@ -389,7 +394,9 @@ export default function Pay({ params }: { params: URLSearchParams }) {
               {!accountId ? (
                 <Button className="w-full !py-3" onClick={signIn}>Sign in to send the request</Button>
               ) : !canPropose ? (
-                <p className="rounded-xl bg-warn-soft px-3 py-2 text-[13px] text-warn">This DAO's policy doesn't let your account file payment requests.</p>
+                <p className="rounded-xl bg-warn-soft px-3 py-2 text-[13px] text-warn">
+                  This DAO only lets its own members file payment requests, and your account isn't one yet. Ask a council member to add you (Members → Ask to join).
+                </p>
               ) : (
                 <Button className="w-full !py-3" disabled={errors.length > 0 || tx.state.status === 'signing'} onClick={submit}>
                   Send request

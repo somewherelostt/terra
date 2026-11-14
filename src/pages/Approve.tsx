@@ -14,14 +14,20 @@ import { Avatar, Button, EmptyState, RowText, TxLink, TxStatus, showToast, useTx
 import { CommentCount, CommentsToggle, RequestSheetHost, openRequestSheet } from '../components/Comments'
 
 export default function Approve() {
-  const { dao, accountId, tracks } = { ...useDao(), ...useWallet() }
+  const { dao, accountId, tracks, nearUsd, records } = { ...useDao(), ...useWallet() }
   const [showAll, setShowAll] = useState(false)
   if (!dao) return null
   const stillOpen = openRequests(dao)
   // Keep a card on screen while its payout tracker runs, even after the request closes.
   const tracked = dao.proposals.filter((p) => tracks[p.id] && !stillOpen.includes(p))
   const open = [...tracked, ...stillOpen]
-  const needYou = stillOpen.filter((p) => !accountId || !p.votes[accountId])
+  // Only count requests this account can actually decide (same routing as the cards).
+  const canDecide = (p: Proposal) => {
+    if (!accountId || p.votes[accountId]) return false
+    const voters = isNearTransfer(p.kind) ? routeRequest(dao, p, nearUsd, records).voters : approvalRules(dao.policy, p.kind).flatMap((r) => r.members)
+    return voters.includes(accountId)
+  }
+  const needYou = accountId ? stillOpen.filter(canDecide) : []
   const decided = dao.proposals.filter((p) => !open.includes(p)).slice(0, showAll ? 60 : 8)
 
   return (
@@ -29,7 +35,17 @@ export default function Approve() {
       <RequestSheetHost />
       <div className="text-[13px] text-muted">Approve</div>
       <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">
-        {needYou.length === 0 ? 'Nothing needs you' : needYou.length === 1 ? '1 request needs you' : `${needYou.length} requests need you`}
+        {!accountId || (needYou.length === 0 && stillOpen.length > 0)
+          ? stillOpen.length === 0
+            ? 'No open requests'
+            : stillOpen.length === 1
+              ? '1 open request'
+              : `${stillOpen.length} open requests`
+          : needYou.length === 0
+            ? 'Nothing needs you'
+            : needYou.length === 1
+              ? '1 request needs you'
+              : `${needYou.length} requests need you`}
       </h1>
       <p className="mt-1 text-[13.5px] text-muted">When enough members approve, the treasury pays on its own.</p>
 
@@ -254,6 +270,8 @@ export function RequestCard({ p }: { p: Proposal }) {
   const [dollars, cents] = transfer ? splitUsd(yoctoToNumber(transfer.amount) * nearUsd) : ['', '']
   const sub = hero ? 'opacity-60' : 'text-muted'
   const rule = hero ? 'border-[var(--hero-line)]' : 'border-line'
+  // Sputnik marks a transfer it can't afford as Failed, so warn before anyone approves it.
+  const short = transfer ? BigInt(transfer.amount) > dao.spendable : false
   const canVote = !!accountId && !myVote && contractAllows && terraAllows
   const rec = records.get(p.proposer)
 
@@ -323,6 +341,12 @@ export function RequestCard({ p }: { p: Proposal }) {
             <span className={sub}>{displayName(p.proposer)}'s record</span>
             <span className="tnum">{rec.approved} paid · {rec.rejected} turned down</span>
           </div>
+        )}
+        {route && route.tier !== route.effectiveTier && <p className={`mt-2 text-[12px] ${sub}`}>{route.reason}, so the council decides.</p>}
+        {short && (
+          <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+            The treasury can spend {yoctoToNear(dao.spendable)} NEAR, less than this request. Chip in first, or the payout fails when it's approved.
+          </p>
         )}
         {!hero && (
           <div className="mt-4">

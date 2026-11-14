@@ -77,9 +77,9 @@ export function tierFor(amountUsd: number): Tier {
 }
 
 export const TIER_COPY: Record<Tier, { label: string; rule: string }> = {
-  small: { label: 'Fast lane', rule: 'One nod from any trusted member' },
+  small: { label: 'Fast lane', rule: 'One nod from a trusted member other than the requester' },
   mid: { label: 'Council nod', rule: 'The council approves at its usual threshold' },
-  large: { label: 'Full vote', rule: 'The council votes; every member sees it on the board' },
+  large: { label: 'Full vote', rule: 'The council votes at its usual threshold; it stays on the public board while open' },
 }
 
 export interface TierRoute {
@@ -104,6 +104,7 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
   const trusted = rules.find((r) => r.role === 'trusted')
   const clean = isTrusted(records.get(p.proposer))
   let effectiveTier: Tier = tier
+  let noNodder = false
   if (tier === 'small' && !clean) effectiveTier = 'mid'
 
   if (effectiveTier === 'small' && trusted) {
@@ -112,6 +113,7 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
     const nodders = trusted.members.filter((m) => m !== p.proposer)
     if (nodders.length) return { tier, effectiveTier, voters: nodders, needed: 1, reason: 'Small request from a member with a clean record' }
     effectiveTier = 'mid'
+    noNodder = true
   }
   if (effectiveTier !== 'large' && council) {
     return {
@@ -119,7 +121,12 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
       effectiveTier: effectiveTier === 'small' ? 'mid' : effectiveTier,
       voters: council.members,
       needed: council.needed,
-      reason: tier === 'small' && !clean ? 'Small, but the requester has no track record yet' : 'Mid-size request',
+      reason:
+        tier === 'small' && !clean
+          ? 'Small, but the requester has no track record yet'
+          : noNodder
+            ? 'Small, but no other trusted member can give the fast-lane nod'
+            : 'Mid-size request',
     }
   }
   return {
