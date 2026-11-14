@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Terra</string>
+    <string name="title_activity_main">Terra</string>
+    <string name="package_name">app.useterra.terra</string>
+    <string name="custom_url_scheme">app.useterra.terra</string>
+</resources>

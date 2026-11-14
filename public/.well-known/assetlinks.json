@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.useterra.terra",
+      "sha256_cert_fingerprints": ["CF:91:26:81:FE:16:02:C8:71:D1:4E:D9:64:26:FD:BC:D9:6F:96:C4:33:B1:D0:AD:F8:C6:CF:F3:EF:FF:DA:99"]
+    }
+  }
+]

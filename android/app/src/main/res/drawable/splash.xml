@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-Android 12 launch screen: the mascot tile centred on near-black. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/terra_bg" />
+    <item android:width="144dp" android:height="144dp" android:gravity="center" android:drawable="@drawable/splash_logo" />
+</layer-list>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The full-bleed terracotta tile is the background layer; the launcher's mask crops it. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_fullbleed" />
+    <foreground android:drawable="@android:color/transparent" />
+</adaptive-icon>
