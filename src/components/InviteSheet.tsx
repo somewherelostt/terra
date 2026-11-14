@@ -124,7 +124,7 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
         )}
 
         {onAddByAccount && (
-          <button onClick={onAddByAccount} className="mt-4 py-2 text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline">
+          <button onClick={onAddByAccount} className="mt-2 min-h-11 text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline">
             Know their NEAR account? Add them directly
           </button>
         )}
