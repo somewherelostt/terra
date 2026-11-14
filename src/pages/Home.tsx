@@ -10,7 +10,7 @@ import { prettyName } from '../App'
 import { RequestCard } from './Approve'
 
 export default function Home() {
-  const { dao, nearUsd, activity, refresh } = useDao()
+  const { dao, nearUsd, activity, refresh, tracks } = useDao()
   const { accountId } = useWallet()
   const [copied, setCopied] = useState(false)
   const [chipOpen, setChipOpen] = useState(false)
@@ -33,7 +33,8 @@ export default function Home() {
     .sort((a, b) => a - b)
   const median = waits.length ? waits[Math.floor(waits.length / 2)] : NaN
   const mine = open.filter((p) => !accountId || !p.votes[accountId])
-  const next = [...mine].sort((a, b) => a.id - b.id)[0]
+  const trackedId = Object.keys(tracks).map(Number)[0]
+  const next = (trackedId != null ? dao.proposals.find((p) => p.id === trackedId) : undefined) ?? [...mine].sort((a, b) => a.id - b.id)[0]
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 
   return (

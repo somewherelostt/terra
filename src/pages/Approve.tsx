@@ -1,17 +1,24 @@
 import { useState } from 'react'
+import { view } from '../lib/near'
+import { wait } from '../lib/motion'
+import { prettyName } from '../App'
+import type { Track, TrackStep } from '../lib/store'
 import { useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests, routeRequest } from '../lib/record'
-import { Button, TxLink, TxStatus, useTx } from '../components/ui'
+import { Button, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 
 export default function Approve() {
-  const { dao, accountId } = { ...useDao(), ...useWallet() }
+  const { dao, accountId, tracks } = { ...useDao(), ...useWallet() }
   const [showAll, setShowAll] = useState(false)
   if (!dao) return null
-  const open = openRequests(dao)
-  const needYou = open.filter((p) => !accountId || !p.votes[accountId])
+  const stillOpen = openRequests(dao)
+  // Keep a card on screen while its payout tracker runs, even after the request closes.
+  const tracked = dao.proposals.filter((p) => tracks[p.id] && !stillOpen.includes(p))
+  const open = [...tracked, ...stillOpen]
+  const needYou = stillOpen.filter((p) => !accountId || !p.votes[accountId])
   const decided = dao.proposals.filter((p) => !open.includes(p)).slice(0, showAll ? 60 : 8)
 
   return (
@@ -104,11 +111,13 @@ function DecidedRow({ p }: { p: Proposal }) {
 }
 
 export function RequestCard({ p }: { p: Proposal }) {
-  const { dao, nearUsd, records, refresh, activity } = useDao()
+  const { dao, nearUsd, records, refresh, activity, tracks, setTrack } = useDao()
   const { accountId, send, signIn } = useWallet()
   const tx = useTx()
+  const track = tracks[p.id]
   const [lastAction, setLastAction] = useState<VoteAction | null>(null)
   const [dismissed, setDismissed] = useState(false)
+  const [snoozing, setSnoozing] = useState(false)
   if (!dao) return null
   const meta = decodeDescription(p.description)
   const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
@@ -127,11 +136,71 @@ export function RequestCard({ p }: { p: Proposal }) {
 
   async function vote(action: VoteAction) {
     setLastAction(action)
-    // Re-read the proposal so the kind we pass back matches the chain exactly.
-    await tx.run(() => send(actProposalTx(dao!.id, p, action)), refresh)
+    if (action === 'VoteReject') {
+      await tx.run(() => send(actProposalTx(dao!.id, p, action)), refresh)
+      return
+    }
+    await approveAndTrack()
+  }
+
+  /** Approve, then show a tracker whose steps follow what actually happened on chain. */
+  async function approveAndTrack() {
+    const t0 = Date.now()
+    const hash = await tx.run(() => send(actProposalTx(dao!.id, p, 'VoteApprove')))
+    if (!hash) return
+    const since = () => {
+      const s = Math.round((Date.now() - t0) / 1000)
+      return s < 60 ? `+${s}s` : `+${Math.floor(s / 60)}m ${s % 60}s`
+    }
+    const group = prettyName(dao!.config.name)
+    const to = transfer ? shortName(transfer.receiver_id) : ''
+    const steps: TrackStep[] = [{ label: 'Approved by you', done: true, at: 'now', hash }]
+    const wantsLine = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
+    const base = { eta: transfer ? 'checking…' : '', finished: false, paid: false }
+    setTrack(p.id, { ...base, steps: [...steps, { label: transfer ? `${group} sends ${yoctoToNear(transfer.amount)} NEAR` : 'Applying the change', done: false }] })
+
+    let status: string | null = null
+    for (let i = 0; i < 6 && (!status || status === 'InProgress'); i++) {
+      await wait(i ? 1500 : 600)
+      try {
+        status = (await view<Proposal>(dao!.id, 'get_proposal', { id: p.id })).status
+      } catch {
+        status = null
+      }
+      if (status && status !== 'InProgress') break
+    }
+
+    if (status === 'Approved') {
+      steps.push({ label: transfer ? `${group} sent ${yoctoToNear(transfer.amount)} NEAR` : 'Change applied', done: true, at: since(), hash })
+      setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
+      if (transfer && wantsLine) {
+        await wait(950)
+        steps.push({ label: 'NEAR Intents swap · simulated on testnet', done: true, at: since() })
+        setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
+      }
+      if (transfer) {
+        await wait(950)
+        steps.push({ label: `Arrived in ${to}'s account`, done: true, at: since() })
+      }
+      const bubble = transfer
+        ? `Paid. ${to} has their ${yoctoToNear(transfer.amount)} NEAR${wantsLine ? ` (on mainnet: ${wantsLine})` : ''}.`
+        : 'Done. The change is live.'
+      setTrack(p.id, { steps: [...steps], eta: 'done', finished: true, paid: true, bubble })
+      showToast(transfer ? `Paid · ${yoctoToNear(transfer.amount)} NEAR to ${to}.` : 'Approved and applied.')
+    } else if (status === 'Failed') {
+      steps.push({ label: 'The payout failed on chain', done: false, at: since(), hash })
+      setTrack(p.id, { steps: [...steps], eta: '', finished: true, paid: false, bubble: 'The DAO could not pay this out. Check the receipt.' })
+    } else {
+      const left = Math.max(1, needed - approvals - 1)
+      steps.push({ label: `Waiting for ${left} more approval${left === 1 ? '' : 's'}`, done: false })
+      setTrack(p.id, { steps: [...steps], eta: '', finished: true, paid: false })
+      showToast('Approved. It pays out once enough members approve.')
+    }
+    await refresh()
   }
 
   if (dismissed) return null
+  if (track) return <TrackerCard p={p} track={track} hero={route?.effectiveTier === 'small'} onDone={() => setTrack(p.id, null)} />
   const hero = route?.effectiveTier === 'small'
   const tierWord = route ? { small: 'Small', mid: 'Mid', large: 'Large' }[route.effectiveTier] : kindName(p.kind)
   const theyGet = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
@@ -143,7 +212,9 @@ export function RequestCard({ p }: { p: Proposal }) {
   const rec = records.get(p.proposer)
 
   return (
-    <article className={`flex flex-col rounded-2xl p-6 ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}>
+    <article
+      className={`flex flex-col rounded-2xl p-6 transition-[transform,opacity] duration-300 ${snoozing ? 'translate-x-3 opacity-40' : ''} ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}
+    >
       <div className={`flex items-center justify-between gap-3 text-[12px] ${sub}`}>
         <span className="truncate">
           {shortName(p.proposer)} is asking · {timeAgo(nanoToDate(p.submission_time))}
@@ -221,8 +292,19 @@ export function RequestCard({ p }: { p: Proposal }) {
       ) : hero ? (
         <>
           <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Button disabled={tx.state.status === 'signing'} onClick={() => vote('VoteApprove')}>Approve and pay</Button>
-            <button className="rounded-lg bg-white/10 px-4 text-[13.5px] font-medium" onClick={() => setDismissed(true)}>Not now</button>
+            <Button disabled={tx.state.status === 'signing'} onClick={() => vote('VoteApprove')}>
+              {tx.state.status === 'signing' && lastAction === 'VoteApprove' ? <span className="spin" /> : 'Approve and pay'}
+            </Button>
+            <button
+              className="rounded-lg bg-white/10 px-4 text-[13.5px] font-medium"
+              onClick={() => {
+                setSnoozing(true)
+                showToast("Snoozed. We'll bring it back next time you open Terra.")
+                setTimeout(() => setDismissed(true), 600)
+              }}
+            >
+              Not now
+            </button>
           </div>
           <button className="mt-3 self-start text-[12px] opacity-60 hover:opacity-100" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>
             Decline this request
@@ -243,5 +325,79 @@ export function RequestCard({ p }: { p: Proposal }) {
         </div>
       )}
     </article>
+  )
+}
+
+function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; hero: boolean; onDone: () => void }) {
+  const { nearUsd } = useDao()
+  const meta = decodeDescription(p.description)
+  const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
+  const [dollars, cents] = transfer ? splitUsd(yoctoToNumber(transfer.amount) * nearUsd) : ['', '']
+  const done = track.steps.filter((s) => s.done).length
+  const total = Math.max(track.steps.length, track.finished ? track.steps.length : transfer ? (meta.wants ? 4 : 3) : 2)
+  const sub = hero ? 'opacity-60' : 'text-muted'
+  const ICON = `${import.meta.env.BASE_URL}favicon.svg`
+  return (
+    <article className={`relative flex flex-col overflow-hidden rounded-2xl p-6 ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}>
+      <div className="flex items-center justify-between text-[12px]">
+        <span className={sub}>{track.paid ? 'Paid' : transfer ? `Paying ${transfer ? shortName(transfer.receiver_id) : ''}` : 'Applying'}</span>
+        {track.eta && (
+          <span className="flex items-center gap-1.5">
+            {!track.finished && <span className="live size-1.5 rounded-full bg-accent" />}
+            <span className={`tnum ${sub}`}>{track.eta}</span>
+          </span>
+        )}
+      </div>
+      {transfer && (
+        <div className="tnum mt-6 text-[48px] font-light leading-none tracking-[-0.045em] sm:text-[56px]">
+          {dollars}
+          <span className={hero ? 'opacity-40' : 'text-muted'}>{cents}</span>
+        </div>
+      )}
+      <div className="mt-2 text-[14px]">{meta.title}</div>
+      <div className={`mt-6 h-[3px] rounded-full ${hero ? 'bg-white/10' : 'bg-soft'}`}>
+        <div className="fill h-[3px] rounded-full bg-accent" style={{ width: `${(done / total) * 100}%` }} />
+      </div>
+      <ol className="mt-5 space-y-3 text-[13px]">
+        {track.steps.map((s, i) => (
+          <li key={i} className={`flex items-center gap-3 transition-opacity duration-300 ${s.done ? '' : 'opacity-40'}`}>
+            {s.done ? (
+              <span className="pop grid size-5 shrink-0 place-items-center rounded-full bg-accent text-on-accent">
+                <svg className="check" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
+              </span>
+            ) : (
+              <span className={`grid size-5 shrink-0 place-items-center rounded-full ring-1 ${hero ? 'ring-white/25' : 'ring-line'}`} />
+            )}
+            <span className="min-w-0">{s.label}</span>
+            <span className="ml-auto flex shrink-0 items-center gap-2 text-[12px]">
+              {s.hash && <TxLink hash={s.hash} label="tx" />}
+              {s.at && <span className={`tnum ${sub}`}>{s.at}</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+      {track.paid && <Burst />}
+      <div className="mt-5 min-h-[44px]">
+        {track.finished && (
+          <div className="bubble flex items-end gap-2.5">
+            {track.paid && <img src={ICON} alt="" className="mascot-bob size-9 rounded-[9px]" />}
+            {track.bubble && <div className={`rounded-xl rounded-bl-sm px-3.5 py-2.5 text-[13px] ${hero ? 'bg-white/10' : 'bg-soft'}`}>{track.bubble}</div>}
+            <button className={`ml-auto self-center text-[12px] ${sub} hover:opacity-100`} onClick={onDone}>
+              Done
+            </button>
+          </div>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function Burst() {
+  return (
+    <div className="burst" aria-hidden>
+      {Array.from({ length: 12 }, (_, k) => (
+        <i key={k} style={{ ['--r' as string]: `${k * 30}deg`, background: k % 3 === 0 ? 'var(--on-hero)' : undefined } as React.CSSProperties} />
+      ))}
+    </div>
   )
 }

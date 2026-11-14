@@ -70,6 +70,21 @@ export function shareUrl(daoId: string, page: Page = 'board', query?: Record<str
 
 // ---------- DAO data ----------
 
+/** Live payout tracker shown on a request card after "Approve and pay". */
+export interface TrackStep {
+  label: string
+  done: boolean
+  at?: string
+  hash?: string
+}
+export interface Track {
+  steps: TrackStep[]
+  eta: string
+  finished: boolean
+  paid: boolean
+  bubble?: string
+}
+
 interface DaoState {
   dao: Dao | null
   activity: ActivityResult | null
@@ -78,6 +93,8 @@ interface DaoState {
   loading: boolean
   error: string | null
   refresh: () => Promise<void>
+  tracks: Record<number, Track>
+  setTrack: (id: number, t: Track | null) => void
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -89,6 +106,15 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
   const [nearUsd, setNearUsd] = useState(NaN)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [tracks, setTracks] = useState<Record<number, Track>>({})
+  const setTrack = useCallback((id: number, t: Track | null) => {
+    setTracks((all) => {
+      const next = { ...all }
+      if (t) next[id] = t
+      else delete next[id]
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     getNearUsdPrice().then(setNearUsd).catch(() => setNearUsd(NaN))
@@ -116,11 +142,16 @@ export function DaoProvider({ daoId, children }: { daoId: string | null; childre
     refresh()
   }, [refresh])
 
+  // Dev builds only: lets the motion be checked in the browser without signing.
+  useEffect(() => {
+    if (import.meta.env.DEV) (window as unknown as { __terra?: unknown }).__terra = { setTrack, refresh }
+  }, [setTrack, refresh])
+
   const records = useMemo(() => (dao ? computeRecords(dao, activity?.items ?? []) : new Map()), [dao, activity])
 
   const value = useMemo(
-    () => ({ dao, activity, records, nearUsd, loading, error, refresh }),
-    [dao, activity, records, nearUsd, loading, error, refresh],
+    () => ({ dao, activity, records, nearUsd, loading, error, refresh, tracks, setTrack }),
+    [dao, activity, records, nearUsd, loading, error, refresh, tracks, setTrack],
   )
   return <DaoContext.Provider value={value}>{children}</DaoContext.Provider>
 }
