@@ -74,11 +74,11 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4" onClick={onClose} role="dialog" aria-modal aria-label="Change avatar">
-      <div className="w-full max-w-[460px] rounded-2xl border border-line bg-card p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-40 grid items-end bg-black/60 sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Change avatar">
+      <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[460px] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between text-[12px] text-muted">
           <span>Change avatar</span>
-          <button onClick={onClose} className="hover:text-ink">Close</button>
+          <button onClick={onClose} className="-my-3 py-3 pl-4 hover:text-ink">Close</button>
         </div>
 
         <div className="mt-5 flex items-center gap-4">
@@ -107,7 +107,7 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
 
         <div className="mt-5 flex items-center justify-between text-[12px] text-muted">
           <span>Pick one</span>
-          <button className="hover:text-ink" onClick={() => setRound((r) => r + 1)}>Shuffle ↻</button>
+          <button className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => setRound((r) => r + 1)}>Shuffle ↻</button>
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
           {seeds.map((seed) => {

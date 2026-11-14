@@ -249,11 +249,11 @@ function ChipInDialog({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4" onClick={onClose} role="dialog" aria-modal aria-label="Chip in">
-      <div className="w-full max-w-[420px] rounded-2xl border border-line bg-card p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-40 grid items-end bg-black/60 sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Chip in">
+      <div className="w-full rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[420px] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between text-[12px] text-muted">
           <span>Chip in</span>
-          <button onClick={onClose} className="hover:text-ink" aria-label="Close">Close</button>
+          <button onClick={onClose} className="-my-3 py-3 pl-4 hover:text-ink" aria-label="Close">Close</button>
         </div>
         <p className="mt-1 text-[13.5px] text-muted">Goes straight to {name}'s treasury. Everyone sees it in the activity.</p>
         <label className="mt-6 block border-b border-line pb-2">
