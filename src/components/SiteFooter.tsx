@@ -1,3 +1,4 @@
+import LanguagePicker from './LanguagePicker'
 import { ThemeButton } from './AccountMenu'
 import { useT } from '../i18n'
 
@@ -44,7 +45,10 @@ export default function SiteFooter({ home = '', boardUrl }: { home?: string; boa
 
         <div className="mt-6 flex items-center justify-between gap-3 text-[12.5px] text-mute">
           <span>{t('footer.copyright', { year: '2026' })}</span>
-          <ThemeButton />
+          <div className="flex items-center gap-1">
+            <LanguagePicker up align="end-md" />
+            <ThemeButton />
+          </div>
         </div>
       </div>
 
