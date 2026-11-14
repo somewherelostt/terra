@@ -62,14 +62,14 @@ export default function Landing() {
 
       {/* Proof strip: the technical facts, below the plain story */}
       <section className="border-y border-line">
-        <div className="mx-auto grid max-w-[1200px] grid-cols-2 px-6 text-[13px] md:grid-cols-4">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 px-6 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
           {[
             [t('landing.proof.holds'), t('landing.proof.holdsValue')],
             [t('landing.proof.quotes'), t('landing.proof.quotesValue')],
             [t('landing.proof.small'), t('landing.proof.smallValue')],
             [t('landing.proof.every'), t('landing.proof.everyValue')],
           ].map(([k, v], i) => (
-            <div key={i} className={`border-line py-6 ${i % 2 === 0 ? 'border-e pe-6' : 'ps-6 md:border-e md:px-6'} ${i === 3 ? 'md:border-e-0' : ''} ${i < 2 ? 'border-b md:border-b-0' : ''}`}>
+            <div key={i} className={`border-line py-6 pe-6 ${PROOF_CELL[i]}`}>
               <div className="text-mute">{k}</div>
               <div className="mt-1 font-medium">{v}</div>
             </div>
@@ -547,6 +547,17 @@ function useReveal() {
 }
 
 /** How it works: a line draws across the four steps once the panel is in view. */
+/**
+ * Proof strip cells: equal columns, the first cell flush with the content edge, the rest padded the same
+ * with a divider before them. 1 column on phones, 2x2 up to tablet, 4 across from lg.
+ */
+const PROOF_CELL = [
+  '',
+  'max-sm:border-t sm:border-s sm:ps-6',
+  'max-lg:border-t lg:border-s lg:ps-6',
+  'max-lg:border-t sm:border-s sm:ps-6',
+]
+
 /** Four cards that tell one concrete story, each with a small piece of the real app. Reveals in order. */
 function StorySection() {
   const t = useT()
@@ -621,7 +632,7 @@ function StorySection() {
     },
   ]
   return (
-    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-4 py-20 sm:px-6 md:py-24">
+    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-6 py-20 md:py-24">
       <div className="max-w-[640px]">
         <div className="text-[13px] text-mute">{t('landing.story.eyebrow')}</div>
         <h2 className={`${H2} mt-3`}>{t('landing.story.title')}</h2>
@@ -655,7 +666,7 @@ function WhySection() {
     ['M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18', t('landing.why.b3.title'), t('landing.why.b3.text')],
   ]
   return (
-    <section className="mx-auto max-w-[1200px] px-4 pb-20 sm:px-6 md:pb-28">
+    <section className="mx-auto max-w-[1200px] px-6 pb-20 md:pb-28">
       <h2 className={`${H2} max-w-[720px]`}>{t('landing.why.title')}</h2>
       <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
         {items.map(([d, title, text], i) => (
