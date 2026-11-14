@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { go, useDao } from '../lib/store'
+import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { addMemberProposalTx, can, roleMembers } from '../lib/dao'
 import { isValidAccountId } from '../lib/near'
@@ -23,8 +23,11 @@ export default function Members() {
   const { dao, records } = useDao()
   const { accountId } = useWallet()
   const [filter, setFilter] = useState<Filter>('All')
+  // A request link (#/members?invite=<account>) opens the add-by-account dialog filled in.
+  const asked = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('invite')
   const [inviting, setInviting] = useState(false)
-  const [addingById, setAddingById] = useState(false)
+  const [addingById, setAddingById] = useState(!!asked)
+  const [joinCopied, setJoinCopied] = useState(false)
   if (!dao) return null
   // Members are accounts in a role; anyone else with history is a contributor, not listed here.
   const memberIds = new Set(dao.policy.roles.flatMap(roleMembers))
@@ -38,14 +41,34 @@ export default function Members() {
   return (
     <div>
       {inviting && <InviteSheet onClose={() => setInviting(false)} onAddByAccount={() => { setInviting(false); setAddingById(true) }} />}
-      {addingById && <InviteDialog onClose={() => setAddingById(false)} />}
+      {addingById && <InviteDialog initial={asked ?? ''} onClose={() => setAddingById(false)} />}
       <div className="text-[13px] text-muted">Members</div>
       <div className="mt-3 flex items-end justify-between gap-4">
         <h1 className="text-[32px] font-light tracking-[-0.03em]">
           {rows.length} member{rows.length === 1 ? '' : 's'}
         </h1>
-        <Button variant="secondary" onClick={() => setInviting(true)}>Invite</Button>
+        {accountId && !memberIds.has(accountId) && !can(dao.policy, accountId, 'add_member_to_role', 'AddProposal') ? (
+          <Button
+            variant="secondary"
+            onClick={() =>
+              navigator.clipboard
+                ?.writeText(shareUrl(dao.id, 'members', { invite: accountId }))
+                .then(() => setJoinCopied(true))
+                .catch(() => setJoinCopied(false))
+            }
+          >
+            {joinCopied ? 'Link copied' : 'Ask to join'}
+          </Button>
+        ) : (
+          <Button variant="secondary" onClick={() => setInviting(true)}>Invite</Button>
+        )}
       </div>
+      {joinCopied && (
+        <p className="mt-3 max-w-[560px] rounded-xl bg-soft px-4 py-3 text-[13px] text-muted">
+          Send that link to someone on the council. It opens an invite for {accountId}, filled in; once the council approves it, you're a member. You can already chip in and request money
+          without joining.
+        </p>
+      )}
       <p className="mt-1 text-[13.5px] text-muted">A member's record decides how much approval their requests need.</p>
       {accountId && memberIds.has(accountId) && <AddNameNudge className="mt-5 max-w-sm" />}
 
@@ -111,7 +134,7 @@ function memberFacts(r: MemberRecord, nearUsd: number) {
   const s = standingOf(r)
   const badge = { Trusted: 'bg-accent text-on-accent', Council: 'border border-line', New: 'bg-soft text-muted' }[s]
   const money = r.chippedIn === 0n ? '—' : isFinite(nearUsd) ? usd(yoctoToNumber(r.chippedIn) * nearUsd) : `${yoctoToNear(r.chippedIn)} NEAR`
-  const lane = s === 'New' ? 'Council decides' : s === 'Council' ? '$' + TIER_LIMITS_USD.mid : '$' + TIER_LIMITS_USD.small
+  const lane = s === 'New' ? 'Council decides' : '$' + TIER_LIMITS_USD.small
   return { s, badge, money, lane }
 }
 
@@ -198,16 +221,22 @@ function MemberRow({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: boo
       </span>
       <span className="tnum">{money}</span>
       <span className="tnum">{r.requested ? `${r.approved} of ${r.requested}` : '—'}</span>
-      <span className="tnum text-right">{s === 'New' ? <span className="text-muted">Council decides</span> : s === 'Council' ? `$${TIER_LIMITS_USD.mid}` : `$${TIER_LIMITS_USD.small}`}</span>
+      <span className="tnum text-right">{s === 'New' ? <span className="text-muted">Council decides</span> : `$${TIER_LIMITS_USD.small}`}</span>
     </div>
   )
 }
 
-function InviteDialog({ onClose }: { onClose: () => void }) {
+const ROLE_HELP: Record<string, string> = {
+  member: 'Listed as a member. Their record starts here; small requests take the fast lane once one is paid.',
+  trusted: 'Can give the one approval a small request needs. Their single approval pays any transfer on chain, so only pick people the group trusts with that.',
+  council: 'Decides mid and large requests by majority, and can change the group.',
+}
+
+function InviteDialog({ onClose, initial }: { onClose: () => void; initial: string }) {
   const { dao, refresh } = useDao()
   const { accountId, send, signIn } = useWallet()
-  const [member, setMember] = useState('')
-  const [role, setRole] = useState('trusted')
+  const [member, setMember] = useState(initial)
+  const [role, setRole] = useState(() => (dao?.policy.roles.some((r) => r.name === 'member') ? 'member' : dao?.policy.roles.find((r) => r.kind !== 'Everyone')?.name ?? ''))
   const tx = useTx()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -238,12 +267,14 @@ function InviteDialog({ onClose }: { onClose: () => void }) {
               <button key={r} onClick={() => setRole(r)} className={`min-h-11 rounded-lg border px-4 py-2 sm:min-h-0 ${role === r ? 'border-ink' : 'border-line text-muted'}`}>{r}</button>
             ))}
           </div>
+          {ROLE_HELP[role] && <p className="mt-2 text-[12.5px] text-muted">{ROLE_HELP[role]}</p>}
+          {dao.policy.roles.find((r) => r.name === role && roleMembers(r).includes(id)) && <p className="mt-2 text-[12.5px] text-warn">{id} already has this role.</p>}
         </div>
         <div className="mt-6">
           {!accountId ? (
             <Button className="w-full !py-3" onClick={signIn}>Sign in to invite</Button>
           ) : !allowed ? (
-            <p className="text-[13px] text-muted">Your role can't propose new members in this DAO.</p>
+            <p className="text-[13px] text-muted">Only the council can add members to this DAO. Close this and use Ask to join to send them a link.</p>
           ) : (
             <Button className="w-full !py-3" disabled={!valid || !roles.includes(role) || tx.state.status === 'signing'} onClick={() => tx.run(() => send(addMemberProposalTx(dao, id, role)), refresh)}>
               Send invite request
