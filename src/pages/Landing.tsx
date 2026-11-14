@@ -14,6 +14,7 @@ import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } f
 import { formatDate, formatNumber, tr, useT } from '../i18n'
 import { splitUsd, usd } from '../lib/format'
 import { Avatar } from '../components/ui'
+import { groupAvatarUrl } from '../lib/avatar'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 const DEMO_SOL_ADDRESS = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'
@@ -83,7 +84,7 @@ export default function Landing() {
           <h2 className={H2}>{tr('landing.how.title', { br: <br /> })}</h2>
           <p className="max-w-[360px] text-[14.5px] text-mute">{t('landing.how.lead')}</p>
         </div>
-        <div className="reveal mt-12 rounded-2xl border border-line bg-panel p-8" data-how>
+        <div className="steps-card reveal mt-12 rounded-2xl border border-line bg-panel p-8" data-how>
           <HowSteps steps={[
               ['01', t('landing.how.connect.tag'), t('landing.how.connect.title'), t('landing.how.connect.text')],
               ['02', t('landing.how.chipIn.tag'), t('landing.how.chipIn.title'), t('landing.how.chipIn.text')],
@@ -135,23 +136,9 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Trust */}
-      <section id="trust" className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
-        <h2 className={H2}>{t('landing.trust.title')}</h2>
-        <div className="reveal mt-12 grid gap-10 md:grid-cols-3">
-          <TrustItem
-            icon={<><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>}
-            title={t('landing.trust.funds.title')}
-            text={t('landing.trust.funds.text')}
-          />
-          <TrustItem icon={<path d="M5 12l4 4 10-10" />} title={t('landing.trust.receipt.title')} text={t('landing.trust.receipt.text')} />
-          <TrustItem
-            icon={<><circle cx="12" cy="12" r="8" /><path d="M4 12h16M12 4c2.5 2.5 2.5 13.5 0 16M12 4c-2.5 2.5-2.5 13.5 0 16" /></>}
-            title={t('landing.trust.crossChain.title')}
-            text={t('landing.trust.crossChain.text')}
-          />
-        </div>
-        <div className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-8 text-[13px] text-mute">
+      {/* Built on: the stack, in one quiet line */}
+      <div className="mx-auto max-w-[1200px] px-6 pb-20 md:pb-28">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-8 text-[13px] text-mute">
           <span>{t('landing.trust.builtOn')}</span>
           <span className="h-4 w-px bg-line" />
           {/* i18n-ignore */}
@@ -161,7 +148,7 @@ export default function Landing() {
           <span className="text-ink">{t('landing.trust.trezu')}</span>
           <span className="text-ink">{t('landing.trust.staking')}</span>
         </div>
-      </section>
+      </div>
 
       <ConnectCta />
 
@@ -201,20 +188,6 @@ function Tier({ name, amount, text, badge }: { name: string; amount: string; tex
       </div>
       <div className="tnum mt-6 text-[40px] leading-none font-light tracking-[-0.04em]">{amount}</div>
       <p className="mt-3 text-[13.5px] text-mute">{text}</p>
-    </div>
-  )
-}
-
-function TrustItem({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
-  return (
-    <div>
-      <div className="grid size-10 place-items-center rounded-xl border border-line">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          {icon}
-        </svg>
-      </div>
-      <div className="mt-5 text-[15px] font-medium">{title}</div>
-      <p className="mt-1.5 text-[13.5px] leading-relaxed text-mute">{text}</p>
     </div>
   )
 }
@@ -331,7 +304,7 @@ function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay
 }
 
 /** Section ids on the landing; labels are `landing.nav.<id>`. Only "how" shows on the desktop bar below lg. */
-const NAV_IDS = ['how', 'approvals', 'trust', 'faq'] as const
+const NAV_IDS = ['how', 'approvals', 'faq'] as const
 
 /**
  * Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in.
@@ -355,7 +328,6 @@ export function LandingNav({
   const navLabel: Record<(typeof NAV_IDS)[number], string> = {
     how: t('landing.nav.how'),
     approvals: t('landing.nav.approvals'),
-    trust: t('landing.nav.trust'),
     faq: t('landing.nav.faq'),
   }
   const [active, setActive] = useState<string | null>(null)
@@ -558,78 +530,17 @@ const PROOF_CELL = [
   'max-lg:border-t sm:border-s sm:ps-6',
 ]
 
-/** Four cards that tell one concrete story, each with a small piece of the real app. Reveals in order. */
+/** Four cards that tell one concrete story, each ending in a cropped phone showing that step's real screen. */
+const STORY_GROUP = 'City Club'
+const STORY_TIME = '9:41'
+
 function StorySection() {
   const t = useT()
-  const card = 'reveal relative flex flex-col rounded-2xl border border-line bg-panel p-5'
-  const ui = 'mt-5 rounded-xl border border-line bg-bg p-4 text-start'
   const steps = [
-    {
-      title: t('landing.story.s1.title'),
-      text: t('landing.story.s1.text'),
-      icon: 'M12 3v18M5 8h11a3 3 0 010 6H8a3 3 0 000 6h11',
-      ui: (
-        <div className={ui}>
-          <div className="text-[11.5px] text-mute">{t('landing.story.s1.ui')}</div>
-          <div className="tnum mt-1 text-[30px] leading-none font-light tracking-[-0.04em]">{usd(1240)}</div>
-          <div className="mt-3 flex -space-x-1.5">
-            {['priya', 'ravi', 'ana', 'ben'].map((id) => (
-              <span key={id} className="rounded-full ring-2 ring-[var(--bg)]"><Avatar id={id} size={22} shape="circle" /></span>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: t('landing.story.s2.title'),
-      text: t('landing.story.s2.text'),
-      icon: 'M12 5v14M5 12h14',
-      ui: (
-        <div className={ui}>
-          <div className="flex items-center gap-2 text-[11.5px] text-mute">
-            <Avatar id="ravi" size={18} shape="circle" />
-            {t('landing.story.s2.who')}
-          </div>
-          <div className="tnum mt-2 text-[26px] leading-none font-light tracking-[-0.04em]">{usd(20)}</div>
-          <div className="mt-1.5 text-[12.5px]">{t('landing.story.s2.ui')}</div>
-        </div>
-      ),
-    },
-    {
-      title: t('landing.story.s3.title'),
-      text: t('landing.story.s3.text'),
-      icon: 'M5 13l4 4L19 7',
-      ui: (
-        <div className={ui}>
-          <div className="flex items-center justify-between text-[11.5px] text-mute">
-            <span className="flex -space-x-1.5">
-              {['priya', 'ana'].map((id) => (
-                <span key={id} className="rounded-full ring-2 ring-[var(--bg)]"><Avatar id={id} size={20} shape="circle" /></span>
-              ))}
-            </span>
-            {t('landing.story.s3.count')}
-          </div>
-          <div className="mt-3 h-[3px] rounded-full bg-sand"><div className="h-[3px] w-full rounded-full bg-accent" /></div>
-          <div className="mt-3 grid place-items-center rounded-lg bg-accent py-2 text-[13px] font-medium text-on-accent">{t('landing.story.s3.ui')}</div>
-        </div>
-      ),
-    },
-    {
-      title: t('landing.story.s4.title'),
-      text: t('landing.story.s4.text'),
-      icon: 'M4 12h14M13 6l6 6-6 6',
-      ui: (
-        <div className={ui}>
-          <div className="flex items-center gap-2 text-[11.5px] text-mute">
-            <span className="grid size-4 place-items-center rounded-full bg-accent text-on-accent">
-              <svg viewBox="0 0 24 24" className="size-2.5" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 13l4 4L19 7" /></svg>
-            </span>
-            {t('landing.story.s4.ui')}
-          </div>
-          <div className="tnum mt-2 text-[22px] leading-tight font-light tracking-[-0.03em]">{t('landing.story.s4.amount')}</div>
-        </div>
-      ),
-    },
+    { title: t('landing.story.s1.title'), text: t('landing.story.s1.text'), icon: 'M12 3v18M5 8h11a3 3 0 010 6H8a3 3 0 000 6h11', screen: <ScreenHome /> },
+    { title: t('landing.story.s2.title'), text: t('landing.story.s2.text'), icon: 'M12 5v14M5 12h14', screen: <ScreenPay /> },
+    { title: t('landing.story.s3.title'), text: t('landing.story.s3.text'), icon: 'M5 13l4 4L19 7', screen: <ScreenApprove /> },
+    { title: t('landing.story.s4.title'), text: t('landing.story.s4.text'), icon: 'M4 12h14M13 6l6 6-6 6', screen: <ScreenPaid /> },
   ]
   return (
     <section id="how" className="mx-auto max-w-[1200px] scroll-mt-20 px-6 py-20 md:py-24">
@@ -640,7 +551,7 @@ function StorySection() {
       </div>
       <ol className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((st, i) => (
-          <li key={i} className={card} style={{ ['--d' as string]: `${i * 120}ms` } as React.CSSProperties}>
+          <li key={i} className="story-card reveal relative flex flex-col overflow-hidden rounded-2xl border border-line bg-panel px-5 pt-5" style={{ ['--d' as string]: `${i * 120}ms` } as React.CSSProperties}>
             <div className="flex items-center gap-3">
               <span className="grid size-9 place-items-center rounded-full border border-line text-ink" aria-hidden>
                 <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d={st.icon} /></svg>
@@ -649,11 +560,140 @@ function StorySection() {
             </div>
             <h3 className="mt-4 text-[17px] font-medium tracking-[-0.01em]">{st.title}</h3>
             <p className="mt-1.5 text-[14px] leading-relaxed text-mute">{st.text}</p>
-            <div className="mt-auto">{st.ui}</div>
+            <div className="mt-auto pt-6" aria-hidden>
+              <Phone>{st.screen}</Phone>
+            </div>
           </li>
         ))}
       </ol>
     </section>
+  )
+}
+
+/** The top of a phone, cut off by the card's bottom edge: bezel, status bar, island and the group's app bar. */
+function Phone({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="phone-frame mx-auto h-[300px] w-full max-w-[250px] rounded-t-[30px] p-[6px] pb-0">
+      <div className="h-full overflow-hidden rounded-t-[24px] bg-bg text-start text-ink">
+        <div className="relative flex h-7 items-center justify-between px-5 text-[10px] font-medium">
+          <span className="tnum">{STORY_TIME}</span>
+          <span className="absolute inset-x-0 top-1.5 mx-auto h-[15px] w-[62px] rounded-full bg-[#000]" />
+          <span className="flex items-center gap-1">
+            <svg viewBox="0 0 16 10" className="h-2 w-3" fill="currentColor"><rect x="0" y="6" width="3" height="4" rx="0.6" /><rect x="4.3" y="4" width="3" height="6" rx="0.6" /><rect x="8.6" y="2" width="3" height="8" rx="0.6" /><rect x="12.9" y="0" width="3" height="10" rx="0.6" /></svg>
+            <span className="h-2 w-4 rounded-[2px] border border-current p-px"><span className="block h-full w-3/4 rounded-[1px] bg-current" /></span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2 border-b border-line px-3.5 pb-2.5 pt-1.5">
+          <img src={groupAvatarUrl(STORY_GROUP)} alt="" className="size-6 rounded-[7px]" />
+          <span className="text-[12.5px] font-medium">{STORY_GROUP}</span>
+          <span className="ms-auto"><Avatar id="priya" size={20} shape="circle" /></span>
+        </div>
+        <div className="px-3.5 pt-3">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function MiniRow({ who, label, amount, good }: { who: string; label: string; amount: string; good?: boolean }) {
+  return (
+    <div className="flex items-center gap-2 py-1.5 text-[11px]">
+      <Avatar id={who} size={18} shape="circle" />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <span className={`tnum ${good ? 'text-good' : 'text-mute'}`}>{amount}</span>
+    </div>
+  )
+}
+
+function ScreenHome() {
+  const t = useT()
+  const [whole, cents] = splitUsd(1240)
+  return (
+    <div>
+      <div className="text-[10.5px] text-mute">{t('landing.preview.holds', { name: STORY_GROUP })}</div>
+      <div className="tnum mt-1 text-[30px] leading-none font-light tracking-[-0.04em]">
+        {whole}<span className="text-mute">{cents}</span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] font-medium">
+        <span className="grid h-8 place-items-center rounded-lg bg-accent text-on-accent">{t('home.chipIn')}</span>
+        <span className="grid h-8 place-items-center rounded-lg border border-line">{t('pay.title')}</span>
+      </div>
+      <div className="mt-3 text-[10.5px] text-mute">{t('nav.activity')}</div>
+      <div className="mt-0.5 divide-y divide-line">
+        <MiniRow who="ana" label={t('landing.preview.chippedIn', { name: 'ana' })} amount={`+${usd(50)}`} good />
+        <MiniRow who="ben" label={t('landing.preview.chippedIn', { name: 'ben' })} amount={`+${usd(25)}`} good />
+        <MiniRow who="priya" label={t('landing.preview.venue')} amount={`-${usd(120)}`} />
+      </div>
+    </div>
+  )
+}
+
+function ScreenPay() {
+  const t = useT()
+  const field = 'mt-1 rounded-lg border border-line bg-panel px-2.5 py-2 text-[11.5px]'
+  return (
+    <div>
+      <div className="text-[14px] font-medium tracking-[-0.01em]">{t('pay.title')}</div>
+      <div className="mt-2.5 text-[10.5px] text-mute">{t('pay.amount.label')}</div>
+      <div className={`${field} tnum !text-[17px] font-light`}>{usd(20)}</div>
+      <div className="mt-1 text-[10px] text-good">{t('pay.amount.theyGet', { amount: '20.00', symbol: 'USDC', chain: 'Solana' })}</div>
+      <div className="mt-2 text-[10.5px] text-mute">{t('pay.for.label')}</div>
+      <div className={field}>{t('pay.for.placeholder')}</div>
+      <div className="mt-2.5 grid h-8 place-items-center rounded-lg bg-accent text-[11px] font-medium text-on-accent">{t('pay.send')}</div>
+    </div>
+  )
+}
+
+function ScreenApprove() {
+  const t = useT()
+  return (
+    <div className="rounded-xl border border-line bg-panel p-3">
+      <div className="flex items-center gap-1.5 text-[10.5px] text-mute">
+        <Avatar id="ravi" size={18} shape="circle" />
+        {t('landing.preview.asking', { name: 'ravi' })}
+      </div>
+      <div className="tnum mt-2 text-[24px] leading-none font-light tracking-[-0.04em]">{usd(20)}</div>
+      <div className="mt-1 text-[11px]">{t('landing.story.s2.ui')}</div>
+      <div className="mt-3 flex items-center justify-between text-[10px] text-mute">
+        <span className="flex -space-x-1">
+          {['priya', 'ana'].map((id) => (
+            <span key={id} className="rounded-full ring-2 ring-[var(--panel)]"><Avatar id={id} size={16} shape="circle" /></span>
+          ))}
+        </span>
+        {t('landing.story.s3.count')}
+      </div>
+      <div className="mt-1.5 h-[3px] rounded-full bg-accent" />
+      <div className="mt-3 grid h-8 place-items-center rounded-lg bg-accent text-[11px] font-medium text-on-accent">{t('landing.preview.approvePay')}</div>
+      <div className="mt-1.5 grid h-7 place-items-center text-[10.5px] text-mute">{t('landing.preview.notNow')}</div>
+    </div>
+  )
+}
+
+function ScreenPaid() {
+  const t = useT()
+  const rows: [string, string][] = [
+    [t('approve.status.approved'), t('approve.track.atNow')],
+    [t('approve.track.sent', { group: STORY_GROUP, amount: '6.56' }), t('approve.track.atSeconds', { s: '4' })],
+    [t('landing.preview.arrived'), t('approve.track.atSeconds', { s: '19' })],
+  ]
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <span className="grid size-6 place-items-center rounded-full bg-accent text-on-accent">
+          <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+        </span>
+        <span className="text-[14px] font-medium">{t('approve.track.headPaid')}</span>
+      </div>
+      <div className="tnum mt-2 text-[20px] leading-tight font-light tracking-[-0.03em]">{t('landing.story.s4.amount')}</div>
+      <ol className="relative mt-3 space-y-2.5 border-s border-line ps-3.5">
+        {rows.map(([label, at], i) => (
+          <li key={i} className="relative text-[10.5px] leading-snug">
+            <span className="absolute -start-[18.5px] top-[3px] size-[7px] rounded-full bg-accent" />
+            <span className="flex justify-between gap-2"><span>{label}</span><span className="shrink-0 text-mute">{at}</span></span>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-3 inline-flex h-7 items-center rounded-lg border border-line px-2.5 text-[10.5px]">{t('approve.receipt')}</div>
+    </div>
   )
 }
 
@@ -705,7 +745,7 @@ function HowSteps({ steps }: { steps: string[][] }) {
   return (
     <div ref={ref}>
       <div className="relative h-px bg-line">
-        <div className="absolute inset-y-0 start-0 bg-ink transition-[width] duration-[650ms] ease-out" style={{ width: `${(reached / steps.length) * 100}%` }} />
+        <div className="steps-progress absolute inset-y-0 start-0 transition-[width] duration-[650ms] ease-out" style={{ width: `${(reached / steps.length) * 100}%` }} />
       </div>
       <div className="mt-0 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map(([n, tag, title, d], i) => (

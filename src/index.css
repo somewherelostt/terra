@@ -399,3 +399,15 @@ button:active { transform: scale(.98); }
 :root[data-theme="light"] .steps-card::before { background: linear-gradient(135deg, rgba(47, 107, 255, 0.45), rgba(47, 107, 255, 0) 45%); }
 .steps-progress { background: linear-gradient(90deg, #2f6bff, var(--accent)); height: 2px; top: -0.5px; }
 :root[data-theme="light"] .steps-progress { background: linear-gradient(90deg, #2f6bff, #7fb800); }
+
+/* Landing story cards: a phone cut off by the card's bottom edge, with a soft fade so the crop reads as intentional. */
+.phone-frame {
+  background: linear-gradient(180deg, #2a2a2e, #161618);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 -10px 40px -12px rgba(47, 107, 255, 0.35);
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, #000 78%, transparent);
+}
+:root[data-theme="light"] .phone-frame {
+  background: linear-gradient(180deg, #1c1c1f, #0f0f11);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 -12px 40px -14px rgba(47, 107, 255, 0.35);
+}
