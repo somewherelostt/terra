@@ -102,7 +102,10 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 @keyframes terra-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
 .skeleton { background: var(--sand); border-radius: 6px; animation: terra-pulse 1.4s ease-in-out infinite; }
-html { scroll-behavior: smooth; scrollbar-gutter: stable; }
+html { scroll-behavior: smooth; }
+/* Hide the page scrollbar (scrolling still works); no gutter, so widths stay steady. */
+html, body { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 /* ---------- Motion (design/MOTION.md) ---------- */
 /* Terra motion system. Tokens: */
@@ -371,3 +374,28 @@ button:active { transform: scale(.98); }
 @media (prefers-reduced-motion: reduce) {
   .faq-item::details-content { transition: none; }
 }
+
+/* Landing "four steps" card: a faint deep-blue wash from the top-left corner and a blue edge that fades out.
+   The progress line fills blue to lime. Text sits on near-panel colour, so contrast is unchanged. */
+.steps-card {
+  position: relative;
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(47, 107, 255, 0.10), transparent 60%),
+    radial-gradient(60% 80% at 100% 100%, rgba(200, 245, 96, 0.035), transparent 70%),
+    var(--panel);
+}
+.steps-card::before {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(47, 123, 255, 0.55), rgba(47, 123, 255, 0) 45%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+:root[data-theme="light"] .steps-card {
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(47, 107, 255, 0.07), transparent 60%),
+    radial-gradient(60% 80% at 100% 100%, rgba(120, 170, 20, 0.05), transparent 70%),
+    var(--panel);
+}
+:root[data-theme="light"] .steps-card::before { background: linear-gradient(135deg, rgba(47, 107, 255, 0.45), rgba(47, 107, 255, 0) 45%); }
+.steps-progress { background: linear-gradient(90deg, #2f6bff, var(--accent)); height: 2px; top: -0.5px; }
+:root[data-theme="light"] .steps-progress { background: linear-gradient(90deg, #2f6bff, #7fb800); }
