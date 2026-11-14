@@ -6,7 +6,7 @@ import { view } from '../lib/near'
 import { splitUsd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
 import { defaultJoinRole, invitableRoles, isMember, joinRequestsOpen, pendingJoinFor } from '../lib/join'
-import { Avatar, Spinner, TxStatus, useTx } from '../components/ui'
+import { Avatar, Button, Spinner, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -52,7 +52,7 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
 
   if (!daoId || error) {
     return (
-      <Frame>
+      <Frame panel={<p className="text-[14.5px] text-muted">Terra groups keep their money in a NEAR treasury that members run together.</p>}>
         <div className="text-[13px] text-muted">Invite</div>
         <h1 className="mt-2 text-[34px] leading-[1.05] font-light tracking-[-0.035em]">This invite doesn't open a group</h1>
         <p className="mt-3 text-[14.5px] leading-relaxed text-muted">
@@ -64,9 +64,9 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
             'The link is missing its group. Ask whoever shared it for a fresh QR.'
           )}
         </p>
-        <button onClick={() => openDao(null)} className="mt-8 min-h-12 w-full rounded-lg border border-line bg-card text-[14px] font-medium">
+        <Button variant="secondary" className="mt-8 w-full" onClick={() => openDao(null)}>
           Go to Terra
-        </button>
+        </Button>
       </Frame>
     )
   }
@@ -89,40 +89,44 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
   const members = allMembers(dao.policy)
   const roles = invitableRoles(dao.policy)
   const asked = params.get('role') ?? ''
+  // A link only names a role a council member picked; otherwise newcomers join as plain members.
   const role = roles.includes(asked) ? asked : defaultJoinRole(dao.policy)
-  const open = joinRequestsOpen(dao.policy)
+  const open = joinRequestsOpen(dao.policy) && roles.includes(role)
   const already = accountId ? isMember(dao.policy, accountId) : false
   const [dollars, cents] = splitUsd(yoctoToNumber(dao.spendable + dao.staked) * nearUsd)
   const bond = yoctoToNear(dao.policy.proposal_bond)
   const kind = { AddMemberToRole: { member_id: accountId ?? '', role } }
   const rule = approvalRules(dao.policy, kind)[0]
 
+  const panel = (
+    <>
+      <div className="truncate text-[12px] text-muted" title={dao.id}>{dao.id}</div>
+      <div className="tnum mt-2 text-[56px] leading-[0.9] font-light tracking-[-0.055em] md:text-[72px]">
+        {dollars}
+        <span className="text-muted">{cents}</span>
+      </div>
+      <div className="mt-3 text-[13px] text-muted">
+        in the treasury · {members.length} member{members.length === 1 ? '' : 's'}
+      </div>
+      <ul className="mt-8 flex flex-wrap gap-x-4 gap-y-3" aria-label="Members">
+        {members.slice(0, 8).map((m) => (
+          <li key={m} className="flex items-center gap-2 text-[13px]">
+            <Avatar id={m} size={28} shape="circle" />
+            <span className="max-w-[9rem] truncate" title={m}>{displayName(m)}</span>
+          </li>
+        ))}
+        {members.length > 8 && <li className="self-center text-[13px] text-muted">+{members.length - 8} more</li>}
+      </ul>
+    </>
+  )
+
   return (
-    <Frame>
+    <Frame panel={panel}>
       <div className="text-[13px] text-muted">You're invited to</div>
-      <h1 className="mt-1.5 text-[38px] leading-[1.02] font-light tracking-[-0.035em] break-words sm:text-[44px]">{name}</h1>
+      <h1 className="mt-2 text-[40px] leading-[1.02] font-light tracking-[-0.035em] break-words">{name}</h1>
       {dao.config.purpose && <p className="mt-2 text-[14px] leading-relaxed text-muted">{dao.config.purpose}</p>}
 
-      <div className="mt-8 border-y border-line py-5">
-        <div className="tnum text-[48px] leading-[0.95] font-light tracking-[-0.05em]">
-          {dollars}
-          <span className="text-muted">{cents}</span>
-        </div>
-        <div className="mt-2 text-[13px] text-muted">
-          in the treasury · {members.length} member{members.length === 1 ? '' : 's'}
-        </div>
-        <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-3" aria-label="Members">
-          {members.slice(0, 8).map((m) => (
-            <li key={m} className="flex items-center gap-2 text-[13px]">
-              <Avatar id={m} size={28} shape="circle" />
-              <span className="max-w-[9rem] truncate" title={m}>{displayName(m)}</span>
-            </li>
-          ))}
-          {members.length > 8 && <li className="self-center text-[13px] text-muted">+{members.length - 8} more</li>}
-        </ul>
-      </div>
-
-      <p className="mt-6 text-[14px] leading-relaxed">
+      <p className="mt-4 text-[14.5px] leading-relaxed text-muted">
         Members chip in, ask the group for money and build a record. The council approves everyone who joins.
       </p>
 
@@ -154,7 +158,7 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
           <div className="rounded-2xl border border-line bg-card p-5 text-[14px]">
             <div className="font-medium">The council didn't approve this one</div>
             <p className="mt-1 text-[13px] text-muted">Have a word with an organiser; you can ask again.</p>
-            <button onClick={() => setRejectedNow(false)} className="mt-4 min-h-11 w-full rounded-lg border border-line text-[14px] font-medium">Ask again</button>
+            <Button variant="secondary" className="mt-4 w-full" onClick={() => setRejectedNow(false)}>Ask again</Button>
           </div>
         ) : !open ? (
           <div className="rounded-2xl border border-line bg-card p-5 text-[14px]">
@@ -226,19 +230,32 @@ function Done({ title, text, cta, onOpen }: { title: string; text: string; cta: 
   )
 }
 
-function Frame({ children }: { children: React.ReactNode }) {
+/** Same two panels as SignIn: the ask on the left, the group on the right (stacked on a phone). */
+function Frame({ children, panel }: { children: React.ReactNode; panel?: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex w-full max-w-[480px] items-center justify-between px-4 pt-4 pb-2 sm:px-6 sm:pt-8">
-        <button onClick={() => openDao(null)} className="-ml-1 flex min-h-11 items-center gap-2" title="Terra home">
-          <img src={ICON} alt="" className="size-7 rounded-[7px]" />
-          <span className="text-[16px] font-medium tracking-tight">terra</span>
-        </button>
-        <span className="rounded-full bg-warn-soft px-2 py-0.5 text-[11.5px] font-medium text-warn">Testnet</span>
-      </header>
-      <main className="page-enter mx-auto w-full max-w-[480px] px-4 pt-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-10">{children}</main>
-      <footer className="mx-auto max-w-[480px] px-4 pb-8 text-[12px] text-muted sm:px-6">Terra never holds the money · the group's rules live on NEAR</footer>
+    <div className="grid min-h-screen md:grid-cols-2">
+      <div className="flex flex-col px-4 pt-4 pb-8 sm:px-6 md:px-14 md:py-10">
+        <div className="flex items-center justify-between">
+          <button onClick={() => openDao(null)} className="-ml-1 flex min-h-11 items-center gap-2" title="Terra home">
+            <img src={ICON} alt="" className="size-7 rounded-[7px]" />
+            <span className="text-[16px] font-medium tracking-tight">terra</span>
+          </button>
+          <span className="rounded-full bg-warn-soft px-2 py-0.5 text-[11.5px] font-medium text-warn">Testnet</span>
+        </div>
+        <main className="page-enter w-full max-w-[400px] pt-8 md:my-auto md:py-12">{children}</main>
+        <div className="mt-8 hidden text-[12px] text-muted md:block">Testnet demo · Terra never holds your money</div>
+      </div>
+      <div className="flex items-center justify-center border-t border-line bg-card px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:px-6 md:border-t-0 md:border-l md:p-14">
+        <div className="w-full max-w-[420px]">
+          {panel ?? (
+            <div aria-hidden>
+              <div className="skeleton h-3 w-40" />
+              <div className="skeleton mt-4 h-14 w-56" />
+              <div className="skeleton mt-4 h-3 w-32" />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
-

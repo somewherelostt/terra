@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import { useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
 import { can, decodeDescription, kindName, roleMembers } from '../lib/dao'
-import { allowJoinRequestsTx, defaultJoinRole, invitableRoles, joinLink, joinRequestsOpen } from '../lib/join'
+import { allowJoinRequestsTx, defaultJoinRole, hasMemberRole, invitableRoles, joinLink, joinRequestsOpen } from '../lib/join'
 import { Button, TxStatus, useTx } from './ui'
 
 /** Invite by QR: show it at a meetup, people scan it and ask to join, the council approves. */
@@ -38,7 +38,8 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
   const council = dao.policy.roles.find((r) => r.name === 'council')
   const isCouncil = !!accountId && (council ? roleMembers(council).includes(accountId) : can(dao.policy, accountId, 'add_member_to_role', 'VoteApprove'))
   const roles = invitableRoles(dao.policy)
-  const open = joinRequestsOpen(dao.policy)
+  // Ready when anyone may ask and there's a plain member role to join into (older groups have neither).
+  const open = joinRequestsOpen(dao.policy) && hasMemberRole(dao.policy)
   const canPropose = can(dao.policy, accountId, 'policy', 'AddProposal')
   const switchPending = dao.proposals.find(
     (p) => p.status === 'InProgress' && kindName(p.kind) === 'ChangePolicy' && decodeDescription(p.description).title === 'Let people ask to join',
@@ -100,7 +101,7 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
           </div>
         )}
 
-        <div className={`mx-auto mt-5 aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl bg-white ${open ? '' : 'opacity-60'}`}>
+        <div className={`mx-auto mt-5 aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border border-line bg-white ${open ? '' : 'opacity-60'}`}>
           {qr ? <img src={qr} alt={`QR code for ${link}`} className="size-full" data-testid="invite-qr" /> : <div className="skeleton size-full" />}
         </div>
 

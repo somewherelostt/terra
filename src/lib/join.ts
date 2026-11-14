@@ -47,10 +47,13 @@ export function invitableRoles(policy: Policy): string[] {
   return policy.roles.filter((r) => r.kind !== 'Everyone').map((r) => r.name)
 }
 
-export function defaultJoinRole(policy: Policy): string {
-  const names = invitableRoles(policy)
-  if (names.includes(MEMBER_ROLE)) return MEMBER_ROLE
-  return names.find((n) => n !== 'council') ?? names[0] ?? MEMBER_ROLE
+/** Newcomers join as plain members. Never fall back to a role with votes (like trusted). */
+export function defaultJoinRole(_policy: Policy): string {
+  return MEMBER_ROLE
+}
+
+export function hasMemberRole(policy: Policy): boolean {
+  return invitableRoles(policy).includes(MEMBER_ROLE)
 }
 
 export function pendingJoinFor(dao: Dao, accountId: string): Proposal | undefined {
