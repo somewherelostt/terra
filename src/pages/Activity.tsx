@@ -1,31 +1,39 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { ActivityItem } from '../lib/activity'
 import { go, useDao } from '../lib/store'
 import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
 import { decodeDescription, isExpired, isNearTransfer, type Proposal } from '../lib/dao'
 import { Avatar, Button, EmptyState, RowText, TxLink } from '../components/ui'
+import { formatDate, t as translate, tr, useT } from '../i18n'
 
-type Filter = 'All' | 'Money in' | 'Money out' | 'Requests'
+type Filter = 'all' | 'in' | 'out' | 'requests'
 
 export default function Activity() {
+  const t = useT()
   const { activity } = useDao()
-  const [filter, setFilter] = useState<Filter>('All')
+  const [filter, setFilter] = useState<Filter>('all')
   const items = (activity?.items ?? []).filter((a) => {
-    if (filter === 'Money in') return a.kind === 'chip-in'
-    if (filter === 'Money out') return a.kind === 'payout'
-    if (filter === 'Requests') return a.kind === 'request' || a.kind === 'approve' || a.kind === 'reject'
+    if (filter === 'in') return a.kind === 'chip-in'
+    if (filter === 'out') return a.kind === 'payout'
+    if (filter === 'requests') return a.kind === 'request' || a.kind === 'approve' || a.kind === 'reject'
     return true
   })
+  const filterLabels: Record<Filter, string> = {
+    all: t('activity.filter.all'),
+    in: t('activity.filter.in'),
+    out: t('activity.filter.out'),
+    requests: t('activity.filter.requests'),
+  }
   return (
     <div>
-      <div className="text-[13px] text-muted">Activity</div>
+      <div className="text-[13px] text-muted">{t('activity.eyebrow')}</div>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-[32px] font-light tracking-[-0.03em]">Everything in and out</h1>
+        <h1 className="text-[32px] font-light tracking-[-0.03em]">{t('activity.title')}</h1>
         <div className="flex flex-wrap gap-1 text-[13px]">
-          {(['All', 'Money in', 'Money out', 'Requests'] as Filter[]).map((f) => (
+          {(['all', 'in', 'out', 'requests'] as Filter[]).map((f) => (
             <button key={f} onClick={() => setFilter(f)} className={`rounded-md px-3 py-3 sm:py-1.5 ${filter === f ? 'bg-card ring-1 ring-line' : 'text-muted hover:text-ink'}`}>
-              {f}
+              {filterLabels[f]}
             </button>
           ))}
         </div>
@@ -33,7 +41,7 @@ export default function Activity() {
       <div className="mt-8 max-w-[960px]">
         <ActivityList items={activity ? items : undefined} loading={!activity} />
         {activity?.source === 'proposals-only' && (
-          <p className="mt-3 text-[12px] text-muted">The transaction indexer is unavailable right now, so only payouts are listed.</p>
+          <p className="mt-3 text-[12px] text-muted">{t('activity.indexerDown')}</p>
         )}
       </div>
     </div>
@@ -45,13 +53,14 @@ function dayLabel(d: Date): string {
   const y = new Date(today)
   y.setDate(today.getDate() - 1)
   const same = (a: Date, b: Date) => a.toDateString() === b.toDateString()
-  if (same(d, today)) return 'Today'
-  if (same(d, y)) return 'Yesterday'
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' })
+  if (same(d, today)) return translate('activity.today')
+  if (same(d, y)) return translate('activity.yesterday')
+  return formatDate(d, { day: 'numeric', month: 'short', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' })
 }
 
 /** Rows grouped by day: description · receipt · amount. */
 export function ActivityList({ items, loading }: { items?: ActivityItem[]; loading?: boolean }) {
+  const t = useT()
   useNames()
   const { dao, nearUsd } = useDao()
   if (loading)
@@ -65,9 +74,9 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
     )
   if (!items?.length)
     return (
-      <EmptyState icon="list" title="Nothing here yet" text="Money in, money out and every request shows up here, each with its record on NEAR.">
-        <Button onClick={() => go('home', { chip: '1' })}>Chip in</Button>
-        <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
+      <EmptyState icon="list" title={t('activity.empty.title')} text={t('activity.empty.text')}>
+        <Button onClick={() => go('home', { chip: '1' })}>{t('activity.empty.chipIn')}</Button>
+        <Button variant="secondary" onClick={() => go('pay')}>{t('activity.empty.request')}</Button>
       </EmptyState>
     )
   const byId = new Map(dao?.proposals.map((p) => [p.id, p]))
@@ -94,10 +103,10 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
                 <span className="flex min-w-0 items-center gap-2.5">
                   <Avatar id={a.kind === 'payout' ? (a.to ?? a.who) : a.who} size={22} />
                   {text}
-                  {!a.ok && <span className="shrink-0 text-[12px] text-bad">failed</span>}
+                  {!a.ok && <span className="shrink-0 text-[12px] text-bad">{t('activity.failed')}</span>}
                 </span>
-                <span className="hidden sm:inline">{a.txHash ? <TxLink hash={a.txHash} label="Receipt" /> : null}</span>
-                <span className={`tnum w-20 text-right sm:w-24 ${tone}`}>{amount}</span>
+                <span className="hidden sm:inline">{a.txHash ? <TxLink hash={a.txHash} label={t('activity.receipt')} /> : null}</span>
+                <span className={`tnum w-20 text-end sm:w-24 ${tone}`}>{amount}</span>
               </div>
             )
           })}
@@ -107,6 +116,26 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
   )
 }
 
+/** Request status words, by Sputnik proposal status. */
+function statusText(status: Proposal['status']): string {
+  switch (status) {
+    case 'Approved':
+      return translate('activity.status.paid')
+    case 'Rejected':
+      return translate('activity.status.rejected')
+    case 'Removed':
+      return translate('activity.status.removed')
+    case 'Expired':
+      return translate('activity.status.expired')
+    case 'Moved':
+      return translate('activity.status.moved')
+    case 'Failed':
+      return translate('activity.status.failed')
+    default:
+      return String(status).toLowerCase()
+  }
+}
+
 function describe(a: ActivityItem, p: Proposal | undefined, money: (y?: string) => string, expired: (p: Proposal) => boolean) {
   const meta = p ? decodeDescription(p.description) : undefined
   const title = meta?.title
@@ -114,27 +143,39 @@ function describe(a: ActivityItem, p: Proposal | undefined, money: (y?: string) 
   const who = displayName(a.who)
   const votes = p ? Object.values(p.votes) : []
   const yes = votes.filter((v) => v === 'Approve').length
-  const row = (main: string, detail?: string) => <RowText main={main} detail={detail} />
+  const row = (main: ReactNode, detail?: ReactNode) => <RowText main={main} detail={detail} />
+  const request = title ?? translate('activity.requestNumber', { id: String(a.proposalId ?? '') })
   switch (a.kind) {
     case 'chip-in':
-      return { text: row(`${who} chipped in`, `${yoctoToNear(a.amount ?? '0')} NEAR`), amount: `+${money(a.amount)}`, tone: 'text-good' }
+      return { text: row(tr('activity.row.chippedIn', { name: who }), `${yoctoToNear(a.amount ?? '0')} NEAR`), amount: `+${money(a.amount)}`, tone: 'text-good' }
     case 'payout': {
-      const bits = [`paid to ${displayName(a.to ?? '')}`, wants ? `asked for ${wants}` : '', yes ? `${yes} approval${yes === 1 ? '' : 's'}` : ''].filter(Boolean)
-      return { text: row(title ?? 'Payout', bits.join(' · ')), amount: `−${money(a.amount)}`, tone: '' }
+      const bits = [
+        translate('activity.row.paidTo', { name: displayName(a.to ?? '') }),
+        wants ? translate('activity.row.askedFor', { amount: wants }) : '',
+        yes ? translate('activity.row.approvals', { count: yes }) : '',
+      ].filter(Boolean)
+      return { text: row(title ?? translate('activity.row.payout'), bits.join(' · ')), amount: `−${money(a.amount)}`, tone: '' }
     }
     case 'request': {
-      const status = !p ? '' : p.status === 'InProgress' ? (expired(p) ? 'expired' : `waiting, ${yes} approval${yes === 1 ? '' : 's'}`) : p.status === 'Approved' ? 'paid' : p.status.toLowerCase()
+      const status = !p
+        ? ''
+        : p.status === 'InProgress'
+          ? expired(p)
+            ? translate('activity.status.expired')
+            : translate('activity.status.waiting', { count: yes })
+          : statusText(p.status)
       const isMoney = p && isNearTransfer(p.kind)
+      const action = isMoney ? translate('activity.row.askedForMoney', { name: who }) : translate('activity.row.proposedChange', { name: who })
       return {
-        text: row(title ?? `request #${a.proposalId}`, [`${who} ${isMoney ? 'asked for money' : 'proposed a change'}`, status].filter(Boolean).join(' · ')),
+        text: row(request, [action, status].filter(Boolean).join(' · ')),
         amount: a.amount ? money(a.amount) : '',
         tone: 'text-muted',
       }
     }
     case 'approve':
     case 'reject':
-      return { text: row(title ?? `request #${a.proposalId}`, `${a.kind === 'approve' ? 'approved' : 'declined'} by ${who}`), amount: '', tone: '' }
+      return { text: row(request, translate(a.kind === 'approve' ? 'activity.row.approvedBy' : 'activity.row.declinedBy', { name: who })), amount: '', tone: '' }
     default:
-      return { text: row(`${who} sent a transaction`), amount: '', tone: '' }
+      return { text: row(tr('activity.row.sentTx', { name: who })), amount: '', tone: '' }
   }
 }

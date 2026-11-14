@@ -17,6 +17,7 @@ import { view, viewAccount, spendableBalance } from './near'
 import { isExpired, rolesOf, type DaoConfig, type Policy, type Proposal, type Tx } from './dao'
 import { joinRequestOf } from './join'
 import { readBack, socialGet, socialSetTx } from './social'
+import { t } from '../i18n'
 
 export type Via = 'member' | 'created' | 'joined' | 'joining' | 'visited'
 
@@ -239,11 +240,11 @@ export async function loadSummary(daoId: string, accountId: string | null, force
 /** "Council", "Trusted", "Member", "Asked to join", or "Visitor". */
 export function roleLabel(s: GroupSummary | undefined, signedIn: boolean): string {
   if (!s) return ''
-  if (s.roles.includes('council')) return 'Council'
-  if (s.roles.includes('trusted')) return 'Trusted'
-  if (s.roles.length) return 'Member'
-  if (s.joining) return 'Asked to join'
-  return signedIn ? 'Not a member' : 'Visitor'
+  if (s.roles.includes('council')) return t('groups.role.council')
+  if (s.roles.includes('trusted')) return t('groups.role.trusted')
+  if (s.roles.length) return t('groups.role.member')
+  if (s.joining) return t('groups.role.askedToJoin')
+  return signedIn ? t('groups.role.notMember') : t('groups.role.visitor')
 }
 
 // ---------- the list a page renders ----------

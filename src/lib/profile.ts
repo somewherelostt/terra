@@ -8,6 +8,7 @@ import { ONE_NEAR, TGAS, view } from './near'
 import { SOCIAL_CONTRACT, type AvatarChoice } from './avatar'
 import { shortName } from './format'
 import type { Tx } from './dao'
+import { t } from '../i18n'
 
 export const NAME_MAX = 40
 export const BIO_MAX = 160
@@ -20,7 +21,10 @@ export interface Profile {
   linktree: Partial<Record<LinkKey, string>>
 }
 
-export const LINK_LABELS: Record<LinkKey, string> = { twitter: 'X', github: 'GitHub', website: 'Website', telegram: 'Telegram' }
+/** The label shown next to a link. Brand names stay as they are; call at render time. */
+export function linkLabel(key: LinkKey): string {
+  return key === 'website' ? t('profile.link.website') : { twitter: 'X', github: 'GitHub', telegram: 'Telegram' }[key]
+}
 
 // ---------- links: accept https URLs or handles, store handles (the NEAR Social convention) ----------
 
@@ -31,7 +35,7 @@ const HANDLE: Record<Exclude<LinkKey, 'website'>, { re: RegExp; hosts: string[];
 }
 const HOST = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i
 
-/** Turn what a member typed into the stored value, or an error. Empty input means "no link". */
+/** Turn what a member typed into the stored value, or an error (translated: call at render time). Empty input means "no link". */
 export function normalizeLink(key: LinkKey, input: string): { value: string } | { error: string } {
   const s = input.trim()
   if (!s) return { value: '' }
@@ -40,9 +44,9 @@ export function normalizeLink(key: LinkKey, input: string): { value: string } | 
     try {
       u = new URL(/^[a-z]+:\/\//i.test(s) ? s : `https://${s}`)
     } catch {
-      return { error: 'Use an https:// address.' }
+      return { error: t('profile.link.errorHttps') }
     }
-    if (u.protocol !== 'https:' || !HOST.test(u.hostname) || u.username || u.password) return { error: 'Use an https:// address.' }
+    if (u.protocol !== 'https:' || !HOST.test(u.hostname) || u.username || u.password) return { error: t('profile.link.errorHttps') }
     const rest = (u.pathname === '/' ? '' : u.pathname) + u.search
     return { value: `${u.hostname}${rest}`.slice(0, 200) }
   }
@@ -53,12 +57,12 @@ export function normalizeLink(key: LinkKey, input: string): { value: string } | 
     try {
       u = new URL(s)
     } catch {
-      return { error: 'Use a handle or an https:// link.' }
+      return { error: t('profile.link.errorHandleOrLink') }
     }
-    if (u.protocol !== 'https:' || !h.hosts.includes(u.hostname.toLowerCase())) return { error: `Use a handle or an https://${h.hosts[0]}/… link.` }
+    if (u.protocol !== 'https:' || !h.hosts.includes(u.hostname.toLowerCase())) return { error: t('profile.link.errorHost', { host: h.hosts[0] }) }
     handle = u.pathname.split('/').filter(Boolean)[0] ?? ''
   }
-  if (!h.re.test(handle)) return { error: 'That handle looks wrong.' }
+  if (!h.re.test(handle)) return { error: t('profile.link.errorHandle') }
   return { value: handle }
 }
 

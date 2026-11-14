@@ -12,10 +12,20 @@ import { openRequests, routeRequest } from '../lib/record'
 import { joinRequestOf } from '../lib/join'
 import { Avatar, Button, EmptyState, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 import { CommentCount, CommentsToggle, RequestSheetHost, openRequestSheet } from '../components/Comments'
+import { getLocale, t as translate, useT } from '../i18n'
+
+type Vars = Record<string, string | number>
+/**
+ * Tracker steps keep i18n keys plus their vars (not finished text), and are translated when shown,
+ * so a language switch while the tracker is up still shows the right language.
+ */
+type Step = TrackStep & { vars?: Vars; atVars?: Vars }
+type TrackX = Omit<Track, 'steps'> & { steps: Step[]; bubbleVars?: Vars }
 
 export default function Approve() {
   const { dao, accountId, tracks, nearUsd, records } = { ...useDao(), ...useWallet() }
   const [showAll, setShowAll] = useState(false)
+  const t = useT()
   if (!dao) return null
   const stillOpen = openRequests(dao)
   // Keep a card on screen while its payout tracker runs, even after the request closes.
@@ -33,21 +43,17 @@ export default function Approve() {
   return (
     <div>
       <RequestSheetHost />
-      <div className="text-[13px] text-muted">Approve</div>
+      <div className="text-[13px] text-muted">{t('approve.eyebrow')}</div>
       <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">
         {!accountId || (needYou.length === 0 && stillOpen.length > 0)
           ? stillOpen.length === 0
-            ? 'No open requests'
-            : stillOpen.length === 1
-              ? '1 open request'
-              : `${stillOpen.length} open requests`
+            ? t('approve.heading.noOpen')
+            : t('approve.heading.open', { count: stillOpen.length })
           : needYou.length === 0
-            ? 'Nothing needs you'
-            : needYou.length === 1
-              ? '1 request needs you'
-              : `${needYou.length} requests need you`}
+            ? t('approve.heading.nothingNeedsYou')
+            : t('approve.heading.needYou', { count: needYou.length })}
       </h1>
-      <p className="mt-1 text-[13.5px] text-muted">When enough members approve, the treasury pays on its own.</p>
+      <p className="mt-1 text-[13.5px] text-muted">{t('approve.subtitle')}</p>
 
       <div className="mt-10 max-w-[880px]">
         {open.length ? (
@@ -58,14 +64,10 @@ export default function Approve() {
           </div>
         ) : (
           <EmptyState
-            title={dao.proposals.length ? "You're all caught up" : 'No requests yet'}
-            text={
-              dao.proposals.length
-                ? 'No open requests. Anyone in the group can request money.'
-                : 'When someone asks for money, it shows up here for members to approve.'
-            }
+            title={dao.proposals.length ? t('approve.empty.caughtUpTitle') : t('approve.empty.noneTitle')}
+            text={dao.proposals.length ? t('approve.empty.caughtUpText') : t('approve.empty.noneText')}
           >
-            <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
+            <Button variant="secondary" onClick={() => go('pay')}>{t('approve.requestMoney')}</Button>
           </EmptyState>
         )}
       </div>
@@ -73,9 +75,9 @@ export default function Approve() {
       {decided.length > 0 && (
       <div className="mt-12 max-w-[880px]">
         <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
-          <span>Recently decided</span>
+          <span>{t('approve.recentlyDecided')}</span>
           {dao.proposals.length - open.length > 8 && (
-            <button className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>
+            <button className="-my-3 py-3 ps-4 hover:text-ink" onClick={() => setShowAll(!showAll)}>{showAll ? t('approve.showFewer') : t('approve.showMore')}</button>
           )}
         </div>
         <div className="text-[13.5px]">
@@ -89,49 +91,58 @@ export default function Approve() {
   )
 }
 
-const KIND_NAMES: Record<string, string> = {
-  AddMemberToRole: 'Add a member',
-  RemoveMemberFromRole: 'Remove a member',
-  ChangePolicy: 'Change the rules',
-  ChangePolicyAddOrUpdateRole: 'Change a role',
-  ChangePolicyUpdateParameters: 'Change the rules',
-  ChangePolicyUpdateDefaultVotePolicy: 'Change voting',
-  ChangePolicyRemoveRole: 'Remove a role',
-  ChangeConfig: 'Change settings',
-  FunctionCall: 'Contract call',
-  Transfer: 'Payout',
-  Vote: 'Poll',
-  AddBounty: 'Add a bounty',
-  BountyDone: 'Bounty done',
-  UpgradeSelf: 'Upgrade',
-  UpgradeRemote: 'Upgrade',
+/** i18n keys for request types (translated when used, never at module load). */
+const KIND_KEYS: Record<string, string> = {
+  AddMemberToRole: 'approve.kind.addMember',
+  RemoveMemberFromRole: 'approve.kind.removeMember',
+  ChangePolicy: 'approve.kind.changeRules',
+  ChangePolicyAddOrUpdateRole: 'approve.kind.changeRole',
+  ChangePolicyUpdateParameters: 'approve.kind.changeRules',
+  ChangePolicyUpdateDefaultVotePolicy: 'approve.kind.changeVoting',
+  ChangePolicyRemoveRole: 'approve.kind.removeRole',
+  ChangeConfig: 'approve.kind.changeSettings',
+  FunctionCall: 'approve.kind.contractCall',
+  Transfer: 'approve.kind.payout',
+  Vote: 'approve.kind.poll',
+  AddBounty: 'approve.kind.addBounty',
+  BountyDone: 'approve.kind.bountyDone',
+  UpgradeSelf: 'approve.kind.upgrade',
+  UpgradeRemote: 'approve.kind.upgrade',
 }
 
 /** A plain name for a request type, e.g. "Add a member" instead of "AddMemberToRole". */
 function requestKind(kind: Proposal['kind']): string {
   const k = kindName(kind)
-  return KIND_NAMES[k] ?? k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase())
+  return KIND_KEYS[k] ? translate(KIND_KEYS[k]) : k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase())
 }
 
 function statusTone(p: Proposal, expired: boolean) {
-  if (expired) return { label: 'Expired', tone: 'neutral' as const }
+  if (expired) return { label: translate('approve.status.expired'), tone: 'neutral' as const }
   switch (p.status) {
     case 'Approved':
-      return { label: isNearTransfer(p.kind) ? 'Paid' : 'Approved', tone: 'good' as const }
+      return { label: isNearTransfer(p.kind) ? translate('approve.status.paid') : translate('approve.status.approved'), tone: 'good' as const }
     case 'Rejected':
+      return { label: translate('approve.status.rejected'), tone: 'bad' as const }
     case 'Removed':
-      return { label: p.status, tone: 'bad' as const }
+      return { label: translate('approve.status.removed'), tone: 'bad' as const }
     case 'Failed':
-      return { label: 'Failed', tone: 'bad' as const }
+      return { label: translate('approve.status.failed'), tone: 'bad' as const }
     case 'InProgress':
-      return { label: 'Waiting', tone: 'warn' as const }
+      return { label: translate('approve.status.waiting'), tone: 'warn' as const }
+    case 'Expired':
+      return { label: translate('approve.status.expired'), tone: 'neutral' as const }
+    case 'Moved':
+      return { label: translate('approve.status.moved'), tone: 'neutral' as const }
     default:
       return { label: p.status, tone: 'neutral' as const }
   }
 }
 
+const lower = (s: string) => s.toLocaleLowerCase(getLocale())
+
 function DecidedRow({ p }: { p: Proposal }) {
   useNames()
+  const t = useT()
   const { dao, nearUsd, activity } = useDao()
   const meta = decodeDescription(p.description)
   const expired = isExpired(p, dao!.policy)
@@ -144,10 +155,11 @@ function DecidedRow({ p }: { p: Proposal }) {
   const no = counts.filter((v) => v === 'Reject').length
   const amount = transfer ? (isFinite(nearUsd) ? usd(yoctoToNumber(transfer.amount) * nearUsd) : `${yoctoToNear(transfer.amount)} NEAR`) : null
   let detail: string
-  if (paid) detail = meta.wants ? `paid · ${meta.wants.replace(/\s+to\s+\S+$/, '')} requested` : `paid to ${displayName(transfer!.receiver_id)}`
-  else if (p.status === 'Rejected') detail = `declined, ${yes} to ${no}`
-  else if (joinRequestOf(p)) detail = `${s.label.toLowerCase()} · join request`
-  else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${requestKind(p.kind).toLowerCase()}`)
+  // meta.wants is the English text saved on chain ("20.0 USDC on Solana to …"); shown as written.
+  if (paid) detail = meta.wants ? t('approve.decided.paidWants', { wants: meta.wants.replace(/\s+to\s+\S+$/, '') }) : t('approve.decided.paidTo', { name: displayName(transfer!.receiver_id) })
+  else if (p.status === 'Rejected') detail = t('approve.decided.declined', { yes, no })
+  else if (joinRequestOf(p)) detail = t('approve.decided.join', { status: lower(s.label) })
+  else detail = transfer ? lower(s.label) : t('approve.decided.other', { status: lower(s.label), kind: lower(requestKind(p.kind)) })
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
       <span className="min-w-0 flex-1" title={meta.title}>
@@ -156,12 +168,12 @@ function DecidedRow({ p }: { p: Proposal }) {
       <span className="flex shrink-0 items-baseline gap-4">
         <button
           className="-my-3 py-3 text-[12px] text-muted hover:text-ink"
-          title="Comments"
+          title={t('approve.comments')}
           onClick={() => openRequestSheet({ daoId: dao!.id, proposalId: p.id, title: meta.title, detail, amount: amount ?? undefined })}
         >
           <CommentCount daoId={dao!.id} proposalId={p.id} />
         </button>
-        {payout && <TxLink hash={payout} label="Receipt" />}
+        {payout && <TxLink hash={payout} label={t('approve.receipt')} />}
         {amount && <span className={`tnum ${paid ? '' : 'text-muted'}`}>{amount}</span>}
       </span>
     </div>
@@ -177,6 +189,7 @@ export function RequestCard({ p }: { p: Proposal }) {
   const [lastAction, setLastAction] = useState<VoteAction | null>(null)
   const [dismissed, setDismissed] = useState(false)
   const [snoozing, setSnoozing] = useState(false)
+  const t = useT()
   if (!dao) return null
   const meta = decodeDescription(p.description)
   const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
@@ -210,15 +223,18 @@ export function RequestCard({ p }: { p: Proposal }) {
     const t0 = Date.now()
     const hash = await tx.run(() => send(actProposalTx(dao!.id, p, 'VoteApprove')))
     if (!hash) return
-    const since = () => {
+    // Labels, times and bubbles are stored as i18n keys + vars and translated by TrackerCard.
+    const since = (): Pick<Step, 'at' | 'atVars'> => {
       const s = Math.round((Date.now() - t0) / 1000)
-      return s < 60 ? `+${s}s` : `+${Math.floor(s / 60)}m ${s % 60}s`
+      return s < 60 ? { at: 'approve.track.atSeconds', atVars: { s } } : { at: 'approve.track.atMinutes', atVars: { m: Math.floor(s / 60), s: s % 60 } }
     }
+    const put = (x: TrackX) => setTrack(p.id, x)
     const group = prettyName(dao!.config.name)
     const to = transfer ? displayName(transfer.receiver_id) : ''
-    const steps: TrackStep[] = [{ label: 'Approved by you', done: true, at: 'now', hash }]
-    const base = { eta: transfer ? 'checking…' : '', finished: false, paid: false }
-    setTrack(p.id, { ...base, steps: [...steps, { label: transfer ? `${group} sends ${yoctoToNear(transfer.amount)} NEAR` : 'Applying the change', done: false }] })
+    const amount = transfer ? yoctoToNear(transfer.amount) : ''
+    const steps: Step[] = [{ label: 'approve.track.approvedByYou', done: true, at: 'approve.track.atNow', hash }]
+    const base = { eta: transfer ? 'approve.track.etaChecking' : '', finished: false, paid: false }
+    put({ ...base, steps: [...steps, transfer ? { label: 'approve.track.sends', vars: { group, amount }, done: false } : { label: 'approve.track.applying', done: false }] })
 
     let status: string | null = null
     for (let i = 0; i < 6 && (!status || status === 'InProgress'); i++) {
@@ -232,27 +248,27 @@ export function RequestCard({ p }: { p: Proposal }) {
     }
 
     if (status === 'Approved') {
-      steps.push({ label: transfer ? `${group} sent ${yoctoToNear(transfer.amount)} NEAR` : 'Change applied', done: true, at: since(), hash })
-      setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
+      steps.push({ ...(transfer ? { label: 'approve.track.sent', vars: { group, amount } } : { label: 'approve.track.applied' }), done: true, ...since(), hash })
+      put({ ...base, eta: 'approve.track.etaSecond', steps: [...steps] })
       if (transfer) {
         await wait(950)
-        steps.push({ label: `Arrived in ${to}'s account`, done: true, at: since() })
+        steps.push({ label: 'approve.track.arrived', vars: { name: to }, done: true, ...since() })
       }
-      const bubble = transfer
-        ? `Paid on NEAR. ${to} has their ${yoctoToNear(transfer.amount)} NEAR.`
+      const bubble: Pick<TrackX, 'bubble' | 'bubbleVars'> = transfer
+        ? { bubble: 'approve.track.bubblePaid', bubbleVars: { name: to, amount } }
         : join
-          ? `Done. ${displayName(join.member)} is in.`
-          : 'Done. The change is live.'
-      setTrack(p.id, { steps: [...steps], eta: 'done', finished: true, paid: true, bubble })
-      showToast(transfer ? `Paid · ${yoctoToNear(transfer.amount)} NEAR to ${to}.` : 'Approved and applied.')
+          ? { bubble: 'approve.track.bubbleJoined', bubbleVars: { name: displayName(join.member) } }
+          : { bubble: 'approve.track.bubbleLive' }
+      put({ steps: [...steps], eta: 'approve.track.etaDone', finished: true, paid: true, ...bubble })
+      showToast(transfer ? translate('approve.toast.paid', { amount, name: to }) : translate('approve.toast.applied'))
     } else if (status === 'Failed') {
-      steps.push({ label: 'The payout failed on chain', done: false, at: since(), hash })
-      setTrack(p.id, { steps: [...steps], eta: '', finished: true, paid: false, bubble: 'The DAO could not pay this out. Check the receipt.' })
+      steps.push({ label: 'approve.track.failed', done: false, ...since(), hash })
+      put({ steps: [...steps], eta: '', finished: true, paid: false, bubble: 'approve.track.bubbleFailed' })
     } else {
       const left = Math.max(1, needed - approvals - 1)
-      steps.push({ label: `Waiting for ${left} more approval${left === 1 ? '' : 's'}`, done: false })
-      setTrack(p.id, { steps: [...steps], eta: '', finished: true, paid: false })
-      showToast('Approved. It pays out once enough members approve.')
+      steps.push({ label: 'approve.track.waiting', vars: { count: left }, done: false })
+      put({ steps: [...steps], eta: '', finished: true, paid: false })
+      showToast(translate('approve.toast.waiting'))
     }
     await refresh()
   }
@@ -260,7 +276,7 @@ export function RequestCard({ p }: { p: Proposal }) {
   if (dismissed) return null
   if (track) return <TrackerCard p={p} track={track} hero={route?.effectiveTier === 'small'} onDone={() => setTrack(p.id, null)} />
   const hero = route?.effectiveTier === 'small'
-  const tierWord = route ? { small: 'Small', mid: 'Mid', large: 'Large' }[route.effectiveTier] : requestKind(p.kind)
+  const tierWord = route ? { small: t('approve.tier.small'), mid: t('approve.tier.mid'), large: t('approve.tier.large') }[route.effectiveTier] : requestKind(p.kind)
   const theyGet = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
   const arrives = meta.quote?.match(/about (\d+)s/)?.[1]
   const [dollars, cents] = transfer ? splitUsd(yoctoToNumber(transfer.amount) * nearUsd) : ['', '']
@@ -282,11 +298,11 @@ export function RequestCard({ p }: { p: Proposal }) {
       <div className={`flex flex-col gap-1 text-[12px] sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${sub}`}>
         <span className="flex min-w-0 items-center gap-2 truncate">
           <Avatar id={p.proposer} size={20} />
-          {displayName(p.proposer)} {join && join.member === p.proposer ? 'wants to join' : 'is asking'} · {timeAgo(nanoToDate(p.submission_time))}
-          {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ' · new member' : ''}
+          {t(join && join.member === p.proposer ? 'approve.card.wantsToJoin' : 'approve.card.asking', { name: displayName(p.proposer), when: timeAgo(nanoToDate(p.submission_time)) })}
+          {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ` · ${t('approve.card.newMember')}` : ''}
         </span>
         <span className="shrink-0">
-          {noApprover ? 'No role can approve this here' : hero && canVote ? 'Small · you decide' : `${tierWord} · ${approvals} of ${needed}`}
+          {noApprover ? t('approve.card.noRole') : hero && canVote ? t('approve.card.smallYouDecide') : t('approve.card.progress', { tier: tierWord, approvals, needed })}
         </span>
       </div>
 
@@ -308,7 +324,7 @@ export function RequestCard({ p }: { p: Proposal }) {
             <div className="truncate text-[28px] font-light leading-tight tracking-[-0.03em]" title={join.member}>
               {displayName(join.member)}
             </div>
-            <div className="mt-0.5 text-[14px]">{join.member === p.proposer ? `wants to join as ${join.role}` : `invited as ${join.role}`}</div>
+            <div className="mt-0.5 text-[14px]">{t(join.member === p.proposer ? 'approve.card.wantsToJoinAs' : 'approve.card.invitedAs', { role: join.role })}</div>
             <div className={`mt-0.5 truncate font-mono text-[12px] ${sub}`}>{join.member}</div>
           </div>
         </div>
@@ -321,36 +337,36 @@ export function RequestCard({ p }: { p: Proposal }) {
       <div className={`mt-6 border-t pt-4 text-[13px] ${rule}`}>
         {theyGet ? (
           <div className="flex items-baseline justify-between gap-3">
-            <span className={sub}>They get</span>
-            <span className="tnum text-right">{theyGet}</span>
+            <span className={sub}>{t('common.theyGet')}</span>
+            <span className="tnum text-end">{theyGet}</span>
           </div>
         ) : transfer ? (
           <div className="flex items-baseline justify-between gap-3">
-            <span className={`shrink-0 ${sub}`}>Paid to</span>
-            <span className="tnum min-w-0 truncate">{yoctoToNear(transfer.amount)} NEAR · {displayName(transfer.receiver_id)}</span>
+            <span className={`shrink-0 ${sub}`}>{t('approve.card.paidTo')}</span>
+            <span className="tnum min-w-0 truncate">{t('approve.card.paidToValue', { amount: yoctoToNear(transfer.amount), name: displayName(transfer.receiver_id) })}</span>
           </div>
         ) : null}
         {arrives && (
           <div className="mt-2 flex items-baseline justify-between gap-3">
-            <span className={sub}>Arrives</span>
-            <span>about {arrives} seconds</span>
+            <span className={sub}>{t('common.arrives')}</span>
+            <span>{t('common.aboutSeconds', { count: Number(arrives) })}</span>
           </div>
         )}
         {rec && transfer && (
           <div className="mt-2 flex items-baseline justify-between gap-3">
-            <span className={sub}>{displayName(p.proposer)}'s record</span>
-            <span className="tnum">{rec.approved} paid · {rec.rejected} turned down</span>
+            <span className={sub}>{t('approve.card.record', { name: displayName(p.proposer) })}</span>
+            <span className="tnum">{t('approve.card.recordCounts', { paid: rec.approved, rejected: rec.rejected })}</span>
           </div>
         )}
-        {route && route.tier !== route.effectiveTier && <p className={`mt-2 text-[12px] ${sub}`}>{route.reason}, so the council decides.</p>}
+        {route && route.tier !== route.effectiveTier && <p className={`mt-2 text-[12px] ${sub}`}>{t('approve.card.councilDecides', { reason: route.reason })}</p>}
         {paysAlone && !short && (
           <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
-            You're in this DAO's trusted role as well as the council, so on chain your approval alone pays this out, without the other council votes. Approve only if the group agrees.
+            {t('approve.card.paysAloneWarning')}
           </p>
         )}
         {short && (
           <p className="mt-3 rounded-lg bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
-            The treasury can spend {yoctoToNear(dao.spendable)} NEAR, less than this request, so an approval now would bounce. Chip in first, then approve.
+            {t('approve.card.shortWarning', { amount: yoctoToNear(dao.spendable) })}
           </p>
         )}
         {!hero && (
@@ -360,10 +376,12 @@ export function RequestCard({ p }: { p: Proposal }) {
             </div>
             <div className="mt-2 text-[12px] text-muted">
               {noApprover
-                ? "This DAO's policy gives no role permission to approve this kind of request."
-                : voters.filter((v) => p.votes[v] === 'Approve').map(displayName).join(', ') || 'No approvals yet'}
-              {!noApprover && approvals < needed ? ` · needs ${needed - approvals} more ${route?.effectiveTier === 'small' ? 'trusted member' : 'council member'}${needed - approvals === 1 ? '' : 's'}` : ''}
-              {rejects ? ` · ${rejects} declined` : ''}
+                ? t('approve.card.noRolePolicy')
+                : voters.filter((v) => p.votes[v] === 'Approve').map(displayName).join(', ') || t('approve.card.noApprovals')}
+              {!noApprover && approvals < needed
+                ? ` · ${t(route?.effectiveTier === 'small' ? 'approve.card.needsTrusted' : 'approve.card.needsCouncil', { count: needed - approvals })}`
+                : ''}
+              {rejects ? ` · ${t('approve.card.declinedCount', { count: rejects })}` : ''}
             </div>
           </div>
         )}
@@ -373,56 +391,59 @@ export function RequestCard({ p }: { p: Proposal }) {
 
       <div className="mt-6 flex-1" />
       {noApprover ? (
-        <p className={`text-[13px] ${sub}`}>No role can approve this here.</p>
+        <p className={`text-[13px] ${sub}`}>{t('approve.card.noRoleSentence')}</p>
       ) : !accountId ? (
-        <Button variant="secondary" onClick={signIn}>Sign in to approve</Button>
+        <Button variant="secondary" onClick={signIn}>{t('approve.card.signIn')}</Button>
       ) : myVote ? (
-        <p className={`text-[13px] ${sub}`}>You {myVote === 'Approve' ? 'approved' : myVote === 'Reject' ? 'declined' : 'voted on'} this.</p>
+        <p className={`text-[13px] ${sub}`}>{t(myVote === 'Approve' ? 'approve.card.youApproved' : myVote === 'Reject' ? 'approve.card.youDeclined' : 'approve.card.youVoted')}</p>
       ) : !contractAllows ? (
-        <p className={`text-[13px] ${sub}`}>Your account isn't in a role that can approve this.</p>
+        <p className={`text-[13px] ${sub}`}>{t('approve.card.notInRole')}</p>
       ) : !terraAllows ? (
-        <p className={`text-[13px] ${sub}`}>Above the fast lane, so the council decides this one.</p>
+        <p className={`text-[13px] ${sub}`}>{t('approve.card.aboveFastLane')}</p>
       ) : hero ? (
         <>
           <div className="grid grid-cols-[1fr_auto] gap-2">
             <Button disabled={tx.state.status === 'signing' || short} onClick={() => vote('VoteApprove')}>
-              {tx.state.status === 'signing' && lastAction === 'VoteApprove' ? <span className="spin" /> : 'Approve and pay'}
+              {tx.state.status === 'signing' && lastAction === 'VoteApprove' ? <span className="spin" /> : t('approve.card.approveAndPay')}
             </Button>
             <button
               className="rounded-lg bg-white/10 px-4 text-[13.5px] font-medium"
               onClick={() => {
                 setSnoozing(true)
-                showToast("Snoozed. We'll bring it back next time you open Terra.")
+                showToast(translate('approve.toast.snoozed'))
                 setTimeout(() => setDismissed(true), 600)
               }}
             >
-              Not now
+              {t('approve.card.notNow')}
             </button>
           </div>
           <button className="mt-1 self-start py-3 text-[12px] opacity-60 hover:opacity-100 sm:py-2" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>
-            Decline this request
+            {t('approve.card.declineRequest')}
           </button>
         </>
       ) : (
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <button className="rounded-lg bg-ink py-2.5 text-[13.5px] font-medium text-bg disabled:opacity-50" disabled={tx.state.status === 'signing' || short} onClick={() => vote('VoteApprove')}>Approve</button>
-          <Button variant="secondary" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>Decline</Button>
+          <button className="rounded-lg bg-ink py-2.5 text-[13.5px] font-medium text-bg disabled:opacity-50" disabled={tx.state.status === 'signing' || short} onClick={() => vote('VoteApprove')}>{t('approve.card.approve')}</button>
+          <Button variant="secondary" disabled={tx.state.status === 'signing'} onClick={() => vote('VoteReject')}>{t('approve.card.decline')}</Button>
         </div>
       )}
       <div className="mt-3 flex items-center justify-between gap-3">
-        <TxStatus state={tx.state} doneText={lastAction === 'VoteReject' ? 'Declined.' : join ? "Approved. Once enough of the council approves, they're in." : 'Approved. If that was the last one needed, the treasury has paid.'} />
+        <TxStatus state={tx.state} doneText={lastAction === 'VoteReject' ? t('approve.card.doneDeclined') : join ? t('approve.card.doneJoin') : t('approve.card.doneApproved')} />
       </div>
       {createdTx && tx.state.status === 'idle' && (
         <div className={`mt-1 text-[12px] ${sub}`}>
-          <TxLink hash={createdTx} label="Request on NearBlocks" />
+          <TxLink hash={createdTx} label={t('approve.card.requestOnNearBlocks')} />
         </div>
       )}
     </article>
   )
 }
 
-function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; hero: boolean; onDone: () => void }) {
+function TrackerCard({ p, track: raw, hero, onDone }: { p: Proposal; track: Track; hero: boolean; onDone: () => void }) {
   useNames()
+  const t = useT()
+  // Keys + vars (see Step); a plain string that isn't a key comes back from t() unchanged.
+  const track = raw as TrackX
   const { nearUsd } = useDao()
   const meta = decodeDescription(p.description)
   const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
@@ -434,11 +455,11 @@ function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; he
   return (
     <article className={`relative flex flex-col overflow-hidden rounded-2xl p-6 ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}>
       <div className="flex items-center justify-between text-[12px]">
-        <span className={sub}>{track.paid ? (transfer ? 'Paid' : 'Done') : transfer ? `Paying ${transfer ? displayName(transfer.receiver_id) : ''}` : 'Applying'}</span>
+        <span className={sub}>{track.paid ? (transfer ? t('approve.track.headPaid') : t('approve.track.headDone')) : transfer ? t('approve.track.headPaying', { name: displayName(transfer.receiver_id) }) : t('approve.track.headApplying')}</span>
         {track.eta && (
           <span className="flex items-center gap-1.5">
             {!track.finished && <span className="live size-1.5 rounded-full bg-accent" />}
-            <span className={`tnum ${sub}`}>{track.eta}</span>
+            <span className={`tnum ${sub}`}>{t(track.eta)}</span>
           </span>
         )}
       </div>
@@ -462,10 +483,10 @@ function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; he
             ) : (
               <span className={`grid size-5 shrink-0 place-items-center rounded-full ring-1 ${hero ? 'ring-white/25' : 'ring-line'}`} />
             )}
-            <span className="min-w-0">{s.label}</span>
-            <span className="ml-auto flex shrink-0 items-center gap-2 text-[12px]">
-              {s.hash && <TxLink hash={s.hash} label="tx" />}
-              {s.at && <span className={`tnum ${sub}`}>{s.at}</span>}
+            <span className="min-w-0">{t(s.label, s.vars)}</span>
+            <span className="ms-auto flex shrink-0 items-center gap-2 text-[12px]">
+              {s.hash && <TxLink hash={s.hash} label={t('approve.track.tx')} />}
+              {s.at && <span className={`tnum ${sub}`}>{t(s.at, s.atVars)}</span>}
             </span>
           </li>
         ))}
@@ -475,9 +496,9 @@ function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; he
         {track.finished && (
           <div className="bubble flex items-end gap-2.5">
             {track.paid && <img src={ICON} alt="" className="mascot-bob size-9 rounded-[9px]" />}
-            {track.bubble && <div className={`rounded-xl rounded-bl-sm px-3.5 py-2.5 text-[13px] ${hero ? 'bg-white/10' : 'bg-soft'}`}>{track.bubble}</div>}
-            <button className={`ml-auto self-center text-[12px] ${sub} hover:opacity-100`} onClick={onDone}>
-              Done
+            {track.bubble && <div className={`rounded-xl rounded-es-sm px-3.5 py-2.5 text-[13px] ${hero ? 'bg-white/10' : 'bg-soft'}`}>{t(track.bubble, track.bubbleVars)}</div>}
+            <button className={`ms-auto self-center text-[12px] ${sub} hover:opacity-100`} onClick={onDone}>
+              {t('common.done')}
             </button>
           </div>
         )}

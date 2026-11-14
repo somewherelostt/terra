@@ -4,6 +4,7 @@ import { useWallet } from '../lib/wallet'
 import { useNames } from '../lib/profile'
 import { DM_MAX, POLL_MS, cleanText, markRead, readThread, sendMessageTx, type DmKey, type DmMessage } from '../lib/dm'
 import { Avatar, Button, Spinner } from './ui'
+import { formatDate, useT } from '../i18n'
 
 /** Poll while the tab is visible; run once right away and again when the tab comes back. */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -23,6 +24,7 @@ export function usePoll(fn: () => void, ms: number, deps: unknown[]) {
 
 /** One conversation: messages oldest first, a composer at the bottom, refreshed every ~10 s. */
 export default function Thread({ me, other, myKey, theirPk }: { me: string; other: string; myKey: DmKey; theirPk: string | null | undefined }) {
+  const t = useT()
   const name = useNames()
   const { send } = useWallet()
   const [msgs, setMsgs] = useState<DmMessage[] | null>(null)
@@ -67,17 +69,17 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
       setDraft('')
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e)
-      setError(/reject|cancel|closed|denied/i.test(m) ? 'Cancelled in the wallet.' : m)
+      setError(/reject|cancel|closed|denied/i.test(m) ? t('common.cancelledInWallet') : m)
     } finally {
       setSending(false)
     }
   }
 
   return (
-    <section className="flex min-h-[60vh] flex-col rounded-2xl border border-line bg-card md:min-h-[520px]" aria-label={`Conversation with ${name(other)}`}>
+    <section className="flex min-h-[60vh] flex-col rounded-2xl border border-line bg-card md:min-h-[520px]" aria-label={t('thread.label', { name: name(other) })}>
       <header className="flex items-center gap-3 border-b border-line px-3 py-2.5 md:px-4">
-        <button onClick={() => go('messages')} className="grid min-h-11 min-w-11 place-items-center text-muted hover:text-ink md:hidden" aria-label="Back to conversations">
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <button onClick={() => go('messages')} className="grid min-h-11 min-w-11 place-items-center text-muted hover:text-ink md:hidden" aria-label={t('thread.back')}>
+          <svg viewBox="0 0 24 24" className="h-5 w-5 rtl:-scale-x-100" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
@@ -86,22 +88,22 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
           <div className="truncate text-[14.5px]">{name(other)}</div>
           <div className="truncate font-mono text-[11px] text-muted">{other}</div>
         </div>
-        <span className="ml-auto flex shrink-0 items-center gap-1 text-[11.5px] text-muted" title="End-to-end encrypted. Who you message and when is public on NEAR.">
+        <span className="ms-auto flex shrink-0 items-center gap-1 text-[11.5px] text-muted" title={t('thread.encryptedTitle')}>
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M6 11h12v9H6zM8 11V8a4 4 0 018 0v3" />
           </svg>
-          Encrypted
+          {t('thread.encrypted')}
         </span>
       </header>
 
       <div className="flex-1 space-y-2 overflow-y-auto px-3 py-4 md:max-h-[60vh] md:px-4" aria-live="polite">
         {msgs === null ? (
           <div className="flex items-center gap-2 text-[13px] text-muted">
-            <Spinner /> Opening messages…
+            <Spinner /> {t('thread.opening')}
           </div>
         ) : shown.length === 0 ? (
           <p className="py-10 text-center text-[13px] text-muted">
-            No messages with {name(other)} yet. Say hello: only the two of you can read it.
+            {t('thread.empty', { name: name(other) })}
           </p>
         ) : (
           shown.map((m) => <Bubble key={m.id} m={m} sending={pending.some((p) => p.id === m.id)} />)
@@ -111,7 +113,7 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
 
       <div className="border-t border-line p-3 md:p-4">
         {theirPk === null ? (
-          <p className="text-[13px] text-muted">{name(other)} hasn't turned on messages yet. Once they open Messages in Terra, you can write to them.</p>
+          <p className="text-[13px] text-muted">{t('thread.notOn', { name: name(other) })}</p>
         ) : (
           <form
             onSubmit={(e) => {
@@ -120,7 +122,7 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
             }}
           >
             <label htmlFor="dm-draft" className="sr-only">
-              Message {name(other)}
+              {t('thread.message', { name: name(other) })}
             </label>
             <textarea
               id="dm-draft"
@@ -134,16 +136,16 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
               }}
               rows={2}
               maxLength={DM_MAX * 2}
-              placeholder={`Message ${name(other)}`}
+              placeholder={t('thread.message', { name: name(other) })}
               className="block w-full resize-none rounded-xl border border-line bg-bg px-3 py-2.5 text-[15px] outline-none focus:border-ink md:text-[14px]"
             />
             <div className="mt-2 flex items-center justify-between gap-3">
               <span className={`tnum text-[11.5px] ${chars >= DM_MAX ? 'text-bad' : 'text-muted'}`}>
                 {chars}/{DM_MAX}
               </span>
-              <Button type="submit" disabled={!canSend}>{sending ? 'Sending…' : 'Send'}</Button>
+              <Button type="submit" disabled={!canSend}>{sending ? t('thread.sending') : t('thread.send')}</Button>
             </div>
-            {sending && <p className="mt-2 text-[12px] text-muted">Confirm in your wallet. Each message is one NEAR Social write.</p>}
+            {sending && <p className="mt-2 text-[12px] text-muted">{t('thread.confirm')}</p>}
             {error && <p className="mt-2 rounded-xl bg-bad-soft px-3 py-2 text-[13px] text-bad">{error}</p>}
           </form>
         )}
@@ -153,17 +155,18 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
 }
 
 function Bubble({ m, sending }: { m: DmMessage; sending: boolean }) {
-  const time = new Date(m.at).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' })
+  const t = useT()
+  const time = formatDate(new Date(m.at), { hour: 'numeric', minute: '2-digit', day: 'numeric', month: 'short' })
   return (
     <div className={`flex ${m.mine ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 md:max-w-[70%] ${m.mine ? 'bg-ink text-bg' : 'bg-soft text-ink'}`}>
         {m.text === null ? (
-          <p className="text-[13px] italic opacity-70">Encrypted for another device. Open it where you set up messages.</p>
+          <p className="text-[13px] italic opacity-70">{t('thread.otherDevice')}</p>
         ) : (
           // Plain text only: React escapes it; no links, no markup.
           <p className="whitespace-pre-wrap break-words text-[14.5px] leading-snug [overflow-wrap:anywhere]">{m.text}</p>
         )}
-        <div className={`mt-0.5 text-right text-[10.5px] ${m.mine ? 'opacity-60' : 'text-muted'}`}>{sending ? 'Sent' : time}</div>
+        <div className={`mt-0.5 text-end text-[10.5px] ${m.mine ? 'opacity-60' : 'text-muted'}`}>{sending ? t('thread.sent') : time}</div>
       </div>
     </div>
   )

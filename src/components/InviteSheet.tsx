@@ -5,9 +5,11 @@ import { useWallet } from '../lib/wallet'
 import { can, decodeDescription, kindName, roleMembers } from '../lib/dao'
 import { allowJoinRequestsTx, defaultJoinRole, hasMemberRole, invitableRoles, joinLink, joinRequestsOpen } from '../lib/join'
 import { Button, TxStatus, useTx } from './ui'
+import { useT } from '../i18n'
 
 /** Invite by QR: show it at a meetup, people scan it and ask to join, the council approves. */
 export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; onAddByAccount?: () => void }) {
+  const t = useT()
   const { dao, refresh } = useDao()
   const { accountId, send } = useWallet()
   const [role, setRole] = useState(() => (dao ? defaultJoinRole(dao.policy) : 'member'))
@@ -42,7 +44,9 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
   const open = joinRequestsOpen(dao.policy) && hasMemberRole(dao.policy)
   const canPropose = can(dao.policy, accountId, 'policy', 'AddProposal')
   const switchPending = dao.proposals.find(
-    (p) => p.status === 'InProgress' && kindName(p.kind) === 'ChangePolicy' && decodeDescription(p.description).title === 'Let people ask to join',
+    (p) => p.status === 'InProgress' && kindName(p.kind) === 'ChangePolicy' && // On-chain proposal title (English, written by allowJoinRequestsTx): not translated.
+    // i18n-ignore
+    decodeDescription(p.description).title === 'Let people ask to join',
   )
 
   async function copy() {
@@ -58,39 +62,39 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
   const canShare = typeof navigator !== 'undefined' && 'share' in navigator
 
   return (
-    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Invite people">
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label={t('invite.title')}>
       <div
         className="max-h-[94vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[440px] sm:rounded-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between text-[12px] text-muted">
-          <span>Invite people</span>
-          <button onClick={onClose} className="-my-3 py-3 pl-4 hover:text-ink">Close</button>
+          <span>{t('invite.title')}</span>
+          <button onClick={onClose} className="-my-3 py-3 ps-4 hover:text-ink">{t('common.close')}</button>
         </div>
-        <p className="mt-1 text-[13.5px] text-muted">Show this at your meetup. People scan it and ask to join; the council approves each one.</p>
+        <p className="mt-1 text-[13.5px] text-muted">{t('invite.intro')}</p>
 
         {!open && (
           <div className="mt-5 rounded-xl bg-soft p-4 text-[13px]">
-            <div className="font-medium">This group doesn't take join requests yet</div>
+            <div className="font-medium">{t('invite.closed.title')}</div>
             <p className="mt-1 text-muted">
               {switchPending
-                ? 'A change to allow them is waiting for the council in Approve.'
-                : 'One council vote switches them on and adds a plain "member" role for newcomers.'}
+                ? t('invite.closed.pending')
+                : t('invite.closed.body')}
             </p>
             {!switchPending && isCouncil && canPropose && (
               <Button variant="secondary" className="mt-3 w-full" disabled={tx.state.status === 'signing'} onClick={() => tx.run(() => send(allowJoinRequestsTx(dao)), refresh)}>
-                Let people ask to join
+                {t('invite.closed.allow')}
               </Button>
             )}
             <div className="mt-2">
-              <TxStatus state={tx.state} doneText="Sent to the council. Approve it in Approve." />
+              <TxStatus state={tx.state} doneText={t('invite.closed.sent')} />
             </div>
           </div>
         )}
 
         {isCouncil && roles.length > 1 && (
           <div className="mt-5">
-            <span className="text-[12px] text-muted">They join as</span>
+            <span className="text-[12px] text-muted">{t('invite.joinAs')}</span>
             <div className="mt-2 flex flex-wrap gap-2 text-[13.5px]">
               {roles.map((r) => (
                 <button key={r} onClick={() => setRole(r)} className={`min-h-11 rounded-lg border px-4 sm:min-h-0 sm:py-2 ${role === r ? 'border-ink' : 'border-line text-muted hover:text-ink'}`}>
@@ -102,30 +106,30 @@ export function InviteSheet({ onClose, onAddByAccount }: { onClose: () => void; 
         )}
 
         <div className={`mx-auto mt-5 aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border border-line bg-white ${open ? '' : 'opacity-60'}`}>
-          {qr ? <img src={qr} alt={`QR code for ${link}`} className="size-full" data-testid="invite-qr" /> : <div className="skeleton size-full" />}
+          {qr ? <img src={qr} alt={t('invite.qrAlt', { link })} className="size-full" data-testid="invite-qr" /> : <div className="skeleton size-full" />}
         </div>
 
-        <div className="mt-5 flex items-center gap-2 rounded-lg border border-line bg-bg py-1 pl-3 pr-1">
+        <div className="mt-5 flex items-center gap-2 rounded-lg border border-line bg-bg py-1 ps-3 pe-1">
           <span className="min-w-0 flex-1 select-all truncate font-mono text-[12.5px] text-muted" title={link}>
             {link}
           </span>
           <button onClick={copy} className="min-h-10 shrink-0 rounded-md px-3 text-[13px] font-medium hover:bg-soft">
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? t('common.copied') : t('common.copy')}
           </button>
         </div>
         {canShare && (
           <Button
             variant="secondary"
             className="mt-2 w-full sm:hidden"
-            onClick={() => navigator.share({ title: `Join ${dao.config.name} on Terra`, url: link }).catch(() => undefined)}
+            onClick={() => navigator.share({ title: t('invite.shareTitle', { name: dao.config.name }), url: link }).catch(() => undefined)}
           >
-            Share link
+            {t('invite.share')}
           </Button>
         )}
 
         {onAddByAccount && (
           <button onClick={onAddByAccount} className="mt-2 min-h-11 text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline">
-            Know their NEAR account? Add them directly
+            {t('invite.addDirectly')}
           </button>
         )}
       </div>

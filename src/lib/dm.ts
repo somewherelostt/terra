@@ -10,6 +10,7 @@ import nacl from 'tweetnacl'
 import { view } from './near'
 import { SOCIAL_CONTRACT, cleanText as cleanSocialText, socialSetTx, type SocialTree } from './social'
 import type { Tx } from './dao'
+import { t } from '../i18n'
 
 export const DM_MAX = 500
 export const POLL_MS = 10_000
@@ -130,7 +131,7 @@ function idTime(id: string): number {
 
 export function encryptMessage(text: string, me: DmKey, theirPkB64: string): Envelope {
   const theirPk = fromB64(theirPkB64)
-  if (!theirPk || theirPk.length !== nacl.box.publicKeyLength) throw new Error("This member's message key looks wrong.")
+  if (!theirPk || theirPk.length !== nacl.box.publicKeyLength) throw new Error(t('dm.badKey'))
   const nonce = nacl.randomBytes(nacl.box.nonceLength)
   const c = nacl.box(new TextEncoder().encode(text), nonce, theirPk, me.secretKey)
   return { v: 1, n: toB64(nonce), c: toB64(c), k: toB64(me.publicKey), r: theirPkB64 }
@@ -138,7 +139,7 @@ export function encryptMessage(text: string, me: DmKey, theirPkB64: string): Env
 
 export async function sendMessageTx(from: string, to: string, text: string, me: DmKey, theirPkB64: string) {
   const clean = cleanText(text)
-  if (!clean) throw new Error('Write a message first.')
+  if (!clean) throw new Error(t('dm.empty'))
   const env = encryptMessage(clean, me, theirPkB64)
   const id = newId()
   const { tx, deposit } = await dmSetTx(from, { terra: { dm: { [to]: { [id]: JSON.stringify(env) } } } })

@@ -10,6 +10,9 @@ import { prettyName } from '../App'
 import { LandingNav } from './Landing'
 import SiteFooter from '../components/SiteFooter'
 import { Button } from '../components/ui'
+import { formatDate, formatNumber, t, tr, useT } from '../i18n'
+
+const dayMonth = (d: Date) => formatDate(d, { day: 'numeric', month: 'short' })
 
 
 /** Public, read-only board: no sign-in, no sidebar, no buttons that move money. */
@@ -18,6 +21,7 @@ import { Button } from '../components/ui'
  * `public`: the landing's navbar and width, for visitors and shared links.
  */
 export default function Board({ variant = 'public' }: { variant?: 'app' | 'public' }) {
+  const t = useT()
   const { dao, nearUsd, error, activity } = useDao()
   const [copied, setCopied] = useState(false)
   const isApp = variant === 'app'
@@ -26,7 +30,7 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
       <div className="mx-auto max-w-[560px] px-6 py-24 text-center">
         <div className="flex items-center justify-center gap-2 text-[13.5px]">
           <span className="size-1.5 rounded-full bg-bad" />
-          Couldn't find that treasury
+          {t('board.notFound')}
         </div>
         <p className="mt-2 text-[13px] text-muted">{error}</p>
       </div>
@@ -52,8 +56,11 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
   const publicLink = dao ? shareUrl(dao.id, 'board') : ''
   const title = dao ? (
     <>
-      {name} holds <span className="tnum">{money(dao.spendable + dao.staked)}</span> and has paid out{' '}
-      <span className="tnum">{activity ? money(paidThisYear) : '…'}</span> this year.
+      {tr('board.title', {
+        name,
+        held: <span className="tnum">{money(dao.spendable + dao.staked)}</span>,
+        paid: <span className="tnum">{activity ? money(paidThisYear) : '…'}</span>,
+      })}
     </>
   ) : null
 
@@ -71,12 +78,12 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
             {isApp ? (
               <>
                 <div className="flex items-center justify-between gap-3 text-[13px] text-muted">
-                  <span>Board</span>
+                  <span>{t('board.label')}</span>
                   <Button
                     variant="secondary"
                     onClick={() => navigator.clipboard?.writeText(publicLink).then(() => setCopied(true)).catch(() => setCopied(false))}
                   >
-                    {copied ? 'Public link copied' : 'Share public link'}
+                    {copied ? t('board.linkCopied') : t('board.shareLink')}
                   </Button>
                 </div>
                 <h1 className="mt-3 max-w-3xl text-[32px] leading-[1.1] font-light tracking-[-0.03em]">{title}</h1>
@@ -87,22 +94,22 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
                 <h1 className="mt-4 max-w-4xl text-[34px] leading-[1.02] font-light tracking-[-0.04em] md:text-[48px]">{title}</h1>
                 <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-[12px] text-muted">
                   <span aria-hidden className="size-1.5 rounded-full bg-good" />
-                  Read-only public board
+                  {t('board.readOnly')}
                 </span>
               </>
             )}
-            <p className="mt-4 text-[14.5px] text-muted">Every payout below was approved by members. Each one links to its record on NEAR.</p>
+            <p className="mt-4 text-[14.5px] text-muted">{t('board.lead')}</p>
 
             <div className="mt-10 grid grid-cols-2 border-y border-line md:grid-cols-4">
-              <Stat k="Members" v={String(allMembers(dao.policy).length)} cls="border-r border-line pr-5" />
-              <Stat k="Requests paid" v={String(payouts.length)} cls="border-line px-5 md:border-r" />
-              <Stat k="Median time to pay" v={activity ? (isFinite(median) ? wait(median) : '—') : '…'} cls="border-r border-t border-line pr-5 md:border-t-0 md:px-5" />
-              <Stat k="Earning" v={dao.staked > 0n ? `${yoctoToNear(dao.staked, 0)} NEAR staked` : 'Not yet'} cls="border-t border-line px-5 md:border-t-0" />
+              <Stat k={t('board.stat.members')} v={formatNumber(allMembers(dao.policy).length)} cls="border-e border-line pe-5" />
+              <Stat k={t('board.stat.paid')} v={formatNumber(payouts.length)} cls="border-line px-5 md:border-e" />
+              <Stat k={t('board.stat.median')} v={activity ? (isFinite(median) ? wait(median) : '—') : '…'} cls="border-e border-t border-line pe-5 md:border-t-0 md:px-5" />
+              <Stat k={t('board.stat.earning')} v={dao.staked > 0n ? t('board.stat.staked', { amount: yoctoToNear(dao.staked, 0) }) : t('board.stat.notYet')} cls="border-t border-line px-5 md:border-t-0" />
             </div>
 
             {open.length > 0 && (
               <div className="mt-10 text-[13.5px]">
-                <div className="border-b border-line pb-2 text-[12px] text-muted">Waiting for approval</div>
+                <div className="border-b border-line pb-2 text-[12px] text-muted">{t('board.waiting')}</div>
                 {open.map((p) => {
                   const meta = decodeDescription(p.description)
                   return (
@@ -111,27 +118,27 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
                         main={meta.title}
                         detail={
                           <>
-                            <MemberName id={p.proposer} card /> asked {nanoToDate(p.submission_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            {tr('board.askedOn', { who: <MemberName id={p.proposer} card />, date: dayMonth(nanoToDate(p.submission_time)) })}
                           </>
                         }
                       />
                       <span className="flex items-baseline justify-end gap-4">
                         <button
                           className="-my-3 py-3 text-[12px] text-muted hover:text-ink"
-                          title="Comments"
+                          title={t('board.comments')}
                           onClick={() =>
                             openRequestSheet({
                               daoId: dao.id,
                               proposalId: p.id,
                               title: meta.title,
-                              detail: <>Waiting for approval · <MemberName id={p.proposer} /> asked</>,
+                              detail: <>{tr('board.waitingAsked', { who: <MemberName id={p.proposer} /> })}</>,
                               amount: isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : undefined,
                             })
                           }
                         >
                           <CommentCount daoId={dao.id} proposalId={p.id} />
                         </button>
-                        <span className="tnum text-right text-muted sm:w-24">{isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : ''}</span>
+                        <span className="tnum text-end text-muted sm:w-24">{isNearTransfer(p.kind) ? money(p.kind.Transfer.amount) : ''}</span>
                       </span>
                     </div>
                   )
@@ -142,40 +149,42 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
             <div className="mt-10 text-[13.5px]">
               <div>
                 <div className="hidden grid-cols-[1fr_auto_auto] gap-8 border-b border-line pb-2 text-[12px] text-muted md:grid">
-                  <span>Payout</span>
-                  <span>Approved by</span>
-                  <span className="w-24 text-right">Amount</span>
+                  <span>{t('board.col.payout')}</span>
+                  <span>{t('board.col.approvedBy')}</span>
+                  <span className="w-24 text-end">{t('board.col.amount')}</span>
                 </div>
                 {payouts.length === 0 && (
                   <div className="border-b border-line py-8 text-muted">
-                    No payouts yet. When members approve a request, the payout shows up here with a link to its record on NEAR.
+                    {t('board.empty')}
                   </div>
                 )}
                 {payouts.slice(0, 40).map((p) => {
                   const meta = decodeDescription(p.description)
-                  const t = isNearTransfer(p.kind) ? p.kind.Transfer : null
+                  const tf = isNearTransfer(p.kind) ? p.kind.Transfer : null
                   const item = payoutItems.find((a) => a.proposalId === p.id)
-                  const when = (item?.time ?? nanoToDate(p.submission_time)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                  const when = dayMonth(item?.time ?? nanoToDate(p.submission_time))
                   const yes = Object.values(p.votes).filter((v) => v === 'Approve').length
-                  const amountUsd = t ? yoctoToNumber(t.amount) * nearUsd : NaN
+                  const amountUsd = tf ? yoctoToNumber(tf.amount) * nearUsd : NaN
                   const tier = isFinite(amountUsd) ? tierFor(amountUsd) : null
                   const council = approvalRules(dao.policy, p.kind).find((r) => isRole(r.role, 'council'))
                   const approvedBy =
                     tier === 'small' && yes <= 1
-                      ? '1 trusted member'
-                      : `${yes} approval${yes === 1 ? '' : 's'}${council && tier === 'large' ? `, of ${council.size} on the council` : ''}`
+                      ? t('board.approvedBy.trusted')
+                      : council && tier === 'large'
+                        ? t('board.approvedBy.ofCouncil', { count: yes, size: council.size })
+                        : t('board.approvedBy.count', { count: yes })
                   const wants = meta.wants?.replace(/\s+to\s+\S+$/, '')
                   return (
                     <div key={p.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 border-b border-line py-4 last:border-0 md:grid-cols-[1fr_auto_auto] md:gap-8">
                       <span className="flex min-w-0 items-center gap-2.5">
-                        {t && <Avatar id={t.receiver_id} size={22} />}
+                        {tf && <Avatar id={tf.receiver_id} size={22} />}
                         <RowText
                           main={meta.title}
                           detail={
                             <>
-                              {t && (
+                              {tf && (
                                 <>
-                                  to <MemberName id={t.receiver_id} card /> ·{' '}
+                                  {tr('board.paidTo', { who: <MemberName id={tf.receiver_id} card /> })} ·{' '}
                                 </>
                               )}
                               {`${wants ?? 'NEAR'} · ${when}`}
@@ -183,12 +192,12 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
                           }
                           extra={
                             <>
-                              <TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />
+                              <TxLink hash={activity?.payoutTx.get(p.id)} label={t('board.proof')} />
                               <button
-                                className="-my-3 ml-1 px-2 py-3 text-[12px] text-muted hover:text-ink"
-                                title="Comments"
+                                className="-my-3 ms-1 px-2 py-3 text-[12px] text-muted hover:text-ink"
+                                title={t('board.comments')}
                                 onClick={() =>
-                                  openRequestSheet({ daoId: dao.id, proposalId: p.id, title: meta.title, detail: `Paid · ${when}`, amount: t ? money(t.amount) : undefined })
+                                  openRequestSheet({ daoId: dao.id, proposalId: p.id, title: meta.title, detail: t('board.paidOn', { date: when }), amount: tf ? money(tf.amount) : undefined })
                                 }
                               >
                                 <CommentCount daoId={dao.id} proposalId={p.id} />
@@ -197,8 +206,8 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
                           }
                         />
                       </span>
-                      <span className="order-3 col-span-2 pl-8 text-[12px] text-muted md:order-none md:col-span-1 md:pl-0 md:text-[13.5px]">{approvedBy}</span>
-                      <span className="tnum text-right md:w-24">{t ? money(t.amount) : ''}</span>
+                      <span className="order-3 col-span-2 ps-8 text-[12px] text-muted md:order-none md:col-span-1 md:ps-0 md:text-[13.5px]">{approvedBy}</span>
+                      <span className="tnum text-end md:w-24">{tf ? money(tf.amount) : ''}</span>
                     </div>
                   )
                 })}
@@ -206,7 +215,7 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
             </div>
 
             <p className="mt-8 text-[12px] text-muted">
-              Small payouts (up to ${TIER_LIMITS_USD.small}) to people with a clean record can be approved by one trusted member; bigger ones need a council majority. Open requests are listed here until they are decided.
+              {t('board.footnote', { limit: formatNumber(TIER_LIMITS_USD.small, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }) })}
             </p>
           </>
         )}
@@ -221,7 +230,7 @@ export default function Board({ variant = 'public' }: { variant?: 'app' | 'publi
         boardUrl={publicLink || '#'}
         home="./"
         current="board"
-        joinCta={dao ? { label: `Join ${name}`, onClick: () => openDao(dao.id, 'join') } : undefined}
+        joinCta={dao ? { label: t('board.join', { name }), onClick: () => openDao(dao.id, 'join') } : undefined}
       />
       <main className="mx-auto max-w-[1200px] px-4 pt-10 pb-20 sm:px-6 md:pt-16 md:pb-28">{body}</main>
       <SiteFooter home="./" boardUrl={publicLink || '#'} />
@@ -239,7 +248,7 @@ function Stat({ k, v, cls }: { k: string; v: string; cls: string }) {
 }
 
 function wait(min: number): string {
-  if (min < 60) return `${Math.max(1, Math.round(min))} min`
-  if (min < 48 * 60) return `${Math.round(min / 60)} h`
-  return `${Math.round(min / 1440)} days`
+  if (min < 60) return t('board.wait.min', { count: Math.max(1, Math.round(min)) })
+  if (min < 48 * 60) return t('board.wait.hours', { count: Math.round(min / 60) })
+  return t('board.wait.days', { count: Math.round(min / 1440) })
 }

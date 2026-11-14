@@ -20,6 +20,7 @@ import {
   type AllowanceInfo,
 } from '../lib/allowance'
 import { Account, Badge, Button, Card, EmptyState, Field, Spinner, TxStatus, inputCls, useTx } from '../components/ui'
+import { formatDate, tr, useT } from '../i18n'
 
 function useAllowances() {
   const { dao } = useDao()
@@ -44,10 +45,11 @@ function useAllowances() {
 const money = (yocto: string | bigint, nearUsd: number) =>
   isFinite(nearUsd) ? `${usd(yoctoToNumber(yocto) * nearUsd)} (${yoctoToNear(yocto, 3)} NEAR)` : `${yoctoToNear(yocto, 3)} NEAR`
 
-const fmtDate = (ns: string) => nanoToDate(ns).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+const fmtDate = (ns: string) => formatDate(nanoToDate(ns), { day: 'numeric', month: 'short' })
 
 /** One line on Pay for people who hold an allowance. */
 export function AllowanceBanner() {
+  const t = useT()
   const { nearUsd } = useDao()
   const { accountId } = useWallet()
   const { info } = useAllowances()
@@ -58,16 +60,17 @@ export function AllowanceBanner() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-soft px-4 py-3 text-[13.5px]">
       <span>
-        {info.state.frozen ? 'Your allowance is frozen right now.' : now > 0n ? <>You can pay up to <b>{money(now, nearUsd)}</b> from your allowance, with no vote.</> : 'Your allowance has nothing left today.'}
+        {info.state.frozen ? t('allowances.banner.frozen') : now > 0n ? tr('allowances.banner.canPay', { b: (c) => <b>{c}</b>, amount: money(now, nearUsd) }) : t('allowances.banner.empty')}
       </span>
       {now > 0n && (
-        <Button variant="secondary" onClick={() => go('allowances')}>Spend from allowance</Button>
+        <Button variant="secondary" onClick={() => go('allowances')}>{t('allowances.banner.spend')}</Button>
       )}
     </div>
   )
 }
 
 export default function Allowances() {
+  const t = useT()
   const { dao, nearUsd, refresh } = useDao()
   const { accountId, send, signIn } = useWallet()
   const { info, error, reload } = useAllowances()
@@ -83,29 +86,24 @@ export default function Allowances() {
 
   return (
     <div>
-      <div className="text-[13px] text-muted">Allowances</div>
-      <h1 className="mt-3 text-[32px] leading-[1.1] font-light tracking-[-0.03em]">Small budgets, hard limits</h1>
+      <div className="text-[13px] text-muted">{t('allowances.eyebrow')}</div>
+      <h1 className="mt-3 text-[32px] leading-[1.1] font-light tracking-[-0.03em]">{t('allowances.title')}</h1>
       <p className="mt-1 max-w-2xl text-[13.5px] text-muted">
-        The group gives a member or an AI helper a small budget: a daily cap, a most-per-payment and an end date. Payments inside it skip the vote. The limits live in a contract the group owns, so nobody can go over them, and any council member can freeze it instantly.
+        {t('allowances.intro')}
       </p>
 
       {info === undefined && !error && (
-        <div className="mt-10 flex items-center gap-2 text-sm text-muted"><Spinner /> Reading allowances…</div>
+        <div className="mt-10 flex items-center gap-2 text-sm text-muted"><Spinner /> {t('allowances.loading')}</div>
       )}
-      {error && <div className="mt-10 rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">Couldn't read the allowance contract: {error}</div>}
+      {error && <div className="mt-10 rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">{t('allowances.loadError', { error })}</div>}
       {info === null && !error && (
         <EmptyState
           icon="plus"
           className="mt-10 max-w-2xl"
-          title="Not set up for this group yet"
-          text={
-            <>
-              Allowances need a small contract that this group owns. It's deployed once per group; see <span className="font-mono text-[12.5px]">contracts/allowance</span> in
-              the repo. Until then, every payment goes through a normal request.
-            </>
-          }
+          title={t('allowances.notSetUp.title')}
+          text={tr('allowances.notSetUp.text', { code: (c) => <span className="font-mono text-[12.5px]">{c}</span> })}
         >
-          <Button variant="secondary" onClick={() => go('pay')}>Request money instead</Button>
+          <Button variant="secondary" onClick={() => go('pay')}>{t('allowances.notSetUp.request')}</Button>
         </EmptyState>
       )}
 
@@ -113,31 +111,31 @@ export default function Allowances() {
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="min-w-0">
             <div className="grid grid-cols-2 border-y border-line">
-              <div className="border-r border-line py-5 pr-5">
-                <div className="text-[12px] text-muted">In the allowance pool</div>
+              <div className="border-e border-line py-5 pe-5">
+                <div className="text-[12px] text-muted">{t('allowances.pool')}</div>
                 <div className="tnum mt-1.5 text-[22px] font-light">{isFinite(nearUsd) ? usd(yoctoToNumber(info.state.balance) * nearUsd) : `${yoctoToNear(info.state.balance)} NEAR`}</div>
                 <div className="tnum text-xs text-muted">{yoctoToNear(info.state.balance, 3)} NEAR</div>
               </div>
-              <div className="py-5 pl-5">
-                <div className="text-[12px] text-muted">Status</div>
-                <div className="mt-2">{info.state.frozen ? <Badge tone="bad">Frozen</Badge> : <Badge tone="good">Open</Badge>}</div>
+              <div className="py-5 ps-5">
+                <div className="text-[12px] text-muted">{t('allowances.status')}</div>
+                <div className="mt-2">{info.state.frozen ? <Badge tone="bad">{t('allowances.frozen')}</Badge> : <Badge tone="good">{t('allowances.open')}</Badge>}</div>
                 <div className="mt-2 min-w-0 text-xs text-muted">
-                  Contract <a className="block truncate font-mono text-accent-text hover:underline" href={accountUrl(info.contractId)} target="_blank" rel="noreferrer">{info.contractId}</a>
+                  {t('allowances.contract')} <a className="block truncate font-mono text-accent-text hover:underline" href={accountUrl(info.contractId)} target="_blank" rel="noreferrer">{info.contractId}</a>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 text-[13.5px] font-medium">Budgets</div>
+            <div className="mt-8 text-[13.5px] font-medium">{t('allowances.budgets')}</div>
             {info.allowances.length === 0 ? (
               <EmptyState
                 icon="plus"
                 className="mt-2"
-                title="No allowances yet"
-                text={isCouncil ? 'Give a member or a helper a small budget that skips the vote.' : 'Council members can propose one.'}
+                title={t('allowances.none.title')}
+                text={isCouncil ? t('allowances.none.council') : t('allowances.none.member')}
               >
                 {isCouncil && accountId && (
                   <Button variant="secondary" onClick={() => document.getElementById('propose-allowance')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
-                    Propose an allowance
+                    {t('allowances.none.propose')}
                   </Button>
                 )}
               </EmptyState>
@@ -151,8 +149,8 @@ export default function Allowances() {
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <Account id={a.account_id} />
                         <span className="flex items-center gap-2">
-                          {!active && <Badge tone="warn">Ended {fmtDate(a.expires_at)}</Badge>}
-                          {active && <span className="text-xs text-muted">until {fmtDate(a.expires_at)}</span>}
+                          {!active && <Badge tone="warn">{t('allowances.ended', { date: fmtDate(a.expires_at) })}</Badge>}
+                          {active && <span className="text-xs text-muted">{t('allowances.until', { date: fmtDate(a.expires_at) })}</span>}
                         </span>
                       </div>
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-soft">
@@ -160,15 +158,15 @@ export default function Allowances() {
                       </div>
                       <dl className="mt-3 grid grid-cols-3 gap-3 text-[12px]">
                         <div>
-                          <dt className="text-muted">Left today</dt>
+                          <dt className="text-muted">{t('allowances.leftToday')}</dt>
                           <dd className="tnum mt-0.5 text-[13.5px] text-ink"><GridMoney yocto={a.left_today} nearUsd={nearUsd} /></dd>
                         </div>
                         <div>
-                          <dt className="text-muted">Daily cap</dt>
+                          <dt className="text-muted">{t('allowances.dailyCap')}</dt>
                           <dd className="tnum mt-0.5 text-[13.5px]"><GridMoney yocto={a.daily_cap} nearUsd={nearUsd} /></dd>
                         </div>
                         <div>
-                          <dt className="text-muted">Per payment</dt>
+                          <dt className="text-muted">{t('allowances.perPayment')}</dt>
                           <dd className="tnum mt-0.5 text-[13.5px]"><GridMoney yocto={a.per_payment_max} nearUsd={nearUsd} /></dd>
                         </div>
                       </dl>
@@ -183,12 +181,12 @@ export default function Allowances() {
 
             {pending.length > 0 && (
               <div className="mt-6 text-sm">
-                <div className="font-medium">Waiting for approval</div>
-                <ul className="mt-1 list-disc pl-5 text-muted">
+                <div className="font-medium">{t('allowances.pending.title')}</div>
+                <ul className="mt-1 list-disc ps-5 text-muted">
                   {pending.map((p) => (
                     <li key={p.id}>
                       #{p.id} {decodeDescription(p.description).title} ·{' '}
-                      <button className="-my-3 py-3 text-accent-text hover:underline" onClick={() => go('approve')}>approve</button>
+                      <button className="-my-3 py-3 text-accent-text hover:underline" onClick={() => go('approve')}>{t('allowances.pending.approve')}</button>
                     </li>
                   ))}
                 </ul>
@@ -196,13 +194,13 @@ export default function Allowances() {
             )}
 
             <p className="mt-8 text-[12px] text-muted">
-              Enforced by the contract: daily cap, most per payment, end date, freeze, and that only the group can change them. Caps are stored in NEAR and converted from dollars at the price when the request is filed. A day is a UTC calendar day.
+              {t('allowances.enforced')}
             </p>
           </div>
 
           <div className="flex flex-col gap-6 self-start">
             {!accountId ? (
-              <Card><Button className="w-full" onClick={signIn}>Sign in to use allowances</Button></Card>
+              <Card><Button className="w-full" onClick={signIn}>{t('allowances.signIn')}</Button></Card>
             ) : (
               <>
                 <SpendCard info={info} accountId={accountId} nearUsd={nearUsd} send={send} onDone={after} />
@@ -235,19 +233,21 @@ function GridMoney({ yocto, nearUsd }: { yocto: string | bigint; nearUsd: number
 }
 
 function RemoveButton({ run, onDone }: { run: () => Promise<string>; onDone: () => Promise<void> }) {
+  const t = useT()
   const tx = useTx()
   return (
     <div className="mt-2">
       {tx.state.status === 'idle' ? (
-        <button className="-my-2 min-h-11 text-xs text-muted hover:text-bad hover:underline sm:min-h-0 sm:py-2" onClick={() => tx.run(run, onDone)}>Propose ending this allowance</button>
+        <button className="-my-2 min-h-11 text-xs text-muted hover:text-bad hover:underline sm:min-h-0 sm:py-2" onClick={() => tx.run(run, onDone)}>{t('allowances.remove.button')}</button>
       ) : (
-        <TxStatus state={tx.state} doneText="Request filed. Approve it in Approve." />
+        <TxStatus state={tx.state} doneText={t('allowances.remove.done')} />
       )}
     </div>
   )
 }
 
 function SpendCard({ info, accountId, nearUsd, send, onDone }: { info: AllowanceInfo; accountId: string; nearUsd: number; send: Send; onDone: () => Promise<void> }) {
+  const t = useT()
   const mine = info.allowances.find((a) => a.account_id === accountId)
   const [to, setTo] = useState('')
   const [amount, setAmount] = useState('')
@@ -259,46 +259,47 @@ function SpendCard({ info, accountId, nearUsd, send, onDone }: { info: Allowance
   const valid = !frozen && isValidAccountId(to.trim()) && yocto != null && yocto > 0n
   return (
     <Card>
-      <div className="mb-1 text-[13.5px] font-medium">Spend from your allowance</div>
+      <div className="mb-1 text-[13.5px] font-medium">{t('allowances.spend.title')}</div>
       <p className="mb-4 text-xs text-muted">
-        {frozen ? 'Frozen by the council. Payments are refused until the group unfreezes it.' : `Up to ${money(max, nearUsd)} right now. No vote needed.`}
+        {frozen ? t('allowances.spend.frozen') : t('allowances.spend.upTo', { amount: money(max, nearUsd) })}
       </p>
-      <Field label="Pay to (NEAR account)">
+      <Field label={t('allowances.spend.to')}>
         <input className={inputCls} value={to} onChange={(e) => setTo(e.target.value)} placeholder="name.testnet" autoCapitalize="off" spellCheck={false} />
       </Field>
       <div className="mt-3">
-        <Field label="Amount ($)" hint={yocto ? `${yoctoToNear(yocto, 4)} NEAR${!frozen && yocto > max ? ' · over your limit, the contract will refuse it' : ''}` : undefined}>
+        <Field label={t('allowances.spend.amount')} hint={yocto ? t(!frozen && yocto > max ? 'allowances.spend.hintOver' : 'allowances.spend.hint', { amount: yoctoToNear(yocto, 4) }) : undefined}>
           <input className={inputCls} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="2.00" />
         </Field>
       </div>
       <Button className="mt-4 w-full" disabled={!valid || tx.state.status === 'signing'} onClick={() => tx.run(() => send(payFromAllowanceTx(info.contractId, to.trim(), yocto!)), onDone)}>
-        Pay now
+        {t('allowances.spend.button')}
       </Button>
-      <div className="mt-3"><TxStatus state={tx.state} doneText="Paid from your allowance." /></div>
+      <div className="mt-3"><TxStatus state={tx.state} doneText={t('allowances.spend.done')} /></div>
     </Card>
   )
 }
 
 function FreezeCard({ info, accountId, isCouncil, send, dao, onDone }: { info: AllowanceInfo; accountId: string; isCouncil: boolean; send: Send; dao: DaoT; onDone: () => Promise<void> }) {
+  const t = useT()
   const tx = useTx()
   const [did, setDid] = useState('')
   const guardian = info.state.guardians.includes(accountId)
   if (!guardian && !isCouncil) return null
   return (
     <Card>
-      <div className="mb-1 text-[13.5px] font-medium">{info.state.frozen ? 'Unfreeze' : 'Freeze'}</div>
+      <div className="mb-1 text-[13.5px] font-medium">{info.state.frozen ? t('allowances.freeze.unfreezeTitle') : t('allowances.freeze.title')}</div>
       {info.state.frozen ? (
         <>
-          <p className="mb-4 text-xs text-muted">Unfreezing needs the group's approval, so it's a request.</p>
-          <Button className="w-full" variant="secondary" disabled={!isCouncil || tx.state.status === 'signing'} onClick={() => { setDid('Unfreeze request filed. Approve it in Approve.'); tx.run(() => send(unfreezeProposalTx(dao, info.contractId)), onDone) }}>
-            Request unfreeze
+          <p className="mb-4 text-xs text-muted">{t('allowances.freeze.unfreezeNote')}</p>
+          <Button className="w-full" variant="secondary" disabled={!isCouncil || tx.state.status === 'signing'} onClick={() => { setDid(t('allowances.freeze.unfreezeDone')); tx.run(() => send(unfreezeProposalTx(dao, info.contractId)), onDone) }}>
+            {t('allowances.freeze.unfreezeButton')}
           </Button>
         </>
       ) : (
         <>
-          <p className="mb-4 text-xs text-muted">{guardian ? 'Stops every allowance at once, no vote. Only the group can unfreeze.' : 'You are not a guardian on the contract, so you can’t freeze instantly.'}</p>
-          <Button className="w-full" variant="danger" disabled={!guardian || tx.state.status === 'signing'} onClick={() => { setDid('Allowances frozen.'); tx.run(() => send(freezeTx(info.contractId)), onDone) }}>
-            Freeze all allowances
+          <p className="mb-4 text-xs text-muted">{guardian ? t('allowances.freeze.note') : t('allowances.freeze.notGuardian')}</p>
+          <Button className="w-full" variant="danger" disabled={!guardian || tx.state.status === 'signing'} onClick={() => { setDid(t('allowances.freeze.done')); tx.run(() => send(freezeTx(info.contractId)), onDone) }}>
+            {t('allowances.freeze.button')}
           </Button>
         </>
       )}
@@ -309,6 +310,7 @@ function FreezeCard({ info, accountId, isCouncil, send, dao, onDone }: { info: A
 
 /** `primary` is false when the viewer also holds an allowance, so Pay now stays the one accent button. */
 function CreateCard({ info, nearUsd, send, dao, onDone, primary }: { info: AllowanceInfo; nearUsd: number; send: Send; dao: DaoT; onDone: () => Promise<void>; primary: boolean }) {
+  const t = useT()
   const [who, setWho] = useState('')
   const [cap, setCap] = useState('5')
   const [per, setPer] = useState('2')
@@ -333,6 +335,7 @@ function CreateCard({ info, nearUsd, send, dao, onDone, primary }: { info: Allow
             perPaymentMax: perY!,
             expiresAt,
             funding: fundY!,
+            // On-chain proposal title: stays English with an English date, never translated.
             label: `$${cap} a day, up to $${per} a payment, until ${expiresAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}${fundY ? `, adds $${fund} to the pool` : ''}`,
           }),
         ),
@@ -342,22 +345,22 @@ function CreateCard({ info, nearUsd, send, dao, onDone, primary }: { info: Allow
   return (
     <div id="propose-allowance" className="scroll-mt-24">
     <Card>
-      <div className="mb-1 text-[13.5px] font-medium">Propose an allowance</div>
-      <p className="mb-4 text-xs text-muted">Filed as a request; it starts once the group approves it.</p>
-      <Field label="Who (member or AI helper account)">
+      <div className="mb-1 text-[13.5px] font-medium">{t('allowances.create.title')}</div>
+      <p className="mb-4 text-xs text-muted">{t('allowances.create.note')}</p>
+      <Field label={t('allowances.create.who')}>
         <input className={inputCls} value={who} onChange={(e) => setWho(e.target.value)} placeholder="helper.name.testnet" autoCapitalize="off" spellCheck={false} />
       </Field>
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <Field label="Daily cap ($)"><input className={inputCls} inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} /></Field>
-        <Field label="Per payment ($)"><input className={inputCls} inputMode="decimal" value={per} onChange={(e) => setPer(e.target.value)} /></Field>
-        <Field label="Lasts (days)"><input className={inputCls} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} /></Field>
-        <Field label="Add to pool ($)"><input className={inputCls} inputMode="decimal" value={fund} onChange={(e) => setFund(e.target.value)} /></Field>
+        <Field label={t('allowances.create.cap')}><input className={inputCls} inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} /></Field>
+        <Field label={t('allowances.create.per')}><input className={inputCls} inputMode="decimal" value={per} onChange={(e) => setPer(e.target.value)} /></Field>
+        <Field label={t('allowances.create.days')}><input className={inputCls} inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value)} /></Field>
+        <Field label={t('allowances.create.fund')}><input className={inputCls} inputMode="decimal" value={fund} onChange={(e) => setFund(e.target.value)} /></Field>
       </div>
-      {capY && perY && perY > capY && <p className="mt-2 text-xs text-bad">Per payment can't be above the daily cap.</p>}
-      {fundY != null && fundY >= dao.spendable && <p className="mt-2 text-xs text-bad">The treasury can spend {yoctoToNear(dao.spendable, 3)} NEAR; lower “Add to pool” (0 is fine).</p>}
-      {capY && <p className="mt-2 text-xs text-muted">Daily cap ≈ {yoctoToNear(capY, 3)} NEAR at today's price.</p>}
-      <Button className="mt-4 w-full" variant={primary ? 'primary' : 'secondary'} disabled={!valid || tx.state.status === 'signing'} onClick={propose}>Propose allowance</Button>
-      <div className="mt-3"><TxStatus state={tx.state} doneText="Allowance request filed. Approve it in Approve." /></div>
+      {capY && perY && perY > capY && <p className="mt-2 text-xs text-bad">{t('allowances.create.perOverCap')}</p>}
+      {fundY != null && fundY >= dao.spendable && <p className="mt-2 text-xs text-bad">{t('allowances.create.fundTooHigh', { amount: yoctoToNear(dao.spendable, 3) })}</p>}
+      {capY && <p className="mt-2 text-xs text-muted">{t('allowances.create.capNear', { amount: yoctoToNear(capY, 3) })}</p>}
+      <Button className="mt-4 w-full" variant={primary ? 'primary' : 'secondary'} disabled={!valid || tx.state.status === 'signing'} onClick={propose}>{t('allowances.create.button')}</Button>
+      <div className="mt-3"><TxStatus state={tx.state} doneText={t('allowances.create.done')} /></div>
     </Card>
     </div>
   )
@@ -365,6 +368,7 @@ function CreateCard({ info, nearUsd, send, dao, onDone, primary }: { info: Allow
 
 function HelperKeyCard({ info, accountId, send }: { info: AllowanceInfo; accountId: string; send: Send }) {
   const mine = info.allowances.find((a) => a.account_id === accountId)
+  const t = useT()
   const [secret, setSecret] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const tx = useTx()
@@ -375,7 +379,7 @@ function HelperKeyCard({ info, accountId, send }: { info: AllowanceInfo; account
     try {
       key = await newHelperKey()
     } catch {
-      setErr('This browser can’t make ed25519 keys. Try a recent Chrome, Safari or Firefox.')
+      setErr(t('allowances.helper.noEd25519'))
       return
     }
     const hash = await tx.run(() => send(addHelperKeyTx(accountId, info.contractId, key.publicKey)))
@@ -383,21 +387,21 @@ function HelperKeyCard({ info, accountId, send }: { info: AllowanceInfo; account
   }
   return (
     <Card>
-      <div className="mb-1 text-[13.5px] font-medium">Give an AI helper a key</div>
+      <div className="mb-1 text-[13.5px] font-medium">{t('allowances.helper.title')}</div>
       <p className="mb-4 text-xs text-muted">
-        Adds a key to {accountId} that can only call <span className="font-mono">pay</span> on the allowance contract, with {yoctoToNear(HELPER_GAS_ALLOWANCE)} NEAR for gas. It can’t move money any other way, and it can’t go over this allowance. Delete it from your wallet at any time.
+        {tr('allowances.helper.text', { account: accountId, code: (c) => <span className="font-mono">{c}</span>, gas: yoctoToNear(HELPER_GAS_ALLOWANCE) })}
       </p>
       {!secret ? (
-        <Button className="w-full" variant="secondary" disabled={tx.state.status === 'signing'} onClick={make}>Make helper key</Button>
+        <Button className="w-full" variant="secondary" disabled={tx.state.status === 'signing'} onClick={make}>{t('allowances.helper.button')}</Button>
       ) : (
         <div className="rounded-xl bg-soft p-3 text-xs">
-          <div className="font-medium">Copy this now; it's shown only once.</div>
+          <div className="font-medium">{t('allowances.helper.copyNow')}</div>
           <code className="mt-2 block break-all font-mono">{secret}</code>
-          <Button className="mt-2" variant="secondary" onClick={() => navigator.clipboard.writeText(secret)}>Copy</Button>
+          <Button className="mt-2" variant="secondary" onClick={() => navigator.clipboard.writeText(secret)}>{t('common.copy')}</Button>
         </div>
       )}
       {err && <p className="mt-2 text-xs text-bad">{err}</p>}
-      <div className="mt-3"><TxStatus state={tx.state} doneText="Helper key added." /></div>
+      <div className="mt-3"><TxStatus state={tx.state} doneText={t('allowances.helper.done')} /></div>
     </Card>
   )
 }

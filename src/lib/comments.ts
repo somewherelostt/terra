@@ -15,6 +15,7 @@ import { useContext, useEffect, useReducer } from 'react'
 import { allMembers, type Tx } from './dao'
 import { DaoContext } from './store'
 import { cleanText, readBack, socialGet, socialSetTx, type SocialTree } from './social'
+import { t } from '../i18n'
 
 export const COMMENT_MAX = 280
 
@@ -138,8 +139,8 @@ export function useGroupComments(daoId: string | null | undefined) {
 
 export function validateComment(input: string): { text: string } | { error: string } {
   const text = cleanText(input, COMMENT_MAX + 1)
-  if (!text) return { error: 'Write something first.' }
-  if (text.length > COMMENT_MAX) return { error: `Keep it to ${COMMENT_MAX} characters.` }
+  if (!text) return { error: t('comments.error.empty') }
+  if (text.length > COMMENT_MAX) return { error: t('comments.error.tooLong', { max: COMMENT_MAX }) }
   return { text }
 }
 

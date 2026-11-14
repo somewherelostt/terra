@@ -3,6 +3,7 @@ import { loadDao, type Dao } from './dao'
 import { invalidateActivity, loadActivity, type ActivityResult } from './activity'
 import { getNearUsdPrice } from './intents'
 import { computeRecords, type MemberRecord } from './record'
+import { t } from '../i18n'
 
 export const DEMO_DAO = import.meta.env.VITE_DEMO_DAO || 'nearhack-community.sputnikv2.testnet'
 export const STAKING_POOL = import.meta.env.VITE_STAKING_POOL || 'aurora.pool.f863973.m0'
@@ -72,8 +73,8 @@ export function shareUrl(daoId: string, page: Page = 'board', query?: Record<str
 
 /** RPC errors in plain words for someone who typed or followed a treasury link. */
 function friendlyLoadError(daoId: string, msg: string): string {
-  if (/does not exist|UNKNOWN_ACCOUNT|not found/i.test(msg)) return `There's no account called ${daoId} on NEAR testnet. Check the name, or start a new group.`
-  if (/CodeDoesNotExist|MethodNotFound|MethodResolveError/i.test(msg)) return `${daoId} is a NEAR account, but not a Sputnik DAO, so it has no treasury to open.`
+  if (/does not exist|UNKNOWN_ACCOUNT|not found/i.test(msg)) return t('store.noAccount', { id: daoId })
+  if (/CodeDoesNotExist|MethodNotFound|MethodResolveError/i.test(msg)) return t('store.notDao', { id: daoId })
   return msg
 }
 

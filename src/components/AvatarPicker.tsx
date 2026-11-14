@@ -3,9 +3,11 @@ import { useWallet } from '../lib/wallet'
 import { AVATAR_STYLE, AVATAR_STYLES, SOCIAL_CONTRACT, dicebearUrl, invalidateAvatar, readSavedChoice, saveAvatarTx, type AvatarChoice } from '../lib/avatar'
 import { wait } from '../lib/motion'
 import { Button, TxLink } from './ui'
+import { tr, useT } from '../i18n'
 
 /** "Change avatar": shuffle DiceBear seeds and styles, then save to the member's NEAR Social data. */
 export function AvatarPicker({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const { accountId, send } = useWallet()
   const [style, setStyle] = useState(AVATAR_STYLE)
   const [picked, setPicked] = useState<AvatarChoice | null>(null)
@@ -59,31 +61,31 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
         }
       }
       setStatus('error')
-      setError("The write didn't show up yet. It can take a few seconds; check again in a moment.")
+      setError(t('avatar.error.notYet'))
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       setStatus('error')
-      setError(/reject|cancel|closed|denied/i.test(msg) ? 'Cancelled in the wallet.' : msg)
+      setError(/reject|cancel|closed|denied/i.test(msg) ? t('common.cancelledInWallet') : msg)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Change avatar">
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label={t('avatar.change')}>
       <div className="max-h-[92vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[460px] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between text-[12px] text-muted">
-          <span>Change avatar</span>
-          <button onClick={onClose} className="-my-3 py-3 pl-4 hover:text-ink">Close</button>
+          <span>{t('avatar.change')}</span>
+          <button onClick={onClose} className="-my-3 py-3 ps-4 hover:text-ink">{t('common.close')}</button>
         </div>
 
         <div className="mt-5 flex items-center gap-4">
           <img src={dicebearUrl(current.style, current.seed)} alt="" className="size-16 rounded-xl" />
           <div className="min-w-0 text-[13px]">
             <div className="truncate font-medium">{accountId}</div>
-            <div className="text-muted">Saved to your NEAR Social profile, so other apps can show it too.</div>
+            <div className="text-muted">{t('avatar.savedTo')}</div>
           </div>
         </div>
 
-        {AVATAR_STYLES.length > 1 && <div className="mt-6 text-[12px] text-muted">Style</div>}
+        {AVATAR_STYLES.length > 1 && <div className="mt-6 text-[12px] text-muted">{t('avatar.style')}</div>}
         <div className={`mt-2 flex-wrap gap-1.5 text-[12.5px] ${AVATAR_STYLES.length > 1 ? 'flex' : 'hidden'}`}>
           {AVATAR_STYLES.map((st) => (
             <button
@@ -103,19 +105,18 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
 
         <div className="mt-6 flex items-center gap-3">
           <Button className="flex-1 !py-3" disabled={status === 'signing' || status === 'checking'} onClick={save}>
-            {status === 'signing' ? <span className="spin" /> : status === 'checking' ? 'Checking it landed…' : status === 'saved' ? 'Saved ✓' : 'Save'}
+            {status === 'signing' ? <span className="spin" /> : status === 'checking' ? t('common.checkingLanded') : status === 'saved' ? t('common.savedCheck') : t('common.save')}
           </Button>
           <Button variant="secondary" className="!py-3" onClick={onClose}>
-            {status === 'saved' ? 'Done' : 'Cancel'}
+            {status === 'saved' ? t('common.done') : t('common.cancel')}
           </Button>
         </div>
         <p className="mt-3 text-[12px] text-muted">
-          Writes to <span className="font-mono">{SOCIAL_CONTRACT}</span>. The first save adds 0.05 NEAR of storage to your NEAR Social account. Explorers sometimes label these writes
-          "failed" even though the data is saved; Terra reads it back to check.
+          {tr('avatar.footnote', { contract: <span className="font-mono">{SOCIAL_CONTRACT}</span>, amount: 0.05 })}
         </p>
         {hash && (
           <div className="mt-2 text-[12px]">
-            <TxLink hash={hash} label="Transaction" />
+            <TxLink hash={hash} label={t('common.transaction')} />
           </div>
         )}
         {error && <p className="mt-2 text-[12px] text-bad">{error}</p>}
@@ -126,6 +127,7 @@ export function AvatarPicker({ onClose }: { onClose: () => void }) {
 
 /** The "Pick one" grid with Shuffle. Shared by Change avatar and Edit profile. */
 export function AvatarGrid({ accountId, style = AVATAR_STYLE, value, onChange }: { accountId: string; style?: string; value: AvatarChoice; onChange: (c: AvatarChoice) => void }) {
+  const t = useT()
   const [round, setRound] = useState(0)
   const seeds = useMemo(
     () => Array.from({ length: 8 }, (_, i) => (round === 0 && i === 0 ? accountId : `${accountId}#${round * 8 + i}`)),
@@ -134,8 +136,8 @@ export function AvatarGrid({ accountId, style = AVATAR_STYLE, value, onChange }:
   return (
     <>
       <div className="mt-5 flex items-center justify-between text-[12px] text-muted">
-        <span>Pick one</span>
-        <button type="button" className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => setRound((r) => r + 1)}>Shuffle ↻</button>
+        <span>{t('avatar.pick')}</span>
+        <button type="button" className="-my-3 py-3 ps-4 hover:text-ink" onClick={() => setRound((r) => r + 1)}>{t('avatar.shuffle')}</button>
       </div>
       <div className="mt-2 grid grid-cols-4 gap-2">
         {seeds.map((seed) => {
@@ -146,7 +148,7 @@ export function AvatarGrid({ accountId, style = AVATAR_STYLE, value, onChange }:
               key={seed}
               onClick={() => onChange({ style, seed })}
               className={`grid aspect-square place-items-center rounded-xl border ${on ? 'border-ink bg-soft' : 'border-line hover:bg-soft'}`}
-              aria-label={`Avatar option ${seed}`}
+              aria-label={t('avatar.option', { seed })}
               aria-pressed={on}
             >
               <img src={dicebearUrl(style, seed)} alt="" className="size-12 rounded-[10px]" loading="lazy" />

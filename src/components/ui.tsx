@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { accountUrl, txUrl, viewAccount } from '../lib/near'
 import { useAvatarUrl } from '../lib/avatar'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
+import { t, tr, useT } from '../i18n'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-2xl border border-line bg-card p-5 ${className}`}>{children}</div>
@@ -104,24 +105,25 @@ export function Money({ yocto, nearUsd, size = 'md' }: { yocto: string | bigint;
   )
 }
 
-export function TxLink({ hash, label = 'View on NearBlocks' }: { hash?: string; label?: string }) {
+export function TxLink({ hash, label }: { hash?: string; label?: string }) {
+  const t = useT()
   if (!hash) return null
   return (
     <a href={txUrl(hash)} target="_blank" rel="noreferrer" className="relative after:absolute after:-inset-x-2 after:-inset-y-3 after:content-[''] text-xs font-medium text-accent-text hover:underline">
-      {label} ↗
+      {label ?? t('ui.viewOnNearBlocks')} ↗
     </a>
   )
 }
 
 export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'good' | 'bad' | 'warn' | 'brand' }) {
-  const t = {
+  const toneCls = {
     neutral: 'bg-soft text-muted',
     good: 'bg-good-soft text-good',
     bad: 'bg-bad-soft text-bad',
     warn: 'bg-warn-soft text-warn',
     brand: 'bg-brand-soft text-accent-text',
   }[tone]
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${t}`}>{children}</span>
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${toneCls}`}>{children}</span>
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
@@ -177,7 +179,8 @@ export function EmptyState({
 }
 
 export function Spinner() {
-  return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-label="Loading" />
+  const t = useT()
+  return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-e-transparent" aria-label={t('ui.loading')} />
 }
 
 export interface TxState {
@@ -197,7 +200,7 @@ export function useTx() {
       return hash
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      setState({ status: 'error', error: /reject|cancel|closed|denied/i.test(msg) ? 'Cancelled in the wallet.' : msg })
+      setState({ status: 'error', error: /reject|cancel|closed|denied/i.test(msg) ? t('ui.tx.cancelled') : msg })
       return null
     }
   }
@@ -205,11 +208,12 @@ export function useTx() {
 }
 
 export function TxStatus({ state, doneText }: { state: TxState; doneText: string }) {
+  const t = useT()
   if (state.status === 'idle') return null
   if (state.status === 'signing')
     return (
       <div className="flex items-center gap-2 rounded-xl bg-soft px-3 py-2 text-sm text-muted">
-        <Spinner /> Waiting for your wallet…
+        <Spinner /> {t('ui.tx.waiting')}
       </div>
     )
   if (state.status === 'error') return <div className="rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">{state.error}</div>
@@ -237,22 +241,22 @@ export function showToast(text: string, action?: ToastMsg['action']) {
 export function Toaster() {
   const [msg, setMsg] = useState<ToastMsg | null>(null)
   useEffect(() => {
-    let t: ReturnType<typeof setTimeout>
+    let timer: ReturnType<typeof setTimeout>
     const on = (e: Event) => {
       setMsg((e as CustomEvent<ToastMsg>).detail)
-      clearTimeout(t)
-      t = setTimeout(() => setMsg(null), 4000)
+      clearTimeout(timer)
+      timer = setTimeout(() => setMsg(null), 4000)
     }
     window.addEventListener('terra:toast', on)
     return () => {
       window.removeEventListener('terra:toast', on)
-      clearTimeout(t)
+      clearTimeout(timer)
     }
   }, [])
   if (!msg) return null
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-[calc(96px+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 md:bottom-8" role="status">
-      <div key={msg.id} className="toast-in pointer-events-auto flex items-center gap-3 rounded-full bg-hero py-2.5 pl-4 pr-2 text-[13.5px] text-on-hero ring-1 ring-[var(--hero-ring)]">
+      <div key={msg.id} className="toast-in pointer-events-auto flex items-center gap-3 rounded-full bg-hero py-2.5 ps-4 pe-2 text-[13.5px] text-on-hero ring-1 ring-[var(--hero-ring)]">
         <span className="size-1.5 rounded-full bg-accent" />
         <span>{msg.text}</span>
         {msg.action && (
@@ -293,6 +297,7 @@ export function RowText({ main, detail, extra }: { main: ReactNode; detail?: Rea
  * exist here, and every transaction would fail, so say so before anyone tries.
  */
 export function WrongNetworkBanner({ accountId, onSignOut }: { accountId: string | null; onSignOut: () => void }) {
+  useT() // re-render on language change (tr reads the catalog)
   const [missing, setMissing] = useState(false)
   useEffect(() => {
     setMissing(false)
@@ -308,12 +313,16 @@ export function WrongNetworkBanner({ accountId, onSignOut }: { accountId: string
   if (!accountId || !missing) return null
   return (
     <div className="rounded-xl bg-warn-soft px-4 py-3 text-[13px] text-warn" role="alert">
-      <span className="font-medium">{accountId} isn't on NEAR testnet.</span> Terra runs on testnet, so transactions from this account would fail. Switch your wallet to testnet (a
-      faucet-funded <span className="font-mono">.testnet</span> account), then{' '}
-      <button className="underline underline-offset-2" onClick={onSignOut}>
-        sign in again
-      </button>
-      .
+      {tr('ui.wrongNetwork', {
+        account: accountId,
+        b: (c) => <span className="font-medium">{c}</span>,
+        mono: (c) => <span className="font-mono">{c}</span>,
+        signIn: (c) => (
+          <button className="underline underline-offset-2" onClick={onSignOut}>
+            {c}
+          </button>
+        ),
+      })}
     </div>
   )
 }

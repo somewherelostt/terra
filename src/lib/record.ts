@@ -3,6 +3,7 @@
 import { allMembers, approvalRules, isExpired, isNearTransfer, isRole, roleMembers, type Dao, type Proposal } from './dao'
 import type { ActivityItem } from './activity'
 import { yoctoToNumber } from './format'
+import { t } from '../i18n'
 
 export interface MemberRecord {
   accountId: string
@@ -76,10 +77,21 @@ export function tierFor(amountUsd: number): Tier {
   return 'large'
 }
 
+/** English tier copy. Pay writes `label` into the proposal description, so this stays English (chain text). */
 export const TIER_COPY: Record<Tier, { label: string; rule: string }> = {
   small: { label: 'Fast lane', rule: 'One nod from a trusted member other than the requester' },
   mid: { label: 'Council nod', rule: 'The council approves at its usual threshold' },
   large: { label: 'Full vote', rule: 'The council votes at its usual threshold; it stays on the public board while open' },
+}
+
+/** On-screen tier name in the current language. Use TIER_COPY for text sent on chain. */
+export function tierLabel(tier: Tier): string {
+  return { small: t('record.tier.small.label'), mid: t('record.tier.mid.label'), large: t('record.tier.large.label') }[tier]
+}
+
+/** On-screen approval rule for a tier, in the current language. */
+export function tierRule(tier: Tier): string {
+  return { small: t('record.tier.small.rule'), mid: t('record.tier.mid.rule'), large: t('record.tier.large.rule') }[tier]
 }
 
 export interface TierRoute {
@@ -88,6 +100,7 @@ export interface TierRoute {
   /** Who may give the approvals that count for this request in Terra. */
   voters: string[]
   needed: number
+  /** Shown on screen, in the current language. */
   reason: string
 }
 
@@ -111,7 +124,7 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
     // Fast lane: one trusted member who isn't the requester. Only the trusted role's
     // threshold is 1, so council-only members can't give the single nod.
     const nodders = trusted.members.filter((m) => m !== p.proposer)
-    if (nodders.length) return { tier, effectiveTier, voters: nodders, needed: 1, reason: 'Small request from a member with a clean record' }
+    if (nodders.length) return { tier, effectiveTier, voters: nodders, needed: 1, reason: t('record.reason.smallClean') }
     effectiveTier = 'mid'
     noNodder = true
   }
@@ -123,10 +136,10 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
       needed: council.needed,
       reason:
         tier === 'small' && !clean
-          ? 'Small, but the requester has no track record yet'
+          ? t('record.reason.smallNoRecord')
           : noNodder
-            ? 'Small, but no other trusted member can give the fast-lane nod'
-            : 'Mid-size request',
+            ? t('record.reason.smallNoNodder')
+            : t('record.reason.mid'),
     }
   }
   return {
@@ -134,7 +147,7 @@ export function routeRequest(dao: Dao, p: Proposal, nearUsd: number, records: Ma
     effectiveTier: 'large',
     voters: council?.members ?? [],
     needed: council?.needed ?? 1,
-    reason: 'Large request: full council vote',
+    reason: t('record.reason.large'),
   }
 }
 

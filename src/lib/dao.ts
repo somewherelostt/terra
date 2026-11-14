@@ -2,6 +2,7 @@
 // Contract: https://github.com/near-daos/sputnik-dao-contract
 
 import { FACTORY, ONE_NEAR, TGAS, toBase64, view, viewAccount, spendableBalance, type AccountState } from './near'
+import { t } from '../i18n'
 
 export type RoleKind = 'Everyone' | { Group: string[] } | { Member: string }
 
@@ -197,7 +198,8 @@ export function decodeDescription(d: string): RequestMeta {
   if (!fields.title) {
     // Astro DAO style "title$$$$link" or plain text.
     const plain = d.split('$$$$')[0].replace(/<[^>]+>/g, ' ').trim()
-    return { title: plain || 'Untitled request' }
+    // Display-only fallback (never written back on chain), so it's translated.
+    return { title: plain || t('dao.untitledRequest') }
   }
   return {
     title: fields.title,

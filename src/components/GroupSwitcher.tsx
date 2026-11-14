@@ -12,6 +12,7 @@ import { usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { confirmGroupsSaved, recordVisit, roleLabel, saveGroupsTx, useMyGroups, type GroupRow } from '../lib/groups'
 import { showToast } from './ui'
 import { prettyName as pretty } from '../App'
+import { useT } from '../i18n'
 
 
 let priceCache = NaN
@@ -38,6 +39,7 @@ function useCurrentDao(): string | null {
 }
 
 export default function GroupSwitcher({ variant }: { variant: 'sidebar' | 'phone' }) {
+  const t = useT()
   const current = useCurrentDao()
   const ctx = useContext(DaoContext)
   const [open, setOpen] = useState(false)
@@ -47,7 +49,7 @@ export default function GroupSwitcher({ variant }: { variant: 'sidebar' | 'phone
     if (current) recordVisit(current)
   }, [current])
 
-  const label = ctx?.dao ? pretty(ctx.dao.config.name) : current ? current.split('.')[0] : 'My groups'
+  const label = ctx?.dao ? pretty(ctx.dao.config.name) : current ? current.split('.')[0] : t('account.myGroups')
 
   return (
     <>
@@ -57,7 +59,7 @@ export default function GroupSwitcher({ variant }: { variant: 'sidebar' | 'phone
           className="flex min-h-11 min-w-0 items-center gap-1 truncate text-[14px] font-medium"
           aria-haspopup="dialog"
           aria-expanded={open}
-          title="My groups"
+          title={t('account.myGroups')}
         >
           <span className="truncate">{label}</span>
           <Chevron />
@@ -72,7 +74,7 @@ export default function GroupSwitcher({ variant }: { variant: 'sidebar' | 'phone
           aria-haspopup="dialog"
           aria-expanded={open}
         >
-          My groups <Chevron />
+          {t('account.myGroups')} <Chevron />
         </button>
       )}
       {open &&
@@ -118,6 +120,7 @@ function useDismiss(onClose: () => void, inside: () => HTMLElement | null, also?
 }
 
 function Popover({ anchor, onClose, children }: { anchor: HTMLElement | null; onClose: () => void; children: ReactNode }) {
+  const t = useT()
   const ref = useRef<HTMLDivElement>(null)
   useDismiss(onClose, () => ref.current, anchor)
   const r = anchor?.getBoundingClientRect()
@@ -128,7 +131,7 @@ function Popover({ anchor, onClose, children }: { anchor: HTMLElement | null; on
     <div
       ref={ref}
       role="dialog"
-      aria-label="My groups"
+      aria-label={t('account.myGroups')}
       className="fixed z-50 max-h-[min(560px,calc(100vh-24px))] overflow-y-auto rounded-2xl border border-line bg-card p-2 text-ink"
       style={{ left, bottom, width: w }}
     >
@@ -138,13 +141,14 @@ function Popover({ anchor, onClose, children }: { anchor: HTMLElement | null; on
 }
 
 function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const t = useT()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-40 flex items-end glass-scrim sm:items-center sm:justify-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="My groups">
+    <div className="fixed inset-0 z-40 flex items-end glass-scrim sm:items-center sm:justify-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label={t('account.myGroups')}>
       <div
         className="max-h-[85vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border-t border-line bg-card p-2 pb-[max(env(safe-area-inset-bottom),8px)] text-ink sm:max-w-[440px] sm:rounded-2xl sm:border"
         onClick={(e) => e.stopPropagation()}
@@ -156,6 +160,7 @@ function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode
 }
 
 export function GroupList({ current, onPicked }: { current: string | null; onPicked: () => void }) {
+  const t = useT()
   const { accountId, send } = useWallet()
   const { rows, unsaved, refs } = useMyGroups(accountId, [DEMO_DAO])
   const nearUsd = useNearUsd()
@@ -170,10 +175,10 @@ export function GroupList({ current, onPicked }: { current: string | null; onPic
       await send(tx)
       setSaving('checking')
       const ok = await confirmGroupsSaved(accountId, value)
-      showToast(ok ? 'Saved. Your groups follow you to any device.' : "Sent, but we couldn't read it back yet. Try again in a minute.")
+      showToast(ok ? t('groups.switcher.toast.saved') : t('groups.switcher.toast.notYet'))
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      showToast(/reject|cancel|closed|denied/i.test(msg) ? 'Cancelled in the wallet.' : msg)
+      showToast(/reject|cancel|closed|denied/i.test(msg) ? t('common.cancelledInWallet') : msg)
     } finally {
       setSaving('idle')
     }
@@ -182,11 +187,11 @@ export function GroupList({ current, onPicked }: { current: string | null; onPic
   return (
     <div className="text-[13.5px]">
       <div className="flex items-baseline justify-between px-3 pb-1 pt-2">
-        <span className="text-[12px] text-muted">{accountId ? 'My groups' : 'Groups you opened'}</span>
-        {!accountId && <span className="text-[11.5px] text-muted">Sign in to see yours</span>}
+        <span className="text-[12px] text-muted">{accountId ? t('account.myGroups') : t('groups.switcher.opened')}</span>
+        {!accountId && <span className="text-[11.5px] text-muted">{t('groups.switcher.signInToSee')}</span>}
       </div>
       {rows.length === 0 ? (
-        <p className="px-3 py-4 text-[13px] text-muted">No groups yet. Create one, or connect a DAO you already use.</p>
+        <p className="px-3 py-4 text-[13px] text-muted">{t('groups.switcher.empty')}</p>
       ) : (
         <ul>
           {rows.map((r) => (
@@ -200,21 +205,21 @@ export function GroupList({ current, onPicked }: { current: string | null; onPic
       {accountId && unsaved.length > 0 && (
         <div className="mx-1 mt-1 rounded-xl bg-soft px-3 py-2.5 text-[12.5px]">
           <div className="text-muted">
-            {unsaved.length === 1 ? '1 group isn’t' : `${unsaved.length} groups aren’t`} on your NEAR profile yet, so other devices won’t see {unsaved.length === 1 ? 'it' : 'them'}.
+            {t('groups.switcher.unsaved', { count: unsaved.length })}
           </div>
           <button
             className="mt-1.5 min-h-9 font-medium text-accent-text hover:underline disabled:opacity-60"
             disabled={saving !== 'idle'}
             onClick={saveToProfile}
           >
-            {saving === 'signing' ? 'Waiting for your wallet…' : saving === 'checking' ? 'Checking it landed…' : 'Save to my profile'}
+            {saving === 'signing' ? t('common.waitingWallet') : saving === 'checking' ? t('common.checkingLanded') : t('groups.switcher.saveToProfile')}
           </button>
         </div>
       )}
 
       <div className="mt-1 border-t border-line pt-1">
         <button
-          className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left hover:bg-soft"
+          className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-start hover:bg-soft"
           onClick={() => {
             onPicked()
             go('create')
@@ -223,18 +228,18 @@ export function GroupList({ current, onPicked }: { current: string | null; onPic
           <span className="grid size-8 place-items-center rounded-lg border border-dashed border-line text-muted" aria-hidden>
             +
           </span>
-          Create group
+          {t('groups.switcher.create')}
         </button>
         {connect ? (
           <ConnectDao onDone={onPicked} />
         ) : (
-          <button className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left hover:bg-soft" onClick={() => setConnect(true)}>
+          <button className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-start hover:bg-soft" onClick={() => setConnect(true)}>
             <span className="grid size-8 place-items-center rounded-lg border border-dashed border-line text-muted" aria-hidden>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1 1M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1-1" />
               </svg>
             </span>
-            Connect a DAO
+            {t('groups.switcher.connect')}
           </button>
         )}
       </div>
@@ -243,9 +248,10 @@ export function GroupList({ current, onPicked }: { current: string | null; onPic
 }
 
 function Row({ row, active, nearUsd, signedIn, onPick }: { row: GroupRow; active: boolean; nearUsd: number; signedIn: boolean; onPick: () => void }) {
+  const t = useT()
   const s = row.summary
   const name = s ? pretty(s.name) : row.ref.id.split('.')[0]
-  const money = s ? (isFinite(nearUsd) ? usd(yoctoToNumber(s.spendable) * nearUsd) : `${yoctoToNear(s.spendable)} NEAR`) : null
+  const money = s ? (isFinite(nearUsd) ? usd(yoctoToNumber(s.spendable) * nearUsd) : t('groups.switcher.nearAmount', { amount: yoctoToNear(s.spendable) })) : null
   const role = roleLabel(s, signedIn)
   return (
     <button
@@ -253,7 +259,7 @@ function Row({ row, active, nearUsd, signedIn, onPick }: { row: GroupRow; active
         onPick()
         if (!active) openDao(row.ref.id)
       }}
-      className={`flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-left ${active ? 'bg-soft' : 'hover:bg-soft'}`}
+      className={`flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-start ${active ? 'bg-soft' : 'hover:bg-soft'}`}
       aria-current={active ? 'true' : undefined}
       title={row.ref.id}
     >
@@ -274,12 +280,12 @@ function Row({ row, active, nearUsd, signedIn, onPick }: { row: GroupRow; active
         </span>
       </span>
       {s && s.open > 0 && (
-        <span className="grid h-[18px] min-w-[18px] shrink-0 place-items-center rounded-full bg-accent px-1 text-[10.5px] font-medium text-on-accent" title={`${s.open} open request${s.open === 1 ? '' : 's'}`}>
+        <span className="grid h-[18px] min-w-[18px] shrink-0 place-items-center rounded-full bg-accent px-1 text-[10.5px] font-medium text-on-accent" title={t('groups.switcher.openRequests', { count: s.open })}>
           {s.open}
         </span>
       )}
       {active && (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted" aria-label="Current group">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted" aria-label={t('groups.switcher.current')}>
           <path d="M5 12l4 4 10-10" />
         </svg>
       )}
@@ -288,6 +294,7 @@ function Row({ row, active, nearUsd, signedIn, onPick }: { row: GroupRow; active
 }
 
 function ConnectDao({ onDone }: { onDone: () => void }) {
+  const t = useT()
   const [v, setV] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -295,12 +302,12 @@ function ConnectDao({ onDone }: { onDone: () => void }) {
     e.preventDefault()
     let id = v.trim().toLowerCase()
     if (id && !id.includes('.')) id = `${id}.sputnikv2.testnet`
-    if (!isValidAccountId(id)) return setErr('That isn’t a NEAR account id.')
+    if (!isValidAccountId(id)) return setErr(t('groups.switcher.error.badId'))
     setBusy(true)
     setErr(null)
     const ok = await isDao(id)
     setBusy(false)
-    if (!ok) return setErr('No Sputnik DAO at that address.')
+    if (!ok) return setErr(t('groups.switcher.error.notDao'))
     recordVisit(id)
     onDone()
     openDao(id)
@@ -308,7 +315,7 @@ function ConnectDao({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={submit} className="px-3 py-2">
       <label className="block text-[12px] text-muted" htmlFor="terra-connect-dao">
-        DAO address
+        {t('groups.switcher.daoAddress')}
       </label>
       <div className="mt-1 flex gap-2">
         <input
@@ -323,7 +330,7 @@ function ConnectDao({ onDone }: { onDone: () => void }) {
           spellCheck={false}
         />
         <button type="submit" disabled={busy || !v.trim()} className="min-h-10 rounded-lg border border-line px-3 text-[13px] font-medium disabled:opacity-50">
-          {busy ? '…' : 'Open'}
+          {busy ? '…' : t('groups.switcher.open')}
         </button>
       </div>
       {err && <p className="mt-1.5 text-[12px] text-bad">{err}</p>}

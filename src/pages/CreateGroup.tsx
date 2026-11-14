@@ -8,6 +8,7 @@ import { wait } from '../lib/motion'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { rememberGroup } from '../lib/groups'
 import { Button, TxStatus, WrongNetworkBanner, useTx } from '../components/ui'
+import { formatNumber, tr, useT } from '../i18n'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 
@@ -32,8 +33,14 @@ const bare = 'w-full bg-transparent py-3 outline-none placeholder:text-muted/60 
 const MIN_DEPOSIT = 6n * ONE_NEAR
 // Gas for the factory call, kept aside so the creator isn't left at zero.
 const GAS_RESERVE = ONE_NEAR / 10n
+// NEAR that stays locked for the DAO contract's storage (shown on screen).
+const LOCKED_NEAR = 5.4
+
+/** "$50": a whole-dollar limit in the current locale. */
+const dollars = (n: number) => formatNumber(n, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 
 export default function CreateGroup() {
+  const t = useT()
   const { accountId, send, signIn, signOut } = useWallet()
   const [step, setStep] = useState(1)
   const [displayName, setDisplayName] = useState('')
@@ -69,8 +76,8 @@ export default function CreateGroup() {
   useEffect(() => {
     setTaken(null)
     if (!slug || !isValidAccountId(daoId)) return
-    const t = setTimeout(() => viewAccount(daoId).then((a) => setTaken(!!a)).catch(() => setTaken(null)), 400)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => viewAccount(daoId).then((a) => setTaken(!!a)).catch(() => setTaken(null)), 400)
+    return () => clearTimeout(timer)
   }, [slug, daoId])
 
   const councilList = parseList(council)
@@ -81,29 +88,29 @@ export default function CreateGroup() {
 
   const step1Error =
     displayName.trim().length < 2
-      ? 'Give the group a name.'
+      ? t('create.error.name')
       : !slug
-        ? 'Type a treasury address in Latin letters, numbers or dashes (e.g. hindi-club).'
+        ? t('create.error.slugEmpty')
       : !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3
-        ? 'The treasury address needs 3+ lowercase letters, numbers or dashes.'
+        ? t('create.error.slugFormat')
         : !isValidAccountId(daoId)
-          ? 'That treasury address is too long.'
+          ? t('create.error.slugLong')
           : taken
-            ? 'That treasury address is taken. Try another one.'
+            ? t('create.error.slugTaken')
             : null
   const step2Error = !councilList.length
-    ? 'Add at least one council member.'
+    ? t('create.error.noCouncil')
     : councilList.some((a) => !isValidAccountId(a))
-      ? 'One of the council accounts is not valid.'
+      ? t('create.error.councilInvalid')
       : trustedList.some((a) => !isValidAccountId(a))
-        ? 'One of the trusted accounts is not valid.'
+        ? t('create.error.trustedInvalid')
         : null
   const step3Error = !yocto
-    ? 'Enter a starting deposit in NEAR.'
+    ? t('create.error.noDeposit')
     : yocto < MIN_DEPOSIT
-      ? `Start with at least ${yoctoToNear(MIN_DEPOSIT, 0)} NEAR: about 5.4 NEAR stays locked to store the DAO contract.`
+      ? t('create.error.minDeposit', { min: yoctoToNear(MIN_DEPOSIT, 0), locked: LOCKED_NEAR })
       : myBalance != null && yocto + GAS_RESERVE > myBalance
-        ? `Your account can spend ${yoctoToNear(myBalance)} NEAR. Lower the deposit or top up your account.`
+        ? t('create.error.balance', { amount: yoctoToNear(myBalance) })
         : null
 
   async function create() {
@@ -127,7 +134,7 @@ export default function CreateGroup() {
     setNotCreated(true)
   }
 
-  const titles = ['Your group', 'Invite members', 'Review and create']
+  const titles = [t('create.title.group'), t('create.title.invite'), t('create.title.review')]
 
   return (
     <div className="mx-auto max-w-[560px] px-6 py-10 md:py-14">
@@ -144,25 +151,28 @@ export default function CreateGroup() {
         ))}
       </div>
       <div className="mt-3 text-[12px] text-muted">
-        Step {step} of 3 · {titles[step - 1]}
+        {t('create.step', { step, total: 3, title: titles[step - 1] })}
       </div>
 
       {step === 1 && (
         <>
-          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Set up your group</h1>
+          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">{t('create.setup.title')}</h1>
           <p className="mt-2 text-[14px] text-muted">
-            Already have a Sputnik DAO?{' '}
-            <button className="-my-3 inline-block py-3 text-ink underline underline-offset-2" onClick={() => openDao(null)}>
-              Connect it instead.
-            </button>
+            {tr('create.setup.haveDao', {
+              link: (c) => (
+                <button className="-my-3 inline-block py-3 text-ink underline underline-offset-2" onClick={() => openDao(null)}>
+                  {c}
+                </button>
+              ),
+            })}
           </p>
           <div className="mt-10 space-y-8">
             <label className={line}>
-              <span className="text-[12px] text-muted">Group name</span>
-              <input autoFocus className={bare + ' text-[22px] font-light'} value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Riverside Club" maxLength={60} />
+              <span className="text-[12px] text-muted">{t('create.name.label')}</span>
+              <input autoFocus className={bare + ' text-[22px] font-light'} value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t('create.name.placeholder')} maxLength={60} />
             </label>
             <label className={line}>
-              <span className="text-[12px] text-muted">Treasury address</span>
+              <span className="text-[12px] text-muted">{t('create.slug.label')}</span>
               <div className="mt-1 flex items-baseline font-mono text-[14px]">
                 <input
                   className="min-w-0 bg-transparent py-3 outline-none placeholder:text-muted/60 sm:py-2"
@@ -172,35 +182,36 @@ export default function CreateGroup() {
                     setSlugTouched(true)
                     setSlug(e.target.value.toLowerCase())
                   }}
+                  /* i18n-ignore: example address, Latin only */
                   placeholder="riverside-club"
                   spellCheck={false}
                 />
                 <span className="text-muted">.{FACTORY}</span>
               </div>
-              <span className="mt-1 block text-[12px] text-muted">{taken === false ? 'Available' : taken ? 'Taken: pick another address' : 'A standard Sputnik DAO from the official factory. You own it, not Terra.'}</span>
+              <span className="mt-1 block text-[12px] text-muted">{taken === false ? t('create.slug.available') : taken ? t('create.slug.taken') : t('create.slug.hint')}</span>
             </label>
             <label className={line}>
-              <span className="text-[12px] text-muted">What is it for? (optional)</span>
-              <input className={bare + ' text-[15px]'} value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="A city community that runs meetups and pays local contributors" maxLength={200} />
+              <span className="text-[12px] text-muted">{t('create.purpose.label')}</span>
+              <input className={bare + ' text-[15px]'} value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder={t('create.purpose.placeholder')} maxLength={200} />
             </label>
             <div>
-              <span className="text-[12px] text-muted">Approval levels</span>
+              <span className="text-[12px] text-muted">{t('create.levels.label')}</span>
               <div className="mt-2 divide-y divide-line rounded-xl border border-line text-[13.5px]">
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span>Small</span>
+                  <span>{t('create.levels.small')}</span>
                   <span className="text-muted">
-                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.small}</span> · 1 trusted member, once the requester has a record
+                    {tr('create.levels.smallRule', { amount: dollars(TIER_LIMITS_USD.small), b: (c) => <span className="tnum text-ink">{c}</span> })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span>Mid</span>
+                  <span>{t('create.levels.mid')}</span>
                   <span className="text-muted">
-                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.mid}</span> · council majority
+                    {tr('create.levels.midRule', { amount: dollars(TIER_LIMITS_USD.mid), b: (c) => <span className="tnum text-ink">{c}</span> })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span>Large</span>
-                  <span className="text-muted">over ${TIER_LIMITS_USD.mid} · full council vote</span>
+                  <span>{t('create.levels.large')}</span>
+                  <span className="text-muted">{t('create.levels.largeRule', { amount: dollars(TIER_LIMITS_USD.mid) })}</span>
                 </div>
               </div>
             </div>
@@ -210,33 +221,33 @@ export default function CreateGroup() {
 
       {step === 2 && (
         <>
-          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Invite members</h1>
-          <p className="mt-2 text-[14px] text-muted">Add NEAR accounts now; you can invite more later from Members. Anyone, member or not, can file a request.</p>
+          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">{t('create.title.invite')}</h1>
+          <p className="mt-2 text-[14px] text-muted">{t('create.invite.intro')}</p>
           <div className="mt-10 space-y-8">
             <label className={line}>
-              <span className="text-[12px] text-muted">Council · approves mid and large requests by majority</span>
-              <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={council} onChange={(e) => setCouncil(e.target.value)} placeholder="you.testnet, ana.testnet" spellCheck={false} />
-              <span className="mt-1 block text-[12px] text-muted">{councilList.length} account{councilList.length === 1 ? '' : 's'} · separate with commas or spaces</span>
+              <span className="text-[12px] text-muted">{t('create.invite.councilLabel')}</span>
+              <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={council} onChange={(e) => setCouncil(e.target.value)} /* i18n-ignore: example account IDs */ placeholder="you.testnet, ana.testnet" spellCheck={false} />
+              <span className="mt-1 block text-[12px] text-muted">{t('create.invite.accounts', { count: councilList.length })}</span>
             </label>
             <label className={line}>
-              <span className="text-[12px] text-muted">Trusted members · one of them can approve a small request</span>
-              <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={trusted} onChange={(e) => setTrusted(e.target.value)} placeholder="ben.testnet" spellCheck={false} />
+              <span className="text-[12px] text-muted">{t('create.invite.trustedLabel')}</span>
+              <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={trusted} onChange={(e) => setTrusted(e.target.value)} /* i18n-ignore: example account ID */ placeholder="ben.testnet" spellCheck={false} />
               <span className="mt-1 block text-[12px] text-muted">
                 {onBoth.length
-                  ? `${onBoth.join(', ')} ${onBoth.length === 1 ? 'is' : 'are'} on the council already, so ${onBoth.length === 1 ? 'stays' : 'stay'} council only. The DAO counts each role on its own, so a council member who is also trusted could pay out any amount alone.`
-                  : 'Optional. Without trusted members there is no fast lane yet: the council decides every request. Add them later from Members.'}
+                  ? t('create.invite.onBoth', { count: onBoth.length, accounts: onBoth.join(', ') })
+                  : t('create.invite.trustedHint')}
               </span>
             </label>
             {daoId && (
               <div className="rounded-xl bg-soft px-4 py-3 text-[13px]">
-                <div className="text-muted">Link to share once the group exists</div>
+                <div className="text-muted">{t('create.invite.shareLink')}</div>
                 <div className="mt-1 flex items-center justify-between gap-3">
                   <span className="truncate font-mono text-[12.5px]">{shareUrl(daoId, 'signin')}</span>
                   <button
                     className="shrink-0 text-[12.5px] font-medium"
                     onClick={() => navigator.clipboard?.writeText(shareUrl(daoId, 'signin')).then(() => setCopied(true)).catch(() => setCopied(false))}
                   >
-                    {copied ? 'Copied' : 'Copy'}
+                    {copied ? t('common.copied') : t('common.copy')}
                   </button>
                 </div>
               </div>
@@ -247,36 +258,36 @@ export default function CreateGroup() {
 
       {step === 3 && (
         <>
-          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Review and create</h1>
-          <p className="mt-2 text-[14px] text-muted">You sign one transaction. The factory creates the DAO and the deposit becomes its first balance.</p>
+          <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">{t('create.title.review')}</h1>
+          <p className="mt-2 text-[14px] text-muted">{t('create.review.intro')}</p>
           <div className="mt-8 text-[13.5px]">
-            <Row k="Group" v={displayName} />
-            <Row k="Treasury" v={daoId} mono />
-            <Row k="Council" v={councilList.join(', ')} mono />
-            <Row k="Trusted" v={trustedFinal.length ? trustedFinal.join(', ') : 'Nobody yet: the council decides every request'} mono={!!trustedFinal.length} />
-            <Row k="Request bond" v="0.01 NEAR, returned when decided" />
-            <Row k="Requests stay open" v="7 days" />
+            <Row k={t('create.row.group')} v={displayName} />
+            <Row k={t('create.row.treasury')} v={daoId} mono />
+            <Row k={t('create.row.council')} v={councilList.join(', ')} mono />
+            <Row k={t('create.row.trusted')} v={trustedFinal.length ? trustedFinal.join(', ') : t('create.row.nobody')} mono={!!trustedFinal.length} />
+            <Row k={t('create.row.bond')} v={t('create.row.bondValue', { amount: 0.01 })} />
+            <Row k={t('create.row.open')} v={t('create.row.openDays', { count: 7 })} />
           </div>
           <label className={line + ' mt-8'}>
-            <span className="text-[12px] text-muted">Starting deposit</span>
+            <span className="text-[12px] text-muted">{t('create.deposit.label')}</span>
             <div className="mt-1 flex items-baseline gap-2">
               <input className="tnum w-full bg-transparent text-[40px] font-light leading-none tracking-[-0.04em] outline-none" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
               <span className="text-[15px] text-muted">NEAR</span>
             </div>
             <span className="mt-1 block text-[12px] text-muted">
-              About 5.4 NEAR stays locked to store the contract; the rest is what the group can spend.
-              {myBalance != null && ` You can spend ${yoctoToNear(myBalance)} NEAR.`}
+              {t('create.deposit.hint', { locked: LOCKED_NEAR })}
+              {myBalance != null && ` ${t('create.deposit.canSpend', { amount: yoctoToNear(myBalance) })}`}
             </span>
           </label>
           <div className="mt-4">
             {notCreated ? (
               <div className="rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">
-                The factory call went through but {daoId} wasn't created, so the factory sent your deposit back. Usually the address was just taken or the deposit was too low. Check the address and try again.
+                {t('create.notCreated', { dao: daoId })}
               </div>
             ) : checkingDao ? (
-              <div className="rounded-xl bg-soft px-3 py-2 text-sm text-muted">Signed. Waiting for {daoId} to appear on NEAR…</div>
+              <div className="rounded-xl bg-soft px-3 py-2 text-sm text-muted">{t('create.waiting', { dao: daoId })}</div>
             ) : (
-              <TxStatus state={tx.state} doneText="Your group's treasury is live." />
+              <TxStatus state={tx.state} doneText={t('create.live')} />
             )}
           </div>
         </>
@@ -284,12 +295,12 @@ export default function CreateGroup() {
 
       <div className="mt-10 flex items-center justify-between gap-3 text-[14px] font-medium">
         <button className="rounded-lg px-4 py-3 text-muted hover:text-ink" onClick={() => (step === 1 ? openDao(null) : setStep(step - 1))}>
-          Back
+          {t('common.back')}
         </button>
         <div className="flex flex-col items-end gap-2">
           {step < 3 ? (
             <Button className="!px-6 !py-3" disabled={!!(step === 1 ? step1Error : step2Error)} onClick={() => setStep(step + 1)}>
-              {step === 1 ? 'Next: invite members' : 'Next: review'}
+              {step === 1 ? t('create.next.invite') : t('create.next.review')}
             </Button>
           ) : tx.state.status === 'done' && !notCreated ? (
             <Button
@@ -298,13 +309,13 @@ export default function CreateGroup() {
                 if (await isDao(daoId)) openDao(daoId)
               }}
             >
-              Open {displayName}
+              {t('create.open', { name: displayName })}
             </Button>
           ) : !accountId ? (
-            <Button className="!px-6 !py-3" onClick={signIn}>Sign in to create</Button>
+            <Button className="!px-6 !py-3" onClick={signIn}>{t('create.signIn')}</Button>
           ) : (
             <Button className="!px-6 !py-3" disabled={!!step3Error || tx.state.status === 'signing' || checkingDao} onClick={create}>
-              Create group
+              {t('create.submit')}
             </Button>
           )}
           {(step === 1 ? step1Error : step === 2 ? step2Error : step3Error) && (displayName || step > 1) && (
@@ -320,7 +331,7 @@ function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
     <div className="flex justify-between gap-6 border-t border-line py-3">
       <span className="shrink-0 text-muted">{k}</span>
-      <span className={`min-w-0 break-all text-right ${mono ? 'font-mono text-[12.5px]' : ''}`}>{v}</span>
+      <span className={`min-w-0 break-all text-end ${mono ? 'font-mono text-[12.5px]' : ''}`}>{v}</span>
     </div>
   )
 }

@@ -11,9 +11,11 @@ import { prettyName } from '../App'
 import { useCountUp, useDelta } from '../lib/motion'
 import { RequestCard } from './Approve'
 import { AddNameNudge, openProfileSheet } from '../components/ProfileSheet'
+import { formatDate, formatNumber, t as tt, useT } from '../i18n'
 
 export default function Home() {
   useNames()
+  const t = useT()
   const { dao, nearUsd, activity, refresh, tracks } = useDao()
   const { accountId } = useWallet()
   const [copied, setCopied] = useState(false)
@@ -48,15 +50,15 @@ export default function Home() {
       }
     : null
   const showGuide = !!steps && dao.proposals.length < 5 && !(steps.chipped && steps.invited && steps.requested)
-  const today = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  const today = formatDate(new Date(), { weekday: 'short', day: 'numeric', month: 'short' })
 
   return (
     <div>
       {chipOpen && <ChipInDialog daoId={dao.id} signedIn={!!accountId} nearUsd={nearUsd} onDone={refresh} name={name} onClose={() => setChipOpen(false)} />}
       <div className="flex items-center justify-between text-[13px] text-muted">
-        <span>Home</span>
+        <span>{t('nav.home')}</span>
         {accountId ? (
-          <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 hover:text-ink md:min-h-0" title={`${accountId} · Edit profile`} onClick={openProfileSheet}>
+          <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 hover:text-ink md:min-h-0" title={`${accountId} · ${t('account.editProfile')}`} onClick={openProfileSheet}>
             <span className="truncate">{displayName(accountId)}</span>
             <Avatar id={accountId} size={24} />
           </button>
@@ -67,48 +69,48 @@ export default function Home() {
 
       {allMembers(dao.policy).includes(accountId ?? '') && <AddNameNudge className="mt-6 max-w-sm" />}
 
-      <div className="mt-10 text-[13px] text-muted">{name} holds</div>
+      <div className="mt-10 text-[13px] text-muted">{t('home.holds', { name })}</div>
       <Balance usd={balanceUsd} muted={empty} />
-      {empty && <p className="mt-4 max-w-md text-[14px] text-muted">Your treasury is ready. Be the first to chip in, then invite the others.</p>}
+      {empty && <p className="mt-4 max-w-md text-[14px] text-muted">{t('home.emptyText')}</p>}
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-muted">
-        <span className="tnum">{yoctoToNear(total)} NEAR</span>
+        <span className="tnum">{t('home.nearAmount', { amount: yoctoToNear(total) })}</span>
         {dao.staked > 0n && (
           <span className="flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-good" />
-            <span className="text-good">Earning on {yoctoToNear(dao.staked, 0)} NEAR staked</span>
+            <span className="text-good">{t('home.earningStaked', { amount: yoctoToNear(dao.staked, 0) })}</span>
           </span>
         )}
-        {isFinite(nearUsd) && <span className="tnum">1 NEAR = {usd(nearUsd)}</span>}
+        {isFinite(nearUsd) && <span className="tnum">{t('home.nearPrice', { price: usd(nearUsd) })}</span>}
       </div>
       <div className="mt-8 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        <Button onClick={() => setChipOpen(true)}>Chip in</Button>
-        <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
+        <Button onClick={() => setChipOpen(true)}>{t('home.chipIn')}</Button>
+        <Button variant="secondary" onClick={() => go('pay')}>{t('home.requestMoney')}</Button>
         <Button
           variant="secondary"
           className="max-sm:hidden"
           onClick={() => navigator.clipboard?.writeText(shareUrl(dao.id, 'board')).then(() => setCopied(true)).catch(() => setCopied(false))}
         >
-          {copied ? 'Board link copied' : 'Share board'}
+          {copied ? t('home.boardLinkCopied') : t('home.shareBoard')}
         </Button>
       </div>
 
       {dao.proposals.length > 0 && (
       <div className="mt-12 grid grid-cols-3 border-y border-line">
-        <Stat label="Members" value={<CountNumber value={members.length} format={(n) => String(Math.round(n))} />} className="border-r border-line pr-5" />
+        <Stat label={t('home.stat.members')} value={<CountNumber value={members.length} format={(n) => formatNumber(Math.round(n))} />} className="border-e border-line pe-5" />
         <Stat
-          label="Paid out this year"
-          value={activity ? (isFinite(nearUsd) ? <CountNumber value={yoctoToNumber(paidThisYear) * nearUsd} format={usd} /> : `${yoctoToNear(paidThisYear, 0)} NEAR`) : null}
-          className="border-r border-line px-5"
+          label={t('home.stat.paidThisYear')}
+          value={activity ? (isFinite(nearUsd) ? <CountNumber value={yoctoToNumber(paidThisYear) * nearUsd} format={usd} /> : t('home.nearAmount', { amount: yoctoToNear(paidThisYear, 0) })) : null}
+          className="border-e border-line px-5"
         />
-        <Stat label="Median time to pay" value={activity ? (isFinite(median) ? formatWait(median) : '—') : null} className="px-5" />
+        <Stat label={t('home.stat.medianWait')} value={activity ? (isFinite(median) ? formatWait(median) : '—') : null} className="px-5" />
       </div>
       )}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0">
           <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
-            <span>Activity</span>
-            <button className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => go('activity')}>See all</button>
+            <span>{t('nav.activity')}</span>
+            <button className="-my-3 py-3 ps-4 hover:text-ink" onClick={() => go('activity')}>{t('home.seeAll')}</button>
           </div>
           <HomeActivity items={activity?.items.slice(0, 4)} loading={!activity} nearUsd={nearUsd} />
         </div>
@@ -122,7 +124,7 @@ export default function Home() {
           )}
           {mine.length > 1 && (
             <button onClick={() => go('approve')} className="-mt-2 py-3 text-[13px] text-muted hover:text-ink">
-              {mine.length - 1} more waiting in Approve →
+              {t('home.moreWaiting', { count: mine.length - 1 })} <span className="inline-block rtl:-scale-x-100" aria-hidden>→</span>
             </button>
           )}
         </div>
@@ -134,26 +136,27 @@ export default function Home() {
 
 /** On a phone the bottom bar has room for six pages; the rest live here, under Home. */
 function PhoneMore() {
+  const t = useT()
   const rows: [Page, string, string][] = [
-    ['activity', 'Activity', 'Everything in and out'],
-    ['earn', 'Earn', 'Let idle money earn'],
-    ['allowances', 'Allowances', 'Small budgets with hard limits'],
+    ['activity', t('nav.activity'), t('home.more.activity')],
+    ['earn', t('nav.earn'), t('home.more.earn')],
+    ['allowances', t('nav.allowances'), t('home.more.allowances')],
   ]
   return (
-    <nav className="mt-12 md:hidden" aria-label="More pages">
-      <div className="mb-1 text-[13px] text-muted">More</div>
+    <nav className="mt-12 md:hidden" aria-label={t('home.more.label')}>
+      <div className="mb-1 text-[13px] text-muted">{t('home.more.title')}</div>
       <div className="border-y border-line">
         {rows.map(([page, label, detail]) => (
           <button
             key={page}
             onClick={() => go(page)}
-            className="flex min-h-14 w-full items-center justify-between gap-3 border-b border-line py-3 text-left last:border-0"
+            className="flex min-h-14 w-full items-center justify-between gap-3 border-b border-line py-3 text-start last:border-0"
           >
             <span className="min-w-0">
               <span className="block text-[14px]">{label}</span>
               <span className="block truncate text-[12px] text-muted">{detail}</span>
             </span>
-            <span className="text-muted" aria-hidden>
+            <span className="inline-block text-muted rtl:-scale-x-100" aria-hidden>
               ›
             </span>
           </button>
@@ -173,7 +176,7 @@ function Balance({ usd: value, muted }: { usd: number; muted: boolean }) {
       {dollars}
       <span className="text-muted">{cents}</span>
       {d && (
-        <span key={d.key} className="delta left-full top-2 ml-4 text-[22px] tracking-normal" style={d.delta < 0 ? { color: 'var(--mute)' } : undefined}>
+        <span key={d.key} className="delta start-full top-2 ms-4 text-[22px] tracking-normal" style={d.delta < 0 ? { color: 'var(--mute)' } : undefined}>
           {d.delta > 0 ? '+' : '−'}
           {usd(Math.abs(d.delta))}
         </span>
@@ -201,13 +204,14 @@ function Stat({ label, value, className = '' }: { label: string; value: React.Re
 }
 
 function formatWait(min: number): string {
-  if (min < 60) return `${Math.max(1, Math.round(min))} min`
-  if (min < 48 * 60) return `${Math.round(min / 60)} h`
-  return `${Math.round(min / 1440)} days`
+  if (min < 60) return tt('home.wait.min', { count: Math.max(1, Math.round(min)) })
+  if (min < 48 * 60) return tt('home.wait.hours', { count: Math.round(min / 60) })
+  return tt('home.wait.days', { count: Math.round(min / 1440) })
 }
 
 function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loading: boolean; nearUsd: number }) {
   useNames()
+  const t = useT()
   const { dao } = useDao()
   if (loading)
     return (
@@ -215,9 +219,9 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
         <span className="skeleton block h-4 w-full" />
       </div>
     )
-  if (!items?.length) return <div className="border-b border-line py-6 text-[13.5px] text-muted">No money in or out yet. The first chip-in shows up here.</div>
+  if (!items?.length) return <div className="border-b border-line py-6 text-[13.5px] text-muted">{t('home.activity.empty')}</div>
   const byId = new Map(dao?.proposals.map((p) => [p.id, p]))
-  const money = (y?: string) => (y ? (isFinite(nearUsd) ? usd(yoctoToNumber(y) * nearUsd) : `${yoctoToNear(y)} NEAR`) : '')
+  const money = (y?: string) => (y ? (isFinite(nearUsd) ? usd(yoctoToNumber(y) * nearUsd) : t('home.nearAmount', { amount: yoctoToNear(y) })) : '')
   return (
     <div className="text-[13.5px]">
       {items.map((a, i) => {
@@ -227,23 +231,26 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
         let amount: React.ReactNode = null
         switch (a.kind) {
           case 'chip-in':
-            label = <RowText main={`${displayName(a.who)} chipped in`} detail={`${yoctoToNear(a.amount ?? '0')} NEAR`} />
+            label = <RowText main={t('home.activity.chippedIn', { name: displayName(a.who) })} detail={t('home.nearAmount', { amount: yoctoToNear(a.amount ?? '0') })} />
             amount = <span className="text-good">+{money(a.amount)}</span>
             break
           case 'payout':
-            label = <RowText main={title ?? 'Payout'} detail={`paid to ${displayName(a.to ?? '')}`} />
+            label = <RowText main={title ?? t('home.activity.payout')} detail={t('home.activity.paidTo', { name: displayName(a.to ?? '') })} />
             amount = <>−{money(a.amount)}</>
             break
           case 'request':
-            label = <RowText main={title ?? 'a change'} detail={`${displayName(a.who)} is asking`} />
+            label = <RowText main={title ?? t('home.activity.aChange')} detail={t('home.activity.isAsking', { name: displayName(a.who) })} />
             amount = a.amount ? <span className="text-muted">{money(a.amount)}</span> : null
             break
           case 'approve':
           case 'reject':
-            label = <RowText main={title ?? `request #${a.proposalId}`} detail={`${a.kind === 'approve' ? 'approved' : 'declined'} by ${displayName(a.who)}`} />
+            label = <RowText
+                main={title ?? t('home.activity.requestNumber', { id: String(a.proposalId) })}
+                detail={a.kind === 'approve' ? t('home.activity.approvedBy', { name: displayName(a.who) }) : t('home.activity.declinedBy', { name: displayName(a.who) })}
+              />
             break
           default:
-            label = <>{displayName(a.who)} sent a transaction</>
+            label = <>{t('home.activity.sentTx', { name: displayName(a.who) })}</>
         }
         return (
           <div key={(a.txHash ?? '') + a.kind + i} className="flex items-center justify-between gap-4 border-b border-line py-3.5 last:border-0">
@@ -255,7 +262,7 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
             <span className="tnum flex shrink-0 items-baseline gap-3">
               {amount}
               <span className="hidden sm:inline">
-                <TxLink hash={a.txHash} label="tx" />
+                <TxLink hash={a.txHash} label={t('home.activity.tx')} />
               </span>
             </span>
           </div>
@@ -275,17 +282,18 @@ function GetStarted({
   steps: { chipped: boolean; invited: boolean; requested: boolean }
   onChipIn: () => void
 }) {
+  const t = useT()
   const rows = [
-    { done: steps.chipped, title: 'Chip in the first money', text: `It goes straight into ${name}'s treasury.`, action: 'Chip in', onClick: onChipIn },
-    { done: steps.invited, title: 'Invite the others', text: 'Add the people who chip in and ask for money.', action: 'Invite', onClick: () => go('members') },
-    { done: steps.requested, title: 'Make the first request', text: 'Ask for money for something the group needs.', action: 'Request', onClick: () => go('pay') },
+    { done: steps.chipped, title: t('home.guide.chipTitle'), text: t('home.guide.chipText', { name }), action: t('home.chipIn'), onClick: onChipIn },
+    { done: steps.invited, title: t('home.guide.inviteTitle'), text: t('home.guide.inviteText'), action: t('home.guide.inviteAction'), onClick: () => go('members') },
+    { done: steps.requested, title: t('home.guide.requestTitle'), text: t('home.guide.requestText'), action: t('home.guide.requestAction'), onClick: () => go('pay') },
   ]
   const left = rows.filter((r) => !r.done).length
   return (
     <div className="rounded-2xl border border-line p-6">
       <div className="flex items-baseline justify-between gap-3">
-        <div className="text-[15px]">Get {name} going</div>
-        <div className="tnum shrink-0 text-[12px] text-muted">{3 - left} of 3 done</div>
+        <div className="text-[15px]">{t('home.guide.title', { name })}</div>
+        <div className="tnum shrink-0 text-[12px] text-muted">{t('home.guide.progress', { done: 3 - left, total: 3 })}</div>
       </div>
       <ol className="mt-4">
         {rows.map((r, i) => (
@@ -297,7 +305,7 @@ function GetStarted({
               {r.done ? (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
               ) : (
-                i + 1
+                formatNumber(i + 1)
               )}
             </span>
             <span className="min-w-0 flex-1">
@@ -317,13 +325,14 @@ function GetStarted({
 }
 
 function CaughtUp() {
+  const t = useT()
   return (
     <div className="rounded-2xl border border-line p-8 text-center">
       <div className="mx-auto grid size-12 place-items-center rounded-full border border-line">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
       </div>
-      <div className="mt-4 text-[15px]">You're all caught up</div>
-      <p className="mt-1 text-[13px] text-muted">No requests are waiting on you. New ones show up here.</p>
+      <div className="mt-4 text-[15px]">{t('home.caughtUp.title')}</div>
+      <p className="mt-1 text-[13px] text-muted">{t('home.caughtUp.text')}</p>
     </div>
   )
 }
@@ -343,6 +352,7 @@ function ChipInDialog({
   name: string
   onClose: () => void
 }) {
+  const t = useT()
   const [amount, setAmount] = useState('1')
   const { send, signIn } = useWallet()
   const tx = useTx()
@@ -355,15 +365,15 @@ function ChipInDialog({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Chip in">
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label={t('home.chipIn')}>
       <div className="w-full glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[420px] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between text-[12px] text-muted">
-          <span>Chip in</span>
-          <button onClick={onClose} className="-my-3 py-3 pl-4 hover:text-ink" aria-label="Close">Close</button>
+          <span>{t('home.chipIn')}</span>
+          <button onClick={onClose} className="-my-3 py-3 ps-4 hover:text-ink">{t('common.close')}</button>
         </div>
-        <p className="mt-1 text-[13.5px] text-muted">Goes straight to {name}'s treasury. Everyone sees it in the activity.</p>
+        <p className="mt-1 text-[13.5px] text-muted">{t('home.chip.intro', { name })}</p>
         <label className="mt-6 block border-b border-line pb-2">
-          <span className="text-[12px] text-muted">Amount</span>
+          <span className="text-[12px] text-muted">{t('home.chip.amount')}</span>
           <div className="mt-1 flex items-baseline gap-2">
             <input
               ref={ref}
@@ -374,8 +384,9 @@ function ChipInDialog({
                 setAmount(e.target.value)
                 tx.reset()
               }}
-              aria-label="Chip in amount in NEAR"
+              aria-label={t('home.chip.amountLabel')}
             />
+            {/* i18n-ignore */}
             <span className="text-[15px] text-muted">NEAR</span>
           </div>
         </label>
@@ -387,14 +398,14 @@ function ChipInDialog({
               disabled={!yocto || yocto <= 0n || tx.state.status === 'signing'}
               onClick={() => yocto && tx.run(() => send(chipInTx(daoId, yocto)), onDone)}
             >
-              Chip in {yocto ? `${amount} NEAR` : ''}
+              {yocto ? t('home.chip.submitAmount', { amount }) : t('home.chipIn')}
             </Button>
           ) : (
-            <Button className="w-full !py-3" onClick={signIn}>Sign in to chip in</Button>
+            <Button className="w-full !py-3" onClick={signIn}>{t('home.chip.signIn')}</Button>
           )}
         </div>
         <div className="mt-3">
-          <TxStatus state={tx.state} doneText="Thanks! It reached the treasury." />
+          <TxStatus state={tx.state} doneText={t('home.chip.done')} />
         </div>
       </div>
     </div>

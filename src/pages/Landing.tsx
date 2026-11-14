@@ -10,12 +10,17 @@ import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
 import SiteFooter from '../components/SiteFooter'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
+import { formatDate, formatNumber, tr, useT } from '../i18n'
+import { splitUsd } from '../lib/format'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
 const DEMO_SOL_ADDRESS = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin'
 const H2 = 'text-[34px] leading-none font-light tracking-[-0.035em] md:text-[44px]'
+const usd0 = (n: number) => formatNumber(n, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+const usd2 = (n: number) => formatNumber(n, { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function Landing() {
+  const t = useT()
   const boardUrl = shareUrl(DEMO_DAO, 'board')
   useReveal()
 
@@ -28,19 +33,19 @@ export default function Landing() {
       <section className="mx-auto max-w-[1200px] px-4 pt-12 text-center sm:px-6 md:pt-24">
         <div className="inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-mute sm:text-[12.5px]">
           <span className="live size-1.5 rounded-full bg-accent" />
-          <span className="truncate">Works with any Sputnik DAO or Trezu treasury<span className="hidden sm:inline"> on NEAR</span></span>
+          <span className="truncate">{tr('landing.hero.badge', { wide: (c) => <span className="hidden sm:inline">{c}</span> })}</span>
         </div>
         <h1 className="mx-auto mt-7 max-w-[900px] text-[40px] leading-[1] font-light tracking-[-0.045em] sm:text-[52px] md:text-[72px] md:leading-[0.98]">
-          <Words text="Your community's money," start={60} />
+          <Words text={t('landing.hero.line1')} start={60} />
           <br />
-          <Words text="run by its members." start={60 + 3 * 50} />
+          <Words text={t('landing.hero.line2')} start={60 + t('landing.hero.line1').split(' ').length * 50} />
         </h1>
         <p className="rise mx-auto mt-6 max-w-[560px] text-[17px] leading-relaxed text-mute" style={{ ['--d' as string]: '380ms' } as React.CSSProperties}>
-          Chip in, ask for money, approve it. Your record decides how fast. The treasury pays anyone, in the coin they want, on the chain they use.
+          {t('landing.hero.lead')}
         </p>
         <div className="rise mt-9 flex flex-wrap justify-center gap-2 text-[14px] font-medium" style={{ ['--d' as string]: '460ms' } as React.CSSProperties}>
-          <button onClick={() => go('create')} className="rounded-lg bg-accent px-5 py-3 text-on-accent">Start a group</button>
-          <a href="#connect" className="rounded-lg border border-line bg-panel px-5 py-3">Connect your treasury</a>
+          <button onClick={() => go('create')} className="rounded-lg bg-accent px-5 py-3 text-on-accent">{t('landing.hero.start')}</button>
+          <a href="#connect" className="rounded-lg border border-line bg-panel px-5 py-3">{t('landing.hero.connect')}</a>
         </div>
         <ResumeLink />
         <ProductPreview />
@@ -51,12 +56,12 @@ export default function Landing() {
       <section className="border-y border-line">
         <div className="mx-auto grid max-w-[1200px] grid-cols-2 px-6 text-[13px] md:grid-cols-4">
           {[
-            ['Holds the money', 'Your own DAO, not us'],
-            ['Quotes payouts on', 'Any chain, via NEAR Intents'],
-            ['Small requests', 'Paid on one trusted nod'],
-            ['Every payout', 'Public, with a receipt'],
+            [t('landing.proof.holds'), t('landing.proof.holdsValue')],
+            [t('landing.proof.quotes'), t('landing.proof.quotesValue')],
+            [t('landing.proof.small'), t('landing.proof.smallValue')],
+            [t('landing.proof.every'), t('landing.proof.everyValue')],
           ].map(([k, v], i) => (
-            <div key={k} className={`border-line py-6 ${i % 2 === 0 ? 'border-r pr-6' : 'pl-6 md:border-r md:px-6'} ${i === 3 ? 'md:border-r-0' : ''} ${i < 2 ? 'border-b md:border-b-0' : ''}`}>
+            <div key={i} className={`border-line py-6 ${i % 2 === 0 ? 'border-e pe-6' : 'ps-6 md:border-e md:px-6'} ${i === 3 ? 'md:border-e-0' : ''} ${i < 2 ? 'border-b md:border-b-0' : ''}`}>
               <div className="text-mute">{k}</div>
               <div className="mt-1 font-medium">{v}</div>
             </div>
@@ -67,19 +72,15 @@ export default function Landing() {
       {/* How it works */}
       <section id="how" className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end md:gap-10">
-          <h2 className={H2}>
-            From treasury to payout
-            <br />
-            in four steps.
-          </h2>
-          <p className="max-w-[360px] text-[14.5px] text-mute">No new wallet for the group and no contract of our own. Terra sits on top of the Sputnik DAO you have, or creates a standard one for you.</p>
+          <h2 className={H2}>{tr('landing.how.title', { br: <br /> })}</h2>
+          <p className="max-w-[360px] text-[14.5px] text-mute">{t('landing.how.lead')}</p>
         </div>
         <div className="reveal mt-12 rounded-2xl border border-line bg-panel p-8" data-how>
           <HowSteps steps={[
-              ['01', 'Connect', 'Connect or start a treasury', "Type your DAO's name, or start one in a minute. Members sign in with their NEAR account."],
-              ['02', 'Chip in', 'Members chip in', 'Everyone sees one balance in dollars, and where every cent went.'],
-              ['03', 'Request', 'Ask for money', "Say what it's for and who gets paid. A live quote shows what they receive."],
-              ['04', 'Approve', 'Approve and pay', 'Enough approvals and the treasury pays out itself. No one holds the keys alone.'],
+              ['01', t('landing.how.connect.tag'), t('landing.how.connect.title'), t('landing.how.connect.text')],
+              ['02', t('landing.how.chipIn.tag'), t('landing.how.chipIn.title'), t('landing.how.chipIn.text')],
+              ['03', t('landing.how.request.tag'), t('landing.how.request.title'), t('landing.how.request.text')],
+              ['04', t('landing.how.approve.tag'), t('landing.how.approve.title'), t('landing.how.approve.text')],
           ]} />
         </div>
       </section>
@@ -87,20 +88,16 @@ export default function Landing() {
       {/* Any chain */}
       <section className="mx-auto grid max-w-[1200px] items-center gap-12 px-6 pb-20 md:grid-cols-2 md:gap-16 md:pb-28">
         <div>
-          <div className="text-[13px] text-mute">Pay anyone, anywhere</div>
-          <h2 className={`mt-3 ${H2}`}>
-            They get paid in what
-            <br />
-            they actually use.
-          </h2>
+          <div className="text-[13px] text-mute">{t('landing.chain.eyebrow')}</div>
+          <h2 className={`mt-3 ${H2}`}>{tr('landing.chain.title', { br: <br /> })}</h2>
           <p className="mt-5 max-w-[440px] text-[15px] leading-relaxed text-mute">
-            A designer wants USDC on Solana. A venue wants NEAR. Terra shows a live quote before anyone approves, so the group knows exactly what leaves and what arrives.
+            {t('landing.chain.lead')}
           </p>
           <ul className="mt-8 space-y-3 text-[14px]">
-            {['Amounts in dollars first, tokens second', 'USDC on Solana, Base, Ethereum, or NEAR', 'The quote is saved with the request'].map((t) => (
-              <li key={t} className="flex gap-3">
+            {[t('landing.chain.point1'), t('landing.chain.point2'), t('landing.chain.point3')].map((item) => (
+              <li key={item} className="flex gap-3">
                 <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
-                {t}
+                {item}
               </li>
             ))}
           </ul>
@@ -114,50 +111,47 @@ export default function Landing() {
       <section id="approvals" className="border-y border-line bg-panel">
         <div className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end md:gap-10">
-            <h2 className={H2}>
-              Trust is earned,
-              <br />
-              so approvals scale with it.
-            </h2>
+            <h2 className={H2}>{tr('landing.approvals.title', { br: <br /> })}</h2>
             <p className="max-w-[380px] text-[14.5px] text-mute">
-              Each member has a record, built from the treasury's own history: requests paid and requests turned down. A clean record opens the fast lane for small amounts.
+              {t('landing.approvals.lead')}
             </p>
           </div>
           <div className="reveal mt-12 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
-            <Tier name="Small" amount={`Up to $${TIER_LIMITS_USD.small}`} text="Once you have a record, one trusted member approves and the treasury pays right then." badge />
-            <Tier name="Mid" amount={`Up to $${TIER_LIMITS_USD.mid}`} text="A council majority signs off. First requests start here too." />
-            <Tier name="Large" amount={`Over $${TIER_LIMITS_USD.mid}`} text="A council majority votes, and it stays on the public board while it's open." />
+            <Tier name={t('landing.tier.small')} amount={t('landing.tier.upTo', { amount: usd0(TIER_LIMITS_USD.small) })} text={t('landing.tier.smallText')} badge />
+            <Tier name={t('landing.tier.mid')} amount={t('landing.tier.upTo', { amount: usd0(TIER_LIMITS_USD.mid) })} text={t('landing.tier.midText')} />
+            <Tier name={t('landing.tier.large')} amount={t('landing.tier.over', { amount: usd0(TIER_LIMITS_USD.mid) })} text={t('landing.tier.largeText')} />
           </div>
           <p className="mt-5 max-w-[720px] text-[13px] leading-relaxed text-mute">
-            Terra checks these limits. On chain, one trusted vote can approve a transfer of any size, so keep the trusted list small; allowances add a hard cap the
-            contract enforces.
+            {t('landing.approvals.note')}
           </p>
         </div>
       </section>
 
       {/* Trust */}
       <section id="trust" className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
-        <h2 className={H2}>Nobody holds your money but you.</h2>
+        <h2 className={H2}>{t('landing.trust.title')}</h2>
         <div className="reveal mt-12 grid gap-10 md:grid-cols-3">
           <TrustItem
             icon={<><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>}
-            title="Your DAO keeps the funds"
-            text="Money stays in your Sputnik DAO. Terra only creates requests; the treasury's own rules pay them out."
+            title={t('landing.trust.funds.title')}
+            text={t('landing.trust.funds.text')}
           />
-          <TrustItem icon={<path d="M5 12l4 4 10-10" />} title="Every payout has a receipt" text="Each payment links to its record on NEAR. Share a read-only board with sponsors or anyone." />
+          <TrustItem icon={<path d="M5 12l4 4 10-10" />} title={t('landing.trust.receipt.title')} text={t('landing.trust.receipt.text')} />
           <TrustItem
             icon={<><circle cx="12" cy="12" r="8" /><path d="M4 12h16M12 4c2.5 2.5 2.5 13.5 0 16M12 4c-2.5 2.5-2.5 13.5 0 16" /></>}
-            title="Cross-chain, without bridges"
-            text="Payouts to other chains go through NEAR Intents, and recipients don't need a NEAR account."
+            title={t('landing.trust.crossChain.title')}
+            text={t('landing.trust.crossChain.text')}
           />
         </div>
         <div className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-8 text-[13px] text-mute">
-          <span>Built on NEAR</span>
+          <span>{t('landing.trust.builtOn')}</span>
           <span className="h-4 w-px bg-line" />
+          {/* i18n-ignore */}
           <span className="text-ink">Sputnik DAO</span>
+          {/* i18n-ignore */}
           <span className="text-ink">NEAR Intents</span>
-          <span className="text-ink">Trezu compatible</span>
-          <span className="text-ink">Native staking</span>
+          <span className="text-ink">{t('landing.trust.trezu')}</span>
+          <span className="text-ink">{t('landing.trust.staking')}</span>
         </div>
       </section>
 
@@ -169,11 +163,12 @@ export default function Landing() {
 }
 
 function Tier({ name, amount, text, badge }: { name: string; amount: string; text: string; badge?: boolean }) {
+  const t = useT()
   return (
     <div className="bg-bg p-7">
       <div className="flex items-center justify-between">
         <span className="text-[15px] font-medium">{name}</span>
-        {badge && <span className="rounded-md bg-accent px-2 py-0.5 text-[11.5px] font-medium text-on-accent">Fast lane</span>}
+        {badge && <span className="rounded-md bg-accent px-2 py-0.5 text-[11.5px] font-medium text-on-accent">{t('landing.tier.fastLane')}</span>}
       </div>
       <div className="tnum mt-6 text-[40px] leading-none font-light tracking-[-0.04em]">{amount}</div>
       <p className="mt-3 text-[13.5px] text-mute">{text}</p>
@@ -197,12 +192,13 @@ function TrustItem({ icon, title, text }: { icon: React.ReactNode; title: string
 
 /** "Continue to <group>" for someone who has opened a group on this device before. */
 function ResumeLink() {
+  useT()
   const id = lastDao()
   if (!id) return null
   return (
     <div className="rise mt-4 text-[13.5px]" style={{ ['--d' as string]: '500ms' } as React.CSSProperties}>
       <button onClick={() => openDao(id)} className="text-mute underline-offset-2 hover:text-ink hover:underline">
-        Continue to <span className="font-mono text-[12.5px]">{id}</span> →
+        {tr('landing.resume', { id: <span className="font-mono text-[12.5px]">{id}</span> })} <span aria-hidden className="inline-block rtl:-scale-x-100">→</span>
       </button>
     </div>
   )
@@ -210,6 +206,7 @@ function ResumeLink() {
 
 /** Static preview of Home with made-up numbers (not interactive). */
 function ProductPreview() {
+  const t = useT()
   const [tilt, setTilt] = useState(10)
   useEffect(() => {
     const on = () => setTilt(Math.max(0, 10 - (window.scrollY / 400) * 10))
@@ -219,57 +216,58 @@ function ProductPreview() {
   }, [])
   return (
     <div className="relative mx-auto mt-16 max-w-[1080px]" style={{ perspective: '1600px' }}>
-      <FloatCard side="left" delay={1300} title="Paid · 2 min ago" text="20.00 USDC arrived on Solana" />
-      <FloatCard side="right" delay={1450} title="ravi approved" text="Fast lane · 1 of 1" />
+      <FloatCard side="left" delay={1300} title={t('landing.preview.paidAgo')} text={t('landing.preview.arrived')} />
+      <FloatCard side="right" delay={1450} title={t('landing.preview.approvedBy', { name: 'ravi' })} text={t('landing.preview.fastLaneVotes')} />
       <div className="rise" style={{ ['--d' as string]: '540ms', animationDuration: '1s' } as React.CSSProperties}>
     <div
-      className="relative rounded-t-2xl border border-b-0 border-line bg-panel p-2 pb-0 text-left"
+      className="relative rounded-t-2xl border border-b-0 border-line bg-panel p-2 pb-0 text-start"
       aria-hidden
       style={{ transform: `rotateX(${tilt}deg)`, transformOrigin: '50% 0%', transition: 'transform 120ms linear' }}
     >
       <div className="grid overflow-hidden rounded-t-xl border border-b-0 border-line bg-bg md:grid-cols-[180px_1fr]">
-        <aside className="hidden border-r border-line px-3 py-4 text-[12px] text-mute md:block">
+        <aside className="hidden border-e border-line px-3 py-4 text-[12px] text-mute md:block">
           <div className="flex items-center gap-1.5 px-2 text-ink">
             <img src={ICON} alt="" className="size-5 rounded-[5px]" />
             <span className="font-medium">terra</span>
           </div>
           <div className="mt-5 space-y-px">
-            <div className="rounded-md bg-panel px-2.5 py-1.5 text-ink ring-1 ring-line">Home</div>
-            <div className="px-2.5 py-1.5">Pay</div>
+            <div className="rounded-md bg-panel px-2.5 py-1.5 text-ink ring-1 ring-line">{t('landing.preview.nav.home')}</div>
+            <div className="px-2.5 py-1.5">{t('landing.preview.nav.pay')}</div>
             <div className="flex justify-between px-2.5 py-1.5">
-              Approve<span className="grid size-4 place-items-center rounded-full bg-accent text-[9px] text-on-accent">2</span>
+              {t('landing.preview.nav.approve')}<span className="grid size-4 place-items-center rounded-full bg-accent text-[9px] text-on-accent">2</span>
             </div>
-            <div className="px-2.5 py-1.5">Members</div>
-            <div className="px-2.5 py-1.5">Board</div>
+            <div className="px-2.5 py-1.5">{t('landing.preview.nav.members')}</div>
+            <div className="px-2.5 py-1.5">{t('landing.preview.nav.board')}</div>
           </div>
         </aside>
         <div className="px-5 py-6 md:px-8 md:py-7">
-          <div className="text-[12px] text-mute">City Club holds</div>
+          <div className="text-[12px] text-mute">{t('landing.preview.holds', { name: 'City Club' })}</div>
           <div className="tnum mt-1 text-[48px] leading-[0.9] font-light tracking-[-0.055em] md:text-[64px]">
-            $1,240<span className="text-mute">.00</span>
+            {splitUsd(1240)[0]}<span className="text-mute">{splitUsd(1240)[1]}</span>
           </div>
           <div className="mt-3 flex gap-4 text-[12px] text-mute">
-            <span>412.6 NEAR</span>
-            <span className="text-accent-text">Earning on 200 NEAR staked</span>
+            {/* i18n-ignore */}
+            <span>{formatNumber(412.6)} NEAR</span>
+            <span className="text-accent-text">{t('landing.preview.earning')}</span>
           </div>
           <div className="mt-6 grid gap-6 md:grid-cols-[1fr_300px]">
             <div className="text-[12.5px]">
-              <Row l="Poster design" d="USDC on Solana" a="−$20.00" />
-              <Row l="ana chipped in" d="5 NEAR" a="+$15.02" good />
-              <Row l="Venue deposit" d="full vote" a="−$300.00" last />
+              <Row l={t('landing.preview.poster')} d={t('landing.usdcOnSolana')} a="−$20.00" />
+              <Row l={t('landing.preview.chippedIn', { name: 'ana' })} d="5 NEAR" a="+$15.02" good />
+              <Row l={t('landing.preview.venue')} d={t('landing.preview.fullVote')} a="−$300.00" last />
             </div>
             <div className="rounded-xl bg-hero p-4 text-on-hero ring-1 ring-[var(--hero-ring)]">
               <div className="flex justify-between text-[11px] opacity-60">
-                <span>ravi is asking</span>
-                <span>Small · you decide</span>
+                <span>{t('landing.preview.asking', { name: 'ravi' })}</span>
+                <span>{t('landing.preview.smallDecide')}</span>
               </div>
               <div className="tnum mt-3 text-[36px] leading-none font-light tracking-[-0.045em]">
                 $20<span className="opacity-40">.00</span>
               </div>
-              <div className="mt-1 text-[12px]">for the meetup poster</div>
+              <div className="mt-1 text-[12px]">{t('landing.preview.forPoster')}</div>
               <div className="mt-3 grid grid-cols-[1fr_auto] gap-1.5 text-[12px] font-medium">
-                <span className="rounded-md bg-accent py-1.5 text-center text-on-accent">Approve and pay</span>
-                <span className="rounded-md bg-white/10 px-3 py-1.5">Not now</span>
+                <span className="rounded-md bg-accent py-1.5 text-center text-on-accent">{t('landing.preview.approvePay')}</span>
+                <span className="rounded-md bg-white/10 px-3 py-1.5">{t('landing.preview.notNow')}</span>
               </div>
             </div>
           </div>
@@ -285,11 +283,11 @@ function ProductPreview() {
 function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay: number; title: string; text: string }) {
   return (
     <div
-      className={`pointer-events-none absolute z-10 hidden xl:block ${side === 'left' ? '-left-40 top-[300px]' : '-right-20 top-56'}`}
+      className={`pointer-events-none absolute z-10 hidden xl:block ${side === 'left' ? '-start-40 top-[300px]' : '-end-20 top-56'}`}
       aria-hidden
     >
       <div className="pop" style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
-        <div className="float rounded-xl border border-line bg-panel px-4 py-3 text-left text-[12.5px]" style={{ ['--d' as string]: side === 'left' ? '0ms' : '-3s' } as React.CSSProperties}>
+        <div className="float rounded-xl border border-line bg-panel px-4 py-3 text-start text-[12.5px]" style={{ ['--d' as string]: side === 'left' ? '0ms' : '-3s' } as React.CSSProperties}>
           <div className="flex items-center gap-2">
             <span className="grid size-4 place-items-center rounded-full bg-accent text-on-accent">
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
@@ -303,11 +301,8 @@ function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay
   )
 }
 
-const NAV_LINKS: [string, string][] = [
-  ['how', 'How it works'],
-  ['approvals', 'Approvals'],
-  ['trust', 'Trust'],
-]
+/** Section ids on the landing; labels are `landing.nav.<id>`. Only "how" shows on the desktop bar below lg. */
+const NAV_IDS = ['how', 'approvals', 'trust'] as const
 
 /**
  * Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in.
@@ -325,8 +320,14 @@ export function LandingNav({
   current?: 'board' | 'docs'
   joinCta?: { label: string; onClick: () => void }
 }) {
+  const t = useT()
   const { accountId } = useWallet()
   const [scrolled, setScrolled] = useState(false)
+  const navLabel: Record<(typeof NAV_IDS)[number], string> = {
+    how: t('landing.nav.how'),
+    approvals: t('landing.nav.approvals'),
+    trust: t('landing.nav.trust'),
+  }
   const [active, setActive] = useState<string | null>(null)
   const [menu, setMenu] = useState(false)
 
@@ -340,12 +341,12 @@ export function LandingNav({
   // Highlight the section in view: the one crossing a band just under the nav.
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return
-    const els = NAV_LINKS.map(([id]) => document.getElementById(id)).filter((e): e is HTMLElement => !!e)
+    const els = NAV_IDS.map((id) => document.getElementById(id)).filter((e): e is HTMLElement => !!e)
     const seen = new Map<string, boolean>()
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => seen.set(e.target.id, e.isIntersecting))
-        setActive(NAV_LINKS.map(([id]) => id).find((id) => seen.get(id)) ?? null)
+        setActive(NAV_IDS.find((id) => seen.get(id)) ?? null)
       },
       { rootMargin: '-80px 0px -55% 0px' },
     )
@@ -362,17 +363,17 @@ export function LandingNav({
 
   const primary = !accountId && joinCta ? (
     <button type="button" onClick={joinCta.onClick} className="inline-flex h-10 max-w-[11rem] items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong sm:max-w-none">
-      <span className="sm:hidden">Join</span>
+      <span className="sm:hidden">{t('landing.nav.join')}</span>
       <span className="hidden truncate sm:inline">{joinCta.label}</span>
     </button>
   ) : accountId ? (
     <button type="button" onClick={openTerra} className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
-      Open Terra <span aria-hidden className="ml-1.5">→</span>
+      {t('landing.nav.openTerra')} <span aria-hidden className="ms-1.5 inline-block rtl:-scale-x-100">→</span>
     </button>
   ) : (
     <a href="#connect" className="inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
-      <span className="lg:hidden">Connect</span>
-      <span className="hidden lg:inline">Connect a treasury</span>
+      <span className="lg:hidden">{t('landing.nav.connect')}</span>
+      <span className="hidden lg:inline">{t('landing.nav.connectTreasury')}</span>
     </a>
   )
 
@@ -380,20 +381,20 @@ export function LandingNav({
     <header className={`sticky top-0 z-30 border-b transition-colors ${scrolled ? 'glass-bar border-line' : 'border-transparent bg-transparent'}`}>
       <AccountHosts />
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
-        <a href={home || '#'} className="-ml-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label="Terra home">
+        <a href={home || '#'} className="-ms-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label={t('common.terraHome')}>
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
         </a>
 
-        <nav aria-label="Sections" className="ml-6 hidden items-center gap-1 text-[13.5px] md:flex">
-          {NAV_LINKS.map(([id, label]) => (
+        <nav aria-label={t('landing.nav.sections')} className="ms-6 hidden items-center gap-1 text-[13.5px] whitespace-nowrap md:flex">
+          {NAV_IDS.map((id) => (
             <a
               key={id}
               href={`${home}#${id}`}
               aria-current={active === id ? 'true' : undefined}
-              className={`relative flex h-10 items-center rounded-lg px-3 transition-colors ${active === id ? 'text-ink' : 'text-mute hover:text-ink'}`}
+              className={`relative h-10 items-center rounded-lg px-3 transition-colors ${id === 'how' ? 'flex' : 'hidden lg:flex'} ${active === id ? 'text-ink' : 'text-mute hover:text-ink'}`}
             >
-              {label}
+              {navLabel[id]}
               {active === id && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
             </a>
           ))}
@@ -402,7 +403,7 @@ export function LandingNav({
             aria-current={current === 'board' ? 'page' : undefined}
             className={`relative flex h-10 items-center rounded-lg px-3 ${current === 'board' ? 'text-ink' : 'text-mute hover:text-ink'}`}
           >
-            Live board
+            {t('landing.nav.board')}
             {current === 'board' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
           </a>
           <a
@@ -410,29 +411,29 @@ export function LandingNav({
             aria-current={current === 'docs' ? 'page' : undefined}
             className={`relative flex h-10 items-center rounded-lg px-3 ${current === 'docs' ? 'text-ink' : 'text-mute hover:text-ink'}`}
           >
-            Docs
+            {t('landing.nav.docs')}
             {current === 'docs' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
           </a>
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <div className="ms-auto hidden items-center gap-2 md:flex">
           <ThemeButton />
           {accountId ? (
             <AccountChip />
           ) : (
-            <button type="button" onClick={() => go('signin')} className="inline-flex h-10 items-center rounded-lg px-3 text-[13.5px] font-medium hover:bg-sand">
-              Sign in
+            <button type="button" onClick={() => go('signin')} className="inline-flex h-10 items-center rounded-lg px-3 text-[13.5px] font-medium whitespace-nowrap hover:bg-sand">
+              {t('landing.nav.signIn')}
             </button>
           )}
           {primary}
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5 md:hidden">
+        <div className="ms-auto flex items-center gap-1.5 md:hidden">
           {primary}
           <button
             type="button"
             onClick={() => setMenu(true)}
-            aria-label="Open menu"
+            aria-label={t('landing.nav.openMenu')}
             aria-expanded={menu}
             className="grid size-11 place-items-center rounded-lg text-ink hover:bg-sand"
           >
@@ -444,19 +445,19 @@ export function LandingNav({
       </div>
 
       {menu && createPortal(
-        <div className="fixed inset-0 z-50 grid items-end glass-scrim md:hidden" onClick={() => setMenu(false)} role="dialog" aria-modal aria-label="Menu">
+        <div className="fixed inset-0 z-50 grid items-end glass-scrim md:hidden" onClick={() => setMenu(false)} role="dialog" aria-modal aria-label={t('landing.nav.menu')}>
           <div
             className="max-h-[90vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-3 pb-[max(env(safe-area-inset-bottom),12px)] text-ink"
             onClick={(e) => e.stopPropagation()}
           >
-            <nav aria-label="Sections" className="flex flex-col">
-              {NAV_LINKS.map(([id, label]) => (
+            <nav aria-label={t('landing.nav.sections')} className="flex flex-col">
+              {NAV_IDS.map((id) => (
                 <a key={id} href={`${home}#${id}`} onClick={() => setMenu(false)} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">
-                  {label}
+                  {navLabel[id]}
                 </a>
               ))}
-              <a href={boardUrl} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">Live board</a>
-              <a href={`${home}#/docs`} onClick={() => setMenu(false)} aria-current={current === 'docs' ? 'page' : undefined} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">Docs</a>
+              <a href={boardUrl} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">{t('landing.nav.board')}</a>
+              <a href={`${home}#/docs`} onClick={() => setMenu(false)} aria-current={current === 'docs' ? 'page' : undefined} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">{t('landing.nav.docs')}</a>
             </nav>
             <div className="my-2 h-px bg-line" />
             {accountId ? (
@@ -464,7 +465,7 @@ export function LandingNav({
             ) : (
               <div className="flex items-center justify-between gap-2 px-1">
                 <button type="button" onClick={() => go('signin')} className="inline-flex h-11 flex-1 items-center justify-center rounded-lg border border-line bg-card text-[14px] font-medium">
-                  Sign in
+                  {t('landing.nav.signIn')}
                 </button>
                 <ThemeButton className="size-11 border border-line" />
               </div>
@@ -540,16 +541,16 @@ function HowSteps({ steps }: { steps: string[][] }) {
   return (
     <div ref={ref}>
       <div className="relative h-px bg-line">
-        <div className="absolute inset-y-0 left-0 bg-ink transition-[width] duration-[650ms] ease-out" style={{ width: `${(reached / steps.length) * 100}%` }} />
+        <div className="absolute inset-y-0 start-0 bg-ink transition-[width] duration-[650ms] ease-out" style={{ width: `${(reached / steps.length) * 100}%` }} />
       </div>
       <div className="mt-0 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-        {steps.map(([n, tag, t, d], i) => (
+        {steps.map(([n, tag, title, d], i) => (
           <div key={n} className="transition-opacity duration-500" style={{ opacity: i < reached ? 1 : 0.45 }}>
             <div className="mt-5 flex items-center gap-2 text-[12px]">
               <span className="font-mono text-mute">{n}</span>
               <span className="rounded-md border border-line px-2 py-0.5">{tag}</span>
             </div>
-            <div className="mt-4 text-[15px] font-medium">{t}</div>
+            <div className="mt-4 text-[15px] font-medium">{title}</div>
             <p className="mt-1.5 text-[13.5px] leading-relaxed text-mute">{d}</p>
           </div>
         ))}
@@ -571,22 +572,23 @@ function Row({ l, d, a, good, last }: { l: string; d: string; a: string; good?: 
 
 /** The same live NEAR Intents quote as Pay, with demo values. Falls back to a labelled saved quote. */
 function LiveQuoteDemo() {
+  const t = useT()
   const [q, setQ] = useState<QuoteResult | null>(null)
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     let alive = true
     getTokens()
       .then((tokens) => {
-        const usdc = tokens.find((t) => t.symbol === 'USDC' && t.blockchain === 'sol')
+        const usdc = tokens.find((tok) => tok.symbol === 'USDC' && tok.blockchain === 'sol')
         if (!usdc) throw new Error('no token')
         return quotePayout({ destinationAsset: usdc.assetId, amountOutUnits: '20000000', recipient: DEMO_SOL_ADDRESS })
       })
       .then((r) => alive && setQ(r))
       .catch(() => alive && setQ(RECORDED_QUOTE))
-    const t = setInterval(() => setNow(Date.now()), 1000)
+    const timer = setInterval(() => setNow(Date.now()), 1000)
     return () => {
       alive = false
-      clearInterval(t)
+      clearInterval(timer)
     }
   }, [])
   const age = q ? Math.max(0, Math.round((now - new Date(q.timestamp).getTime()) / 1000)) : 0
@@ -594,26 +596,30 @@ function LiveQuoteDemo() {
   return (
     <div className="rounded-2xl border border-line bg-panel p-7">
       <div className="flex items-center justify-between text-[12px] text-mute">
-        <span>{q?.recorded ? 'Saved quote' : 'Live quote · NEAR Intents'}</span>
+        <span>{q?.recorded ? t('landing.quote.saved') : t('landing.quote.live')}</span>
         <span className="flex items-center gap-1.5">
           {q ? (
             <>
               <span className={`size-1.5 rounded-full ${q.recorded ? 'bg-warn' : 'animate-pulse bg-accent'}`} />
-              {q.recorded ? 'recorded 14 Nov' : age < 60 ? `${age}s ago` : `${Math.round(age / 60)} min ago`}
+              {q.recorded
+                ? t('landing.quote.recorded', { date: formatDate(new Date(q.timestamp), { day: 'numeric', month: 'short' }) })
+                : age < 60
+                  ? t('landing.quote.secondsAgo', { count: age })
+                  : t('landing.quote.minutesAgo', { count: Math.round(age / 60) })}
             </>
           ) : (
             <Spinner />
           )}
         </span>
       </div>
-      <div className="mt-6 text-[12px] text-mute">Designer gets exactly</div>
+      <div className="mt-6 text-[12px] text-mute">{t('landing.quote.designerGets')}</div>
       <div className="tnum mt-1 text-[44px] leading-none font-light tracking-[-0.05em] md:text-[56px]">
-        20.00 <span className="text-[20px] tracking-normal text-mute">USDC on Solana</span>
+        {formatNumber(20, { minimumFractionDigits: 2 })} <span className="text-[20px] tracking-normal text-mute">{t('landing.usdcOnSolana')}</span>
       </div>
       <div className="mt-7 text-[13.5px]">
-        <QRow k="City Club sends" v={q ? `${Number(q.quote.amountInFormatted).toFixed(2)} NEAR · $${Number(q.quote.amountInUsd).toFixed(2)}` : '…'} />
-        <QRow k="Arrives" v={q ? `about ${q.quote.timeEstimate} seconds` : '…'} />
-        <QRow k="Fees" v={q ? `$${fees.toFixed(2)}` : '…'} />
+        <QRow k={t('landing.quote.sends', { name: 'City Club' })} v={q ? `${formatNumber(Number(q.quote.amountInFormatted), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NEAR · ${usd2(Number(q.quote.amountInUsd))}` : '…'} />
+        <QRow k={t('landing.quote.arrives')} v={q ? t('landing.quote.aboutSeconds', { count: Number(q.quote.timeEstimate) }) : '…'} />
+        <QRow k={t('landing.quote.fees')} v={q ? usd2(fees) : '…'} />
       </div>
     </div>
   )
@@ -629,6 +635,7 @@ function QRow({ k, v }: { k: string; v: string }) {
 }
 
 function ConnectCta() {
+  const t = useT()
   const [name, setName] = useState('')
   const [checking, setChecking] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -639,7 +646,7 @@ function ConnectCta() {
     if (!id) return
     if (!id.includes('.')) id = `${id}.${FACTORY}`
     if (!isValidAccountId(id)) {
-      setError("That doesn't look like a NEAR account name.")
+      setError(t('landing.connect.invalid'))
       return
     }
     setChecking(true)
@@ -647,7 +654,7 @@ function ConnectCta() {
     const ok = await isDao(id)
     setChecking(false)
     if (!ok) {
-      setError(`Couldn't find that treasury. ${id} isn't a Sputnik DAO.`)
+      setError(t('landing.connect.notFound', { id }))
       return
     }
     openDao(id, accountId ? 'home' : 'signin')
@@ -660,9 +667,7 @@ function ConnectCta() {
           <div>
             <img src={ICON} alt="" className="size-12 rounded-xl" />
             <h2 className="mt-6 text-[34px] leading-none font-light tracking-[-0.035em] md:text-[44px]">
-              Bring your treasury.
-              <br />
-              Your members will do the rest.
+              {tr('landing.connect.title', { br: <br /> })}
             </h2>
           </div>
           <form
@@ -671,7 +676,7 @@ function ConnectCta() {
               connect()
             }}
           >
-            <label htmlFor="dao-name" className="text-[12px] opacity-60">Your DAO's name</label>
+            <label htmlFor="dao-name" className="text-[12px] opacity-60">{t('landing.connect.label')}</label>
             <div className="mt-2 flex gap-2">
               <input
                 id="dao-name"
@@ -685,7 +690,7 @@ function ConnectCta() {
                 className="min-w-0 flex-1 rounded-lg bg-white/[0.08] px-4 py-3 font-mono text-[13.5px] outline-none ring-1 ring-white/10 placeholder:text-white/35 focus:ring-[var(--accent)]"
               />
               <button type="submit" disabled={checking || !name.trim()} className="rounded-lg bg-accent px-5 text-[14px] font-medium text-on-accent disabled:opacity-60">
-                {checking ? <Spinner /> : 'Connect'}
+                {checking ? <Spinner /> : t('landing.connect.submit')}
               </button>
             </div>
             {error ? (
@@ -695,15 +700,19 @@ function ConnectCta() {
               </p>
             ) : (
               <p className="mt-3 text-[12.5px] opacity-60">
-                No DAO yet?{' '}
-                <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => go('create')}>
-                  Create one in a minute.
-                </button>{' '}
-                Or{' '}
-                <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => openDao(DEMO_DAO)}>
-                  look around nearHack Community
-                </button>
-                .
+                {tr('landing.connect.noDao', {
+                  create: (c) => (
+                    <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => go('create')}>
+                      {c}
+                    </button>
+                  ),
+                  look: (c) => (
+                    <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => openDao(DEMO_DAO)}>
+                      {c}
+                    </button>
+                  ),
+                  name: 'nearHack Community',
+                })}
               </p>
             )}
           </form>

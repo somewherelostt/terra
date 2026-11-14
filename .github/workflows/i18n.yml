@@ -1,0 +1,26 @@
+name: i18n
+
+# Every language has every key, no key is unused, placeholders match English,
+# and no user-visible JSX text bypasses t(). Also type-checks and builds.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm i18n:check
+      - run: pnpm build

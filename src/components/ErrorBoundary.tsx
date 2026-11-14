@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { t } from '../i18n'
 
 interface State {
   error: Error | null
@@ -31,7 +32,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     }
     const btn: React.CSSProperties = {
       marginTop: 20,
-      marginRight: 8,
+      marginInlineEnd: 8,
       padding: '10px 16px',
       borderRadius: 8,
       border: '1px solid var(--line, #232326)',
@@ -44,12 +45,12 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     return (
       <div style={box} role="alert">
         <div style={{ fontSize: 13, opacity: 0.6 }}>terra</div>
-        <h1 style={{ fontSize: 28, fontWeight: 300, letterSpacing: '-0.02em', margin: '12px 0 8px' }}>Something went wrong on this page</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 300, letterSpacing: '-0.02em', margin: '12px 0 8px' }}>{t('error.title')}</h1>
         <p style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.5 }}>
-          Your community's money is safe: it stays in the group's own DAO on NEAR. Reload the page, or go back to the start.
+          {t('error.text')}
         </p>
         <button style={btn} onClick={() => window.location.reload()}>
-          Reload
+          {t('error.reload')}
         </button>
         <button
           style={{ ...btn, background: 'transparent', color: 'inherit' }}
@@ -57,7 +58,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
             window.location.href = window.location.pathname
           }}
         >
-          Back to start
+          {t('error.backToStart')}
         </button>
         <pre style={{ marginTop: 28, fontSize: 12, opacity: 0.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{String(error.message || error)}</pre>
       </div>

@@ -5,10 +5,10 @@ import { AVATAR_STYLE, SOCIAL_CONTRACT, dicebearUrl, invalidateAvatar, type Avat
 import {
   BIO_MAX,
   LINK_KEYS,
-  LINK_LABELS,
   NAME_MAX,
   diffProfile,
   isEmptyPatch,
+  linkLabel,
   linkText,
   linkUrl,
   normalizeLink,
@@ -25,8 +25,12 @@ import { shortName, yoctoToNear } from '../lib/format'
 import { wait } from '../lib/motion'
 import { AvatarGrid } from './AvatarPicker'
 import { Avatar, Button, TxLink, inputCls, showToast } from './ui'
+import { t, tr, useT } from '../i18n'
 
-const PLACEHOLDER: Record<LinkKey, string> = { twitter: '@handle', github: 'handle', website: 'https://example.com', telegram: '@handle' }
+function placeholder(k: LinkKey): string {
+  if (k === 'website') return 'https://example.com'
+  return k === 'github' ? t('profile.link.placeholderHandle') : t('profile.link.placeholderAt')
+}
 
 // Open the sheet from anywhere (account chip, Members row, nudges) without threading props.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -50,6 +54,7 @@ type Status = 'loading' | 'idle' | 'signing' | 'checking' | 'saved' | 'error'
 
 /** "Edit profile": name, avatar, bio and links, saved to the member's own NEAR Social profile. */
 export function ProfileSheet({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const { accountId, send } = useWallet()
   const [status, setStatus] = useState<Status>('loading')
   const [before, setBefore] = useState<{ profile: Profile; avatar: string | null } | null>(null)
@@ -143,21 +148,21 @@ export function ProfileSheet({ onClose }: { onClose: () => void }) {
           if (patch.terra) invalidateAvatar(accountId)
           setBefore(after)
           setStatus('saved')
-          showToast('Profile saved to NEAR Social')
+          showToast(t('profile.toast.saved'))
           return
         }
       }
       setStatus('error')
-      setError("The change didn't show up yet. It can take a few seconds; open this again in a moment to check.")
+      setError(t('profile.error.notYet'))
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       setStatus('error')
-      setError(/reject|cancel|closed|denied/i.test(msg) ? 'Cancelled in the wallet.' : msg)
+      setError(/reject|cancel|closed|denied/i.test(msg) ? t('common.cancelledInWallet') : msg)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label="Edit profile">
+    <div className="fixed inset-0 z-40 grid items-end glass-scrim sm:place-items-center sm:p-4" onClick={onClose} role="dialog" aria-modal aria-label={t('profile.title')}>
       <form
         className="max-h-[92vh] w-full overflow-y-auto glass glass-sheet rounded-t-2xl border border-line bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:max-w-[480px] sm:rounded-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
@@ -167,8 +172,8 @@ export function ProfileSheet({ onClose }: { onClose: () => void }) {
         }}
       >
         <div className="flex items-center justify-between text-[12px] text-muted">
-          <span>Edit profile</span>
-          <button type="button" onClick={onClose} className="-my-3 min-h-11 py-3 pl-4 hover:text-ink">Close</button>
+          <span>{t('profile.title')}</span>
+          <button type="button" onClick={onClose} className="-my-3 min-h-11 py-3 ps-4 hover:text-ink">{t('common.close')}</button>
         </div>
 
         <div className="mt-4 flex items-center gap-4">
@@ -177,29 +182,29 @@ export function ProfileSheet({ onClose }: { onClose: () => void }) {
             <div className="truncate text-[15px] font-medium">{name.trim() || shortName(accountId)}</div>
             <div className="truncate font-mono text-[11.5px] text-muted">{accountId}</div>
             <button type="button" className="mt-1 min-h-11 text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline sm:min-h-8" onClick={() => setPickAvatar((v) => !v)}>
-              {pickAvatar ? 'Done choosing' : 'Change avatar'}
+              {pickAvatar ? t('profile.avatar.doneChoosing') : t('avatar.change')}
             </button>
           </div>
         </div>
         {pickAvatar && <AvatarGrid accountId={accountId} value={shownAvatar} onChange={setAvatar} />}
 
         <fieldset disabled={busy} className="mt-5 space-y-4">
-          <Labeled label="Display name" count={`${name.length}/${NAME_MAX}`}>
-            <input ref={nameRef} className={inputCls} value={name} maxLength={NAME_MAX} placeholder="What members call you" onChange={(e) => setName(e.target.value)} autoComplete="nickname" />
+          <Labeled label={t('profile.name.label')} count={`${name.length}/${NAME_MAX}`}>
+            <input ref={nameRef} className={inputCls} value={name} maxLength={NAME_MAX} placeholder={t('profile.name.placeholder')} onChange={(e) => setName(e.target.value)} autoComplete="nickname" />
           </Labeled>
-          <Labeled label="Bio" count={`${bio.length}/${BIO_MAX}`}>
-            <textarea className={`${inputCls} min-h-[76px] resize-none`} value={bio} maxLength={BIO_MAX} rows={3} placeholder="A line about you and what you do here" onChange={(e) => setBio(e.target.value)} />
+          <Labeled label={t('profile.bio.label')} count={`${bio.length}/${BIO_MAX}`}>
+            <textarea className={`${inputCls} min-h-[76px] resize-none`} value={bio} maxLength={BIO_MAX} rows={3} placeholder={t('profile.bio.placeholder')} onChange={(e) => setBio(e.target.value)} />
           </Labeled>
           <div>
-            <div className="mb-1.5 text-sm font-medium text-ink">Links</div>
+            <div className="mb-1.5 text-sm font-medium text-ink">{t('profile.links.label')}</div>
             <div className="grid gap-2 sm:grid-cols-2">
               {LINK_KEYS.map((k) => (
                 <label key={k} className="block">
-                  <span className="mb-1 block text-[12px] text-muted">{LINK_LABELS[k]}</span>
+                  <span className="mb-1 block text-[12px] text-muted">{linkLabel(k)}</span>
                   <input
                     className={`${inputCls} ${linkErrors[k] ? '!border-bad' : ''}`}
                     value={links[k]}
-                    placeholder={PLACEHOLDER[k]}
+                    placeholder={placeholder(k)}
                     inputMode="url"
                     autoCapitalize="off"
                     autoCorrect="off"
@@ -216,19 +221,19 @@ export function ProfileSheet({ onClose }: { onClose: () => void }) {
 
         <div className="mt-6 flex items-center gap-3">
           <Button type="submit" className="flex-1 !py-3" disabled={busy || nothingChanged || hasErrors}>
-            {status === 'loading' ? 'Loading…' : status === 'signing' ? <span className="spin" /> : status === 'checking' ? 'Checking it landed…' : status === 'saved' && nothingChanged ? 'Saved ✓' : 'Save'}
+            {status === 'loading' ? t('profile.loading') : status === 'signing' ? <span className="spin" /> : status === 'checking' ? t('common.checkingLanded') : status === 'saved' && nothingChanged ? t('common.savedCheck') : t('common.save')}
           </Button>
           <Button variant="secondary" className="!py-3" onClick={onClose}>
-            {status === 'saved' ? 'Done' : 'Cancel'}
+            {status === 'saved' ? t('common.done') : t('common.cancel')}
           </Button>
         </div>
         <p className="mt-3 text-[12px] text-muted">
-          Saved to your NEAR Social profile on <span className="font-mono">{SOCIAL_CONTRACT}</span>, so any NEAR app can show it. Only the fields you change are written.
-          {deposit > 0n ? ` This save adds ${yoctoToNear(deposit, 3)} NEAR of storage.` : ' A first save adds a little NEAR for storage.'}
+          {tr('profile.footnote', { contract: <span className="font-mono">{SOCIAL_CONTRACT}</span> })}{' '}
+          {deposit > 0n ? t('profile.storage.adds', { amount: yoctoToNear(deposit, 3) }) : t('profile.storage.first')}
         </p>
         {hash && (
           <div className="mt-2 text-[12px]">
-            <TxLink hash={hash} label="Transaction" />
+            <TxLink hash={hash} label={t('common.transaction')} />
           </div>
         )}
         {error && <p className="mt-2 text-[12px] text-bad">{error}</p>}
@@ -253,6 +258,7 @@ function Labeled({ label, count, children }: { label: string; count: string; chi
 
 /** A member's display name; with `card`, a click opens a small profile card (bio, links, account id). */
 export function MemberName({ id, card = false, className = '' }: { id: string; card?: boolean; className?: string }) {
+  const t = useT()
   const p = useProfile(id)
   const [open, setOpen] = useState<{ left: number; top: number } | null>(null)
   const ref = useRef<HTMLSpanElement>(null)
@@ -295,17 +301,17 @@ export function MemberName({ id, card = false, className = '' }: { id: string; c
     )
   return (
     <span ref={ref} className="relative inline">
-      <button type="button" className={`text-left underline-offset-2 hover:underline ${className}`} title={id} aria-expanded={!!open} aria-haspopup="dialog" onClick={toggle}>
+      <button type="button" className={`text-start underline-offset-2 hover:underline ${className}`} title={id} aria-expanded={!!open} aria-haspopup="dialog" onClick={toggle}>
         {label}
       </button>
       {open &&
         createPortal(
         <span
           ref={pop}
-          className="fixed z-50 block w-[min(300px,calc(100vw-32px))] whitespace-normal rounded-2xl border border-line bg-card p-4 text-left text-[13px] font-normal text-ink"
+          className="fixed z-50 block w-[min(300px,calc(100vw-32px))] whitespace-normal rounded-2xl border border-line bg-card p-4 text-start text-[13px] font-normal text-ink"
           style={{ left: open.left, top: open.top }}
           role="dialog"
-          aria-label={`${label}'s profile`}
+          aria-label={t('profile.card.label', { name: label })}
           onClick={(e) => e.stopPropagation()}
         >
           <ProfileCard id={id} />
@@ -318,6 +324,7 @@ export function MemberName({ id, card = false, className = '' }: { id: string; c
 
 /** Avatar, name, muted account id, bio and links. */
 export function ProfileCard({ id }: { id: string }) {
+  const t = useT()
   const p = useProfile(id)
   const { accountId } = useWallet()
   const links = LINK_KEYS.map((k) => ({ k, url: linkUrl(k, p?.linktree[k]), text: p?.linktree[k] ? linkText(k, p.linktree[k]!) : '' })).filter((l) => l.url)
@@ -332,19 +339,19 @@ export function ProfileCard({ id }: { id: string }) {
           </a>
         </span>
       </span>
-      {p?.description ? <span className="mt-3 block break-words text-[13px] text-ink">{p.description.slice(0, BIO_MAX)}</span> : <span className="mt-3 block text-[12.5px] text-muted">No bio yet.</span>}
+      {p?.description ? <span className="mt-3 block break-words text-[13px] text-ink">{p.description.slice(0, BIO_MAX)}</span> : <span className="mt-3 block text-[12.5px] text-muted">{t('profile.card.noBio')}</span>}
       {links.length > 0 && (
         <span className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
           {links.map((l) => (
             <a key={l.k} href={l.url!} target="_blank" rel="noreferrer noopener" className="text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline">
-              {LINK_LABELS[l.k]} <span className="text-ink">{l.text}</span>
+              {linkLabel(l.k)} <span className="text-ink">{l.text}</span>
             </a>
           ))}
         </span>
       )}
       {accountId === id && (
         <button type="button" className="mt-2 min-h-11 text-[12.5px] font-medium text-ink underline-offset-2 hover:underline sm:min-h-8" onClick={openProfileSheet}>
-          Edit profile
+          {t('profile.title')}
         </button>
       )}
     </span>
@@ -353,6 +360,7 @@ export function ProfileCard({ id }: { id: string }) {
 
 /** "Add your name": shows for a signed-in member until they set a display name. */
 export function AddNameNudge({ className = '' }: { className?: string }) {
+  const t = useT()
   const { accountId } = useWallet()
   const p = useProfile(accountId)
   if (!accountId || !p || p.name) return null
@@ -360,14 +368,14 @@ export function AddNameNudge({ className = '' }: { className?: string }) {
     <button
       type="button"
       onClick={openProfileSheet}
-      className={`flex min-h-11 w-full items-center gap-3 rounded-xl border border-dashed border-line px-3 py-2.5 text-left text-[13px] hover:bg-soft ${className}`}
+      className={`flex min-h-11 w-full items-center gap-3 rounded-xl border border-dashed border-line px-3 py-2.5 text-start text-[13px] hover:bg-soft ${className}`}
     >
       <Avatar id={accountId} size={28} />
       <span className="min-w-0 flex-1">
-        <span className="block font-medium">Add your name</span>
-        <span className="block truncate text-[12px] text-muted">Members see {shortName(accountId)} until you do.</span>
+        <span className="block font-medium">{t('profile.nudge.title')}</span>
+        <span className="block truncate text-[12px] text-muted">{t('profile.nudge.body', { name: shortName(accountId) })}</span>
       </span>
-      <span className="text-[12px] text-muted">Edit ›</span>
+      <span className="text-[12px] text-muted">{t('profile.nudge.edit')}</span>
     </button>
   )
 }
