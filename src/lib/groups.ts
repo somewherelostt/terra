@@ -14,7 +14,7 @@
 
 import { useEffect, useReducer } from 'react'
 import { view, viewAccount, spendableBalance } from './near'
-import { isExpired, rolesOf, type DaoConfig, type Policy, type Proposal, type Tx } from './dao'
+import { isExpired, isRole, rolesOf, type DaoConfig, type Policy, type Proposal, type Tx } from './dao'
 import { joinRequestOf } from './join'
 import { readBack, socialGet, socialSetTx } from './social'
 import { t } from '../i18n'
@@ -240,8 +240,9 @@ export async function loadSummary(daoId: string, accountId: string | null, force
 /** "Council", "Trusted", "Member", "Asked to join", or "Visitor". */
 export function roleLabel(s: GroupSummary | undefined, signedIn: boolean): string {
   if (!s) return ''
-  if (s.roles.includes('council')) return t('groups.role.council')
-  if (s.roles.includes('trusted')) return t('groups.role.trusted')
+  // Role names are free text in Sputnik ("council", "Council"): compare loosely, like the rest of the app.
+  if (s.roles.some((r) => isRole(r, 'council'))) return t('groups.role.council')
+  if (s.roles.some((r) => isRole(r, 'trusted'))) return t('groups.role.trusted')
   if (s.roles.length) return t('groups.role.member')
   if (s.joining) return t('groups.role.askedToJoin')
   return signedIn ? t('groups.role.notMember') : t('groups.role.visitor')
