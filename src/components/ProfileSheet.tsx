@@ -176,7 +176,7 @@ export function ProfileSheet({ onClose }: { onClose: () => void }) {
           <div className="min-w-0 text-[13px]">
             <div className="truncate text-[15px] font-medium">{name.trim() || shortName(accountId)}</div>
             <div className="truncate font-mono text-[11.5px] text-muted">{accountId}</div>
-            <button type="button" className="mt-1 min-h-8 text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline" onClick={() => setPickAvatar((v) => !v)}>
+            <button type="button" className="mt-1 min-h-11 text-[12.5px] text-muted underline-offset-2 hover:text-ink hover:underline sm:min-h-8" onClick={() => setPickAvatar((v) => !v)}>
               {pickAvatar ? 'Done choosing' : 'Change avatar'}
             </button>
           </div>
@@ -343,7 +343,7 @@ export function ProfileCard({ id }: { id: string }) {
         </span>
       )}
       {accountId === id && (
-        <button type="button" className="mt-3 min-h-8 text-[12.5px] font-medium text-accent-text hover:underline" onClick={openProfileSheet}>
+        <button type="button" className="mt-2 min-h-11 text-[12.5px] font-medium text-ink underline-offset-2 hover:underline sm:min-h-8" onClick={openProfileSheet}>
           Edit profile
         </button>
       )}
@@ -360,7 +360,7 @@ export function AddNameNudge({ className = '' }: { className?: string }) {
     <button
       type="button"
       onClick={openProfileSheet}
-      className={`flex w-full items-center gap-3 rounded-xl border border-dashed border-line px-3 py-2.5 text-left text-[13px] hover:bg-soft ${className}`}
+      className={`flex min-h-11 w-full items-center gap-3 rounded-xl border border-dashed border-line px-3 py-2.5 text-left text-[13px] hover:bg-soft ${className}`}
     >
       <Avatar id={accountId} size={28} />
       <span className="min-w-0 flex-1">

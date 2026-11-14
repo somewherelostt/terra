@@ -56,7 +56,7 @@ export default function Home() {
       <div className="flex items-center justify-between text-[13px] text-muted">
         <span>Home</span>
         {accountId ? (
-          <button type="button" className="flex min-w-0 items-center gap-2 hover:text-ink" title={`${accountId} · Edit profile`} onClick={openProfileSheet}>
+          <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 hover:text-ink md:min-h-0" title={`${accountId} · Edit profile`} onClick={openProfileSheet}>
             <span className="truncate">{displayName(accountId)}</span>
             <Avatar id={accountId} size={24} />
           </button>
