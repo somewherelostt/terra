@@ -141,7 +141,7 @@ export default function Thread({ me, other, myKey, theirPk }: { me: string; othe
               <span className={`tnum text-[11.5px] ${chars >= DM_MAX ? 'text-bad' : 'text-muted'}`}>
                 {chars}/{DM_MAX}
               </span>
-              <Button disabled={!canSend}>{sending ? 'Sending…' : 'Send'}</Button>
+              <Button type="submit" disabled={!canSend}>{sending ? 'Sending…' : 'Send'}</Button>
             </div>
             {sending && <p className="mt-2 text-[12px] text-muted">Confirm in your wallet. Each message is one NEAR Social write.</p>}
             {error && <p className="mt-2 rounded-xl bg-bad-soft px-3 py-2 text-[13px] text-bad">{error}</p>}
