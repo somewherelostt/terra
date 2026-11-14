@@ -50,7 +50,7 @@ The output now also shows:
 
 - **DEPOSIT ADDRESS**: a 64-character NEAR account (implicit account).
 - **Send exactly**, e.g. `0.3 NEAR`.
-- **Send before**: the deadline, 20 minutes from now by default (`--minutes 30` changes it). A deposit after the deadline is refunded.
+- **Send before**: the deadline. The script asks for 20 minutes (`--minutes 60` changes it), but 1Click may give a longer window; on 14 Nov it returned 3 days. Trust the printed time. A deposit after it is refunded.
 
 The full quote, with 1Click's signature, is saved to `$PAYOUT_STATE`. Keep that file: it's your proof if anything goes wrong. The script stops here.
 
