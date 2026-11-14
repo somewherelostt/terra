@@ -90,7 +90,9 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
   const members = allMembers(dao.policy)
   const roles = invitableRoles(dao.policy)
   const asked = params.get('role') ?? ''
-  // A link only names a role a council member picked; otherwise newcomers join as plain members.
+  // Council members make links for a role, but a link isn't signed, so anyone can edit ?role=. That only
+  // changes what is asked for: the request card shows the role and the council still votes on it.
+  // Unknown roles fall back to a plain member.
   const role = roles.includes(asked) ? asked : defaultJoinRole(dao.policy)
   const open = joinRequestsOpen(dao.policy) && roles.includes(role)
   const already = accountId ? isMember(dao.policy, accountId) : false
