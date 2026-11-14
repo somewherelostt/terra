@@ -4,46 +4,55 @@ import { useWallet } from '../lib/wallet'
 import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests, routeRequest } from '../lib/record'
-import { Account, Badge, Button, Card, Empty, SectionTitle, TxLink, TxStatus, useTx } from '../components/ui'
+import { Button, TxLink, TxStatus, useTx } from '../components/ui'
 
 export default function Approve() {
-  const { dao } = useDao()
+  const { dao, accountId } = { ...useDao(), ...useWallet() }
   const [showAll, setShowAll] = useState(false)
   if (!dao) return null
   const open = openRequests(dao)
+  const needYou = open.filter((p) => !accountId || !p.votes[accountId])
   const decided = dao.proposals.filter((p) => !open.includes(p)).slice(0, showAll ? 60 : 8)
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="text-[13px] text-muted">Approve</div>
-        <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">{open.length === 0 ? 'Nothing needs you' : open.length === 1 ? '1 request needs a decision' : `${open.length} requests need a decision`}</h1>
-        <p className="mt-1 text-[13.5px] text-muted">When enough members approve, the treasury pays on its own.</p>
-      </div>
-      <section>
-        <SectionTitle>Waiting ({open.length})</SectionTitle>
+    <div>
+      <div className="text-[13px] text-muted">Approve</div>
+      <h1 className="mt-3 text-[32px] font-light tracking-[-0.03em]">
+        {needYou.length === 0 ? 'Nothing needs you' : needYou.length === 1 ? '1 request needs you' : `${needYou.length} requests need you`}
+      </h1>
+      <p className="mt-1 text-[13.5px] text-muted">When enough members approve, the treasury pays on its own.</p>
+
+      <div className="mt-10 max-w-[880px]">
         {open.length ? (
-          <div className="grid max-w-[880px] gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             {open.map((p) => (
               <RequestCard key={p.id} p={p} />
             ))}
           </div>
         ) : (
-          <Empty>No open requests. Anyone in the group can request money.</Empty>
+          <div className="rounded-2xl border border-line p-10 text-center">
+            <div className="mx-auto grid size-12 place-items-center rounded-full border border-line">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l4 4 10-10" /></svg>
+            </div>
+            <div className="mt-4 text-[15px]">You're all caught up</div>
+            <p className="mt-1 text-[13px] text-muted">No open requests. Anyone in the group can request money.</p>
+          </div>
         )}
-      </section>
-      <section>
-        <SectionTitle right={<button className="text-sm font-medium text-accent-text hover:underline" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>}>
-          Decided
-        </SectionTitle>
-        <Card className="!p-0">
-          <ul className="divide-y divide-line">
-            {decided.map((p) => (
-              <DecidedRow key={p.id} p={p} />
-            ))}
-          </ul>
-        </Card>
-      </section>
+      </div>
+
+      <div className="mt-12 max-w-[880px]">
+        <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
+          <span>Recently decided</span>
+          {dao.proposals.length - open.length > 8 && (
+            <button className="hover:text-ink" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>
+          )}
+        </div>
+        <div className="text-[13.5px]">
+          {decided.map((p) => (
+            <DecidedRow key={p.id} p={p} />
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -71,20 +80,26 @@ function DecidedRow({ p }: { p: Proposal }) {
   const expired = isExpired(p, dao!.policy)
   const s = statusTone(p, expired)
   const payout = activity?.payoutTx.get(p.id)
+  const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
+  const paid = p.status === 'Approved' && transfer
+  const counts = Object.values(p.votes)
+  const yes = counts.filter((v) => v === 'Approve').length
+  const no = counts.filter((v) => v === 'Reject').length
+  const amount = transfer ? (isFinite(nearUsd) ? usd(yoctoToNumber(transfer.amount) * nearUsd) : `${yoctoToNear(transfer.amount)} NEAR`) : null
+  let detail: string
+  if (paid) detail = meta.wants ? `paid · ${meta.wants.replace(/\s+to\s+\S+$/, '')} requested` : `paid to ${shortName(transfer!.receiver_id)}`
+  else if (p.status === 'Rejected') detail = `declined, ${yes} to ${no}`
+  else detail = s.label.toLowerCase() + (transfer ? '' : ` · ${kindName(p.kind)}`)
   return (
-    <li className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
-      <span className="w-10 text-xs text-muted">#{p.id}</span>
-      <span className="min-w-0 flex-1 truncate" title={meta.title}>{meta.title}</span>
-      {isNearTransfer(p.kind) ? (
-        <span className="tabular-nums text-muted">
-          {isFinite(nearUsd) ? usd(yoctoToNumber(p.kind.Transfer.amount) * nearUsd) : `${yoctoToNear(p.kind.Transfer.amount)} NEAR`} → <Account id={p.kind.Transfer.receiver_id} />
-        </span>
-      ) : (
-        <span className="text-xs text-muted">{kindName(p.kind)}</span>
-      )}
-      <Badge tone={s.tone}>{s.label}</Badge>
-      {payout && <TxLink hash={payout} label="Payout" />}
-    </li>
+    <div className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
+      <span className="min-w-0 truncate" title={meta.title}>
+        {meta.title} <span className="text-muted">· {detail}</span>
+      </span>
+      <span className="flex shrink-0 items-baseline gap-4">
+        {payout && <TxLink hash={payout} label="Receipt" />}
+        {amount && <span className={`tnum ${paid ? '' : 'text-muted'}`}>{amount}</span>}
+      </span>
+    </div>
   )
 }
 
@@ -125,6 +140,7 @@ export function RequestCard({ p }: { p: Proposal }) {
   const sub = hero ? 'opacity-60' : 'text-muted'
   const rule = hero ? 'border-[var(--hero-line)]' : 'border-line'
   const canVote = !!accountId && !myVote && contractAllows && terraAllows
+  const rec = records.get(p.proposer)
 
   return (
     <article className={`flex flex-col rounded-2xl p-6 ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}>
@@ -173,10 +189,16 @@ export function RequestCard({ p }: { p: Proposal }) {
             <span>about {arrives} seconds</span>
           </div>
         )}
+        {rec && (
+          <div className="mt-2 flex items-baseline justify-between gap-3">
+            <span className={sub}>{shortName(p.proposer)}'s record</span>
+            <span className="tnum">{rec.approved} paid · {rec.rejected} turned down</span>
+          </div>
+        )}
         {!hero && (
           <div className="mt-4">
             <div className="h-[3px] rounded-full bg-soft">
-              <div className="h-[3px] rounded-full bg-brand transition-all" style={{ width: `${Math.min(100, (approvals / Math.max(needed, 1)) * 100)}%` }} />
+              <div className="h-[3px] rounded-full bg-ink transition-all" style={{ width: `${Math.min(100, (approvals / Math.max(needed, 1)) * 100)}%` }} />
             </div>
             <div className="mt-2 text-[12px] text-muted">
               {voters.filter((v) => p.votes[v] === 'Approve').map(shortName).join(', ') || 'No approvals yet'}
