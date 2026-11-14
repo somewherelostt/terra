@@ -5,6 +5,7 @@ import { addMemberProposalTx, allMembers, approvalRules, type Proposal } from '.
 import { view } from '../lib/near'
 import { splitUsd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
+import { rememberGroup } from '../lib/groups'
 import { defaultJoinRole, invitableRoles, isMember, joinRequestsOpen, pendingJoinFor } from '../lib/join'
 import { Avatar, Button, Spinner, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
@@ -169,7 +170,16 @@ export default function Join({ daoId, params }: { daoId: string | null; params: 
           <>
             <button
               disabled={tx.state.status === 'signing'}
-              onClick={() => tx.run(() => send(addMemberProposalTx(dao, accountId, role)), refresh)}
+              onClick={() =>
+                tx.run(
+                  () => send(addMemberProposalTx(dao, accountId, role)),
+                  async () => {
+                    // Shows in My groups as "Asked to join" until the council decides.
+                    rememberGroup(accountId, dao.id, 'joining')
+                    await refresh()
+                  },
+                )
+              }
               className="min-h-12 w-full rounded-lg bg-accent text-[15px] font-medium text-on-accent disabled:opacity-60"
             >
               {tx.state.status === 'signing' ? <span className="spin" /> : `Ask to join as ${displayName(accountId)}`}
