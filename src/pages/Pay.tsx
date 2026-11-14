@@ -4,7 +4,7 @@ import { useWallet } from '../lib/wallet'
 import { addTransferProposalTx, can } from '../lib/dao'
 import { isValidAccountId, ONE_NEAR } from '../lib/near'
 import { nearToYocto, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
-import { POPULAR, RECORDED_QUOTE, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
+import { POPULAR, RECORDED_QUOTE, isDeprecated, chainName, getTokens, quotePayout, toUnits, type IntentsToken, type QuoteResult } from '../lib/intents'
 import { isTrusted, tierFor, TIER_COPY } from '../lib/record'
 import { Button, Spinner, TxStatus, showToast, useTx } from '../components/ui'
 import { prettyName } from '../App'
@@ -60,12 +60,8 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     token && isFinite(usdIn) && usdIn > 0 && token.price > 0 ? (stable ? usdIn.toFixed(2) : trimNum(usdIn / token.price, Math.min(token.decimals, 6))) : ''
   const nearAmount = isFinite(usdIn) && usdIn > 0 && isFinite(nearUsd) && nearUsd > 0 ? trimNum(usdIn / nearUsd, 4) : ''
   const popular = useMemo(
-    () => POPULAR.map((p) => tokens.find((t) => t.symbol === p.symbol && t.blockchain === p.blockchain)).filter((t): t is IntentsToken => !!t),
+    () => POPULAR.map((p) => tokens.find((t) => t.symbol === p.symbol && t.blockchain === p.blockchain && !isDeprecated(t))).filter((t): t is IntentsToken => !!t),
     [tokens],
-  )
-  const others = useMemo(
-    () => tokens.filter((t) => !popular.includes(t)).sort((a, b) => a.symbol.localeCompare(b.symbol) || a.blockchain.localeCompare(b.blockchain)),
-    [tokens, popular],
   )
 
   // Live quote, debounced.
@@ -280,7 +276,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                 }}
               >
                 <option value="">More tokens…</option>
-                {[...popular.slice(3), ...others].map((t) => (
+                {popular.slice(3).map((t) => (
                   <option key={t.assetId} value={t.assetId}>{t.symbol} on {chainName(t.blockchain)}</option>
                 ))}
               </select>

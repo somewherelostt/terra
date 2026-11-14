@@ -75,17 +75,25 @@ export function chainName(id: string): string {
   return CHAIN_NAMES[id] ?? id.toUpperCase()
 }
 
-/** Payout options shown first in the picker. */
+/**
+ * The only payout options Terra offers: the first three are chips on Pay, the rest sit under
+ * "More tokens…". A short, calm list on purpose; anything missing from 1Click is just omitted.
+ */
 export const POPULAR = [
   { symbol: 'USDC', blockchain: 'sol' },
   { symbol: 'USDC', blockchain: 'base' },
   { symbol: 'USDC', blockchain: 'eth' },
   { symbol: 'USDT', blockchain: 'tron' },
+  { symbol: 'USDT', blockchain: 'eth' },
   { symbol: 'ETH', blockchain: 'base' },
   { symbol: 'SOL', blockchain: 'sol' },
   { symbol: 'BTC', blockchain: 'btc' },
   { symbol: 'USDC', blockchain: 'near' },
 ]
+
+export function isDeprecated(t: IntentsToken): boolean {
+  return /deprecated/i.test(t.symbol) || /deprecated/i.test(t.assetId)
+}
 
 export interface Quote {
   amountIn: string
