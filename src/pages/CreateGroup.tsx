@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useWallet } from '../lib/wallet'
-import { createGroupTx, isDao } from '../lib/dao'
-import { FACTORY, isValidAccountId, viewAccount } from '../lib/near'
-import { nearToYocto } from '../lib/format'
+import { createGroupTx, isDao, trustedOnly } from '../lib/dao'
+import { FACTORY, ONE_NEAR, isValidAccountId, spendableBalance, viewAccount } from '../lib/near'
+import { nearToYocto, yoctoToNear } from '../lib/format'
 import { openDao, shareUrl } from '../lib/store'
+import { wait } from '../lib/motion'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { rememberGroup } from '../lib/groups'
 import { Button, TxStatus, useTx } from '../components/ui'
@@ -24,6 +25,10 @@ function slugify(s: string): string {
 
 const line = 'block border-b border-line pb-2 transition-colors focus-within:border-ink'
 const bare = 'w-full bg-transparent py-3 outline-none placeholder:text-muted/60 sm:py-2'
+// A fresh Sputnik DAO stores about 540 kB, so about 5.4 NEAR of the deposit stays locked for storage.
+const MIN_DEPOSIT = 6n * ONE_NEAR
+// Gas for the factory call, kept aside so the creator isn't left at zero.
+const GAS_RESERVE = ONE_NEAR / 10n
 
 export default function CreateGroup() {
   const { accountId, send, signIn } = useWallet()
@@ -34,7 +39,10 @@ export default function CreateGroup() {
   const [purpose, setPurpose] = useState('')
   const [council, setCouncil] = useState('')
   const [trusted, setTrusted] = useState('')
-  const [deposit, setDeposit] = useState('6')
+  const [deposit, setDeposit] = useState('7')
+  const [myBalance, setMyBalance] = useState<bigint | null>(null)
+  const [checkingDao, setCheckingDao] = useState(false)
+  const [notCreated, setNotCreated] = useState(false)
   const [taken, setTaken] = useState<boolean | null>(null)
   const [copied, setCopied] = useState(false)
   const tx = useTx()
@@ -46,6 +54,14 @@ export default function CreateGroup() {
     if (!slugTouched) setSlug(slugify(displayName))
   }, [displayName, slugTouched])
 
+  useEffect(() => {
+    setMyBalance(null)
+    if (!accountId || step !== 3) return
+    viewAccount(accountId)
+      .then((a) => setMyBalance(a ? spendableBalance(a) : 0n))
+      .catch(() => setMyBalance(null))
+  }, [accountId, step])
+
   const daoId = slug ? `${slug}.${FACTORY}` : ''
   useEffect(() => {
     setTaken(null)
@@ -56,6 +72,8 @@ export default function CreateGroup() {
 
   const councilList = parseList(council)
   const trustedList = parseList(trusted)
+  const onBoth = trustedList.filter((a) => councilList.includes(a))
+  const trustedFinal = trustedOnly(councilList, trustedList)
   const yocto = nearToYocto(deposit)
 
   const step1Error =
@@ -63,9 +81,11 @@ export default function CreateGroup() {
       ? 'Give the group a name.'
       : !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3
         ? 'The treasury address needs 3+ lowercase letters, numbers or dashes.'
-        : taken
-          ? 'That treasury address is taken.'
-          : null
+        : !isValidAccountId(daoId)
+          ? 'That treasury address is too long.'
+          : taken
+            ? 'That treasury address is taken. Try another one.'
+            : null
   const step2Error = !councilList.length
     ? 'Add at least one council member.'
     : councilList.some((a) => !isValidAccountId(a))
@@ -73,12 +93,33 @@ export default function CreateGroup() {
       : trustedList.some((a) => !isValidAccountId(a))
         ? 'One of the trusted accounts is not valid.'
         : null
-  const step3Error = !yocto || yocto < 5n * 10n ** 24n ? 'The factory needs at least about 5 NEAR to store the DAO contract.' : null
+  const step3Error = !yocto
+    ? 'Enter a starting deposit in NEAR.'
+    : yocto < MIN_DEPOSIT
+      ? `Start with at least ${yoctoToNear(MIN_DEPOSIT, 0)} NEAR: about 5.4 NEAR stays locked to store the DAO contract.`
+      : myBalance != null && yocto + GAS_RESERVE > myBalance
+        ? `Your account can spend ${yoctoToNear(myBalance)} NEAR. Lower the deposit or top up from the testnet faucet.`
+        : null
 
   async function create() {
     if (step1Error || step2Error || step3Error || !yocto) return
-    const hash = await tx.run(() => send(createGroupTx({ displayName, name: slug, purpose, council: councilList, trusted: trustedList, deposit: yocto })))
-    if (hash) rememberGroup(accountId, daoId, 'created') // shows in My groups; saved to the profile on the next save
+    setNotCreated(false)
+    const hash = await tx.run(() => send(createGroupTx({ displayName, name: slug, purpose, council: councilList, trusted: trustedFinal, deposit: yocto })))
+    if (!hash) return
+    // The factory call can succeed while creating the DAO fails (it then refunds the deposit),
+    // so check the DAO actually exists before sending anyone to it.
+    setCheckingDao(true)
+    for (let i = 0; i < 14; i++) {
+      if (await isDao(daoId)) {
+        setCheckingDao(false)
+        rememberGroup(accountId, daoId, 'created') // shows in My groups; saved to the profile on the next save
+        openDao(daoId)
+        return
+      }
+      await wait(1500)
+    }
+    setCheckingDao(false)
+    setNotCreated(true)
   }
 
   const titles = ['Your group', 'Invite members', 'Review and create']
@@ -128,7 +169,7 @@ export default function CreateGroup() {
                 />
                 <span className="text-muted">.{FACTORY}</span>
               </div>
-              <span className="mt-1 block text-[12px] text-muted">{taken === false ? 'Available' : taken ? 'Taken' : 'A standard Sputnik DAO from the official testnet factory. You own it, not Terra.'}</span>
+              <span className="mt-1 block text-[12px] text-muted">{taken === false ? 'Available' : taken ? 'Taken: pick another address' : 'A standard Sputnik DAO from the official testnet factory. You own it, not Terra.'}</span>
             </label>
             <label className={line}>
               <span className="text-[12px] text-muted">What is it for? (optional)</span>
@@ -140,13 +181,13 @@ export default function CreateGroup() {
                 <div className="flex items-center justify-between px-4 py-3">
                   <span>Small</span>
                   <span className="text-muted">
-                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.small}</span> · 1 trusted member
+                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.small}</span> · 1 trusted member, once the requester has a record
                   </span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
                   <span>Mid</span>
                   <span className="text-muted">
-                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.mid}</span> · the council
+                    up to <span className="tnum text-ink">${TIER_LIMITS_USD.mid}</span> · council majority
                   </span>
                 </div>
                 <div className="flex items-center justify-between px-4 py-3">
@@ -162,7 +203,7 @@ export default function CreateGroup() {
       {step === 2 && (
         <>
           <h1 className="mt-6 text-[36px] leading-none font-light tracking-[-0.035em]">Invite members</h1>
-          <p className="mt-2 text-[14px] text-muted">Add NEAR accounts now; you can invite more later from Members.</p>
+          <p className="mt-2 text-[14px] text-muted">Add NEAR testnet accounts now; you can invite more later from Members. Anyone, member or not, can file a request.</p>
           <div className="mt-10 space-y-8">
             <label className={line}>
               <span className="text-[12px] text-muted">Council · approves mid and large requests by majority</span>
@@ -172,7 +213,11 @@ export default function CreateGroup() {
             <label className={line}>
               <span className="text-[12px] text-muted">Trusted members · one of them can approve a small request</span>
               <textarea className={bare + ' resize-none font-mono text-[14px]'} rows={2} value={trusted} onChange={(e) => setTrusted(e.target.value)} placeholder="ben.testnet" spellCheck={false} />
-              <span className="mt-1 block text-[12px] text-muted">Optional. If empty, the council is trusted too.</span>
+              <span className="mt-1 block text-[12px] text-muted">
+                {onBoth.length
+                  ? `${onBoth.join(', ')} ${onBoth.length === 1 ? 'is' : 'are'} on the council already, so ${onBoth.length === 1 ? 'stays' : 'stay'} council only. The DAO counts each role on its own, so a council member who is also trusted could pay out any amount alone.`
+                  : 'Optional. Without trusted members there is no fast lane yet: the council decides every request. Add them later from Members.'}
+              </span>
             </label>
             {daoId && (
               <div className="rounded-xl bg-soft px-4 py-3 text-[13px]">
@@ -200,7 +245,7 @@ export default function CreateGroup() {
             <Row k="Group" v={displayName} />
             <Row k="Treasury" v={daoId} mono />
             <Row k="Council" v={councilList.join(', ')} mono />
-            <Row k="Trusted" v={trustedList.length ? trustedList.join(', ') : 'Same as the council'} mono={!!trustedList.length} />
+            <Row k="Trusted" v={trustedFinal.length ? trustedFinal.join(', ') : 'Nobody yet: the council decides every request'} mono={!!trustedFinal.length} />
             <Row k="Request bond" v="0.01 NEAR, returned when decided" />
             <Row k="Requests stay open" v="7 days" />
           </div>
@@ -210,10 +255,21 @@ export default function CreateGroup() {
               <input className="tnum w-full bg-transparent text-[40px] font-light leading-none tracking-[-0.04em] outline-none" inputMode="decimal" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
               <span className="text-[15px] text-muted">NEAR</span>
             </div>
-            <span className="mt-1 block text-[12px] text-muted">About 5 NEAR pays for the contract's storage; the rest is the treasury's balance.</span>
+            <span className="mt-1 block text-[12px] text-muted">
+              About 5.4 NEAR stays locked to store the contract; the rest is what the group can spend.
+              {myBalance != null && ` You can spend ${yoctoToNear(myBalance)} NEAR.`}
+            </span>
           </label>
           <div className="mt-4">
-            <TxStatus state={tx.state} doneText="Your group's treasury is live." />
+            {notCreated ? (
+              <div className="rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">
+                The factory call went through but {daoId} wasn't created, so the factory sent your deposit back. Usually the address was just taken or the deposit was too low. Check the address and try again.
+              </div>
+            ) : checkingDao ? (
+              <div className="rounded-xl bg-soft px-3 py-2 text-sm text-muted">Signed. Waiting for {daoId} to appear on NEAR…</div>
+            ) : (
+              <TxStatus state={tx.state} doneText="Your group's treasury is live." />
+            )}
           </div>
         </>
       )}
@@ -227,7 +283,7 @@ export default function CreateGroup() {
             <Button className="!px-6 !py-3" disabled={!!(step === 1 ? step1Error : step2Error)} onClick={() => setStep(step + 1)}>
               {step === 1 ? 'Next: invite members' : 'Next: review'}
             </Button>
-          ) : tx.state.status === 'done' ? (
+          ) : tx.state.status === 'done' && !notCreated ? (
             <Button
               className="!px-6 !py-3"
               onClick={async () => {
@@ -239,7 +295,7 @@ export default function CreateGroup() {
           ) : !accountId ? (
             <Button className="!px-6 !py-3" onClick={signIn}>Sign in to create</Button>
           ) : (
-            <Button className="!px-6 !py-3" disabled={!!step3Error || tx.state.status === 'signing'} onClick={create}>
+            <Button className="!px-6 !py-3" disabled={!!step3Error || tx.state.status === 'signing' || checkingDao} onClick={create}>
               Create group
             </Button>
           )}

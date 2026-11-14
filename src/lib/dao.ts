@@ -350,13 +350,20 @@ export interface NewGroupInput {
 
 /**
  * A Terra-shaped policy:
- *  - council: can do everything, transfers need a majority of the council;
- *  - trusted: members with a clean record; can request money and give the one
- *    approval that small requests need (threshold 1 for transfers only);
+ *  - council: can do everything; transfers need a majority of the council;
+ *  - trusted: can request money and give the one approval that small requests need
+ *    (threshold 1 for transfers only). Kept apart from the council: Sputnik approves a
+ *    proposal as soon as any one role reaches its threshold, so a council member who is
+ *    also trusted could pay out any amount with a single vote;
  *  - member: people who joined (starts empty); they can ask for money;
  *  - all: anyone can file a payment request or ask to join (add_member_to_role).
  * Amount limits for each tier are enforced in the app (see README).
  */
+/** Trusted accounts that aren't also on the council (see newGroupPolicy). */
+export function trustedOnly(council: string[], trusted: string[]): string[] {
+  return trusted.filter((a) => !council.includes(a))
+}
+
 export function newGroupPolicy(input: NewGroupInput): Policy {
   return {
     roles: [
@@ -368,7 +375,7 @@ export function newGroupPolicy(input: NewGroupInput): Policy {
       },
       {
         name: 'trusted',
-        kind: { Group: input.trusted.length ? input.trusted : input.council },
+        kind: { Group: trustedOnly(input.council, input.trusted) },
         permissions: ['transfer:AddProposal', 'transfer:VoteApprove', 'transfer:VoteReject', 'transfer:Finalize'],
         vote_policy: { transfer: { weight_kind: 'RoleWeight', quorum: '0', threshold: [1, 100] } },
       },
