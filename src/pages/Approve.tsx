@@ -336,7 +336,7 @@ export function RequestCard({ p }: { p: Proposal }) {
             <span>about {arrives} seconds</span>
           </div>
         )}
-        {rec && (
+        {rec && transfer && (
           <div className="mt-2 flex items-baseline justify-between gap-3">
             <span className={sub}>{displayName(p.proposer)}'s record</span>
             <span className="tnum">{rec.approved} paid · {rec.rejected} turned down</span>
@@ -425,7 +425,7 @@ function TrackerCard({ p, track, hero, onDone }: { p: Proposal; track: Track; he
   return (
     <article className={`relative flex flex-col overflow-hidden rounded-2xl p-6 ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}>
       <div className="flex items-center justify-between text-[12px]">
-        <span className={sub}>{track.paid ? 'Paid' : transfer ? `Paying ${transfer ? displayName(transfer.receiver_id) : ''}` : 'Applying'}</span>
+        <span className={sub}>{track.paid ? (transfer ? 'Paid' : 'Done') : transfer ? `Paying ${transfer ? displayName(transfer.receiver_id) : ''}` : 'Applying'}</span>
         {track.eta && (
           <span className="flex items-center gap-1.5">
             {!track.finished && <span className="live size-1.5 rounded-full bg-accent" />}
