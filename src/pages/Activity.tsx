@@ -23,7 +23,7 @@ export default function Activity() {
         <h1 className="text-[32px] font-light tracking-[-0.03em]">Everything in and out</h1>
         <div className="flex flex-wrap gap-1 text-[13px]">
           {(['All', 'Money in', 'Money out', 'Requests'] as Filter[]).map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className={`rounded-md px-3 py-1.5 ${filter === f ? 'bg-card ring-1 ring-line' : 'text-muted hover:text-ink'}`}>
+            <button key={f} onClick={() => setFilter(f)} className={`rounded-md px-3 py-3 sm:py-1.5 ${filter === f ? 'bg-card ring-1 ring-line' : 'text-muted hover:text-ink'}`}>
               {f}
             </button>
           ))}

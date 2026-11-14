@@ -51,7 +51,7 @@ export default function Approve() {
         <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
           <span>Recently decided</span>
           {dao.proposals.length - open.length > 8 && (
-            <button className="hover:text-ink" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>
+            <button className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show fewer' : 'Show more'}</button>
           )}
         </div>
         <div className="text-[13.5px]">

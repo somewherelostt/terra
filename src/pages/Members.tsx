@@ -52,7 +52,7 @@ export default function Members() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded-md px-3 py-1.5 ${filter === f ? 'bg-card ring-1 ring-line' : 'text-muted hover:text-ink'}`}
+            className={`rounded-md px-3 py-3 sm:py-1.5 ${filter === f ? 'bg-card ring-1 ring-line' : 'text-muted hover:text-ink'}`}
           >
             {f} {f === 'All' ? rows.length : counts[f]}
           </button>

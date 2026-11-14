@@ -107,7 +107,7 @@ export function Money({ yocto, nearUsd, size = 'md' }: { yocto: string | bigint;
 export function TxLink({ hash, label = 'View on NearBlocks' }: { hash?: string; label?: string }) {
   if (!hash) return null
   return (
-    <a href={txUrl(hash)} target="_blank" rel="noreferrer" className="text-xs font-medium text-accent-text hover:underline">
+    <a href={txUrl(hash)} target="_blank" rel="noreferrer" className="relative after:absolute after:-inset-x-2 after:-inset-y-3 after:content-[''] text-xs font-medium text-accent-text hover:underline">
       {label} ↗
     </a>
   )

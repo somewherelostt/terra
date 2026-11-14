@@ -46,7 +46,7 @@ export default function Board() {
           <span className="font-medium">terra</span>
           <span className="ml-3 hidden text-muted sm:inline">Public board · read only</span>
           {dao && (
-            <button onClick={() => openDao(dao.id, 'home')} className="ml-auto rounded-lg border border-line bg-card px-3 py-1.5 font-medium">
+            <button onClick={() => openDao(dao.id, 'home')} className="ml-auto min-h-11 rounded-lg border border-line bg-card px-3 py-1.5 font-medium sm:min-h-0">
               Join {name}
             </button>
           )}
