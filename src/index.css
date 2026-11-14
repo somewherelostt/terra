@@ -448,5 +448,11 @@ button:active { transform: scale(.98); }
 .fin-ledger .out { color: rgba(226, 80, 31, .38); }
 .fin-ledger .rc { height: 30px; display: flex; align-items: center; gap: 8px; color: rgba(245, 245, 244, .06); }
 .fin-ledger .rc::before, .fin-ledger .rc::after { content: ""; flex: 1; border-top: 1px dashed rgba(245, 245, 244, .08); }
-@media (max-width: 760px) { .fin-ledger .col.b { display: none; } .fin-ledger .col { width: 44vw; } }
+@media (max-width: 760px) {
+  .fin-ledger .col.b { display: none; }
+  .fin-ledger .col { width: 44vw; }
+  /* Phones: the copy spans the width, so clear a wider, taller hole behind the headline, lead and buttons. */
+  .fin-ledger { -webkit-mask-image: radial-gradient(ellipse 85% 40% at 50% 32%, transparent 60%, #000 100%);
+                        mask-image: radial-gradient(ellipse 85% 40% at 50% 32%, transparent 60%, #000 100%); }
+}
 @media (prefers-reduced-motion: reduce) { .fin-ledger .tape { animation: none; } }
