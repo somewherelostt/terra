@@ -236,7 +236,7 @@ function PeopleStrip({ others, pks, active }: { others: string[]; pks: Map<strin
   return (
     <div>
       <div className="text-[13px] text-muted">{t('nav.members')}</div>
-      <ul className="-mx-1 mt-2 flex gap-1 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible" aria-label={t('messages.messageAMember')}>
+      <ul className="-mx-2 mt-1 flex gap-1 overflow-x-auto p-1 md:flex-wrap md:overflow-visible" aria-label={t('messages.messageAMember')}>
         {others.map((m) => {
           const off = pks.get(m) === null
           return (
