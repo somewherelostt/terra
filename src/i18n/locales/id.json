@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} hari",
   "home.wait.days_other": "{count} hari",
   "home.activity.empty": "Belum ada uang masuk atau keluar. Patungan pertama muncul di sini.",
+  "home.activity.noRecent": "Belum ada aktivitas terbaru.",
+  "home.activity.olderOnExplorer": "Riwayat lama ada di NearBlocks →",
   "home.activity.chippedIn": "{name} ikut patungan",
   "home.activity.payout": "Pembayaran",
   "home.activity.paidTo": "dibayar ke {name}",

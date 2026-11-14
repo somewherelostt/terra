@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} 日",
   "home.wait.days_other": "{count} 日",
   "home.activity.empty": "入金も出金もまだありません。最初の出資がここに表示されます。",
+  "home.activity.noRecent": "最近のアクティビティはありません。",
+  "home.activity.olderOnExplorer": "以前の履歴は NearBlocks で見られます →",
   "home.activity.chippedIn": "{name}さんが出資しました",
   "home.activity.payout": "支払い",
   "home.activity.paidTo": "{name}さんに支払い済み",

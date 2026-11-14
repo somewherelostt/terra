@@ -632,6 +632,8 @@
   "home.wait.days_many": "{count} يومًا",
   "home.wait.days_other": "{count} يوم",
   "home.activity.empty": "لا مال وارد أو صادر بعد. تظهر أول مساهمة هنا.",
+  "home.activity.noRecent": "لا نشاط حديث.",
+  "home.activity.olderOnExplorer": "السجل الأقدم على NearBlocks ←",
   "home.activity.chippedIn": "ساهم {name}",
   "home.activity.payout": "دفعة",
   "home.activity.paidTo": "دُفع إلى {name}",

@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} día",
   "home.wait.days_other": "{count} días",
   "home.activity.empty": "Aún no entra ni sale dinero. El primer aporte aparece aquí.",
+  "home.activity.noRecent": "Sin actividad reciente.",
+  "home.activity.olderOnExplorer": "El historial anterior está en NearBlocks →",
   "home.activity.chippedIn": "{name} aportó",
   "home.activity.payout": "Pago",
   "home.activity.paidTo": "pagado a {name}",

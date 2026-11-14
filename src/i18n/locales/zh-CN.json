@@ -552,6 +552,8 @@
   "home.wait.hours_other": "{count} 小时",
   "home.wait.days_other": "{count} 天",
   "home.activity.empty": "还没有进出款项。第一笔出资会显示在这里。",
+  "home.activity.noRecent": "近期没有动态。",
+  "home.activity.olderOnExplorer": "更早的记录可在 NearBlocks 查看 →",
   "home.activity.chippedIn": "{name} 出资了",
   "home.activity.payout": "付款",
   "home.activity.paidTo": "付给 {name}",

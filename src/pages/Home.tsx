@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { go, shareUrl, useDao, useRoute, type Page } from '../lib/store'
 import { useWallet } from '../lib/wallet'
+import { accountUrl } from '../lib/near'
 import { allMembers, chipInTx, decodeDescription } from '../lib/dao'
 import { nearToYocto, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
@@ -220,7 +221,24 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
         <span className="skeleton block h-4 w-full" />
       </div>
     )
-  if (!items?.length) return <div className="border-b border-line py-6 text-[13.5px] text-muted">{t('home.activity.empty')}</div>
+  if (!items?.length) {
+    // An older group can have nothing in the recent feed and still hold money or a long record.
+    const hasHistory = !!dao && (dao.proposals.length > 0 || dao.staked > 0n)
+    return (
+      <div className="border-b border-line py-6 text-[13.5px] text-muted">
+        {hasHistory ? (
+          <>
+            {t('home.activity.noRecent')}{' '}
+            <a href={accountUrl(dao.id)} target="_blank" rel="noreferrer" className="text-ink underline-offset-2 hover:underline">
+              {t('home.activity.olderOnExplorer')}
+            </a>
+          </>
+        ) : (
+          t('home.activity.empty')
+        )}
+      </div>
+    )
+  }
   const byId = new Map(dao?.proposals.map((p) => [p.id, p]))
   const money = (y?: string) => (y ? (isFinite(nearUsd) ? usd(yoctoToNumber(y) * nearUsd) : t('home.nearAmount', { amount: yoctoToNear(y) })) : '')
   return (

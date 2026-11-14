@@ -552,6 +552,8 @@
   "home.wait.hours_other": "{count}시간",
   "home.wait.days_other": "{count}일",
   "home.activity.empty": "아직 들어오거나 나간 돈이 없어요. 첫 보태기가 여기에 나타나요.",
+  "home.activity.noRecent": "최근 활동이 없어요.",
+  "home.activity.olderOnExplorer": "이전 기록은 NearBlocks에서 볼 수 있어요 →",
   "home.activity.chippedIn": "{name}님이 보탰어요",
   "home.activity.payout": "지급",
   "home.activity.paidTo": "{name}님에게 지급",

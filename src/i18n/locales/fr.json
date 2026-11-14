@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} jour",
   "home.wait.days_other": "{count} jours",
   "home.activity.empty": "Aucune entrée ni sortie d’argent pour l’instant. La première cotisation apparaîtra ici.",
+  "home.activity.noRecent": "Aucune activité récente.",
+  "home.activity.olderOnExplorer": "L’historique plus ancien est sur NearBlocks →",
   "home.activity.chippedIn": "{name} a cotisé",
   "home.activity.payout": "Paiement",
   "home.activity.paidTo": "payé à {name}",

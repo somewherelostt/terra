@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} day",
   "home.wait.days_other": "{count} days",
   "home.activity.empty": "No money in or out yet. The first chip-in shows up here.",
+  "home.activity.noRecent": "No recent activity.",
+  "home.activity.olderOnExplorer": "Older history is on NearBlocks →",
   "home.activity.chippedIn": "{name} chipped in",
   "home.activity.payout": "Payout",
   "home.activity.paidTo": "paid to {name}",

@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} gün",
   "home.wait.days_other": "{count} gün",
   "home.activity.empty": "Henüz giren ya da çıkan para yok. İlk katkı burada görünür.",
+  "home.activity.noRecent": "Yakın zamanda etkinlik yok.",
+  "home.activity.olderOnExplorer": "Eski kayıtlar NearBlocks’ta →",
   "home.activity.chippedIn": "{name} katkı yaptı",
   "home.activity.payout": "Ödeme",
   "home.activity.paidTo": "ödenen: {name}",

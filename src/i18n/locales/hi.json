@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} दिन",
   "home.wait.days_other": "{count} दिन",
   "home.activity.empty": "अभी कोई पैसा न आया, न गया। पहला योगदान यहाँ दिखेगा।",
+  "home.activity.noRecent": "हाल में कोई गतिविधि नहीं।",
+  "home.activity.olderOnExplorer": "पुराना इतिहास NearBlocks पर है →",
   "home.activity.chippedIn": "{name} ने योगदान दिया",
   "home.activity.payout": "पेमेंट",
   "home.activity.paidTo": "{name} को पेमेंट हुआ",

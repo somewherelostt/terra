@@ -568,6 +568,8 @@
   "home.wait.days_one": "{count} Tag",
   "home.wait.days_other": "{count} Tage",
   "home.activity.empty": "Noch kein Geld rein oder raus. Die erste Einzahlung erscheint hier.",
+  "home.activity.noRecent": "Keine aktuellen Aktivitäten.",
+  "home.activity.olderOnExplorer": "Ältere Einträge auf NearBlocks →",
   "home.activity.chippedIn": "{name} hat eingezahlt",
   "home.activity.payout": "Auszahlung",
   "home.activity.paidTo": "an {name} gezahlt",
