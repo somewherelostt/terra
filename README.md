@@ -31,12 +31,12 @@ The dollar limits of each tier are enforced by the app, not by the contract. See
 - **Sputnik DAO (v2/v3) on testnet.** Reads: `get_config`, `get_policy`, `get_proposals`, `get_last_proposal_id`. Writes:
   - `add_proposal` with a `Transfer` kind for payment requests, a `FunctionCall` kind for staking, and an `AddMemberToRole` kind for invites. Each attaches the exact `proposal_bond` from the DAO's policy.
   - `act_proposal` with `VoteApprove` or `VoteReject`, passing the proposal `kind` back as v3 contracts require. When the threshold is met, the DAO pays out on its own.
-  - New groups: the factory `sputnikv2.testnet` method `create`, with a Terra-shaped policy (`council`, `trusted`, `all` roles).
+  - New groups: the factory `sputnikv2.testnet` method `create`, with a Terra-shaped policy: `council` (everything; transfers need a council majority), `trusted` (one vote approves a transfer) and `all` (anyone can file a payment request or ask to join through an `AddMemberToRole` proposal, which the council decides).
 - **NEAR Intents 1Click API** (`https://1click.chaindefuser.com/v0`). `GET /tokens` loads the token list and the NEAR/USD price used for every dollar amount. `POST /quote` runs with `dry: true` and `swapType: EXACT_OUTPUT` ("the recipient gets exactly X; how much NEAR does the treasury send?"). No API key is used. The quote is saved in the proposal description so voters see it.
 - **Staking.** Earn files a DAO `FunctionCall` proposal calling `deposit_and_stake` on a testnet validator pool (default `aurora.pool.f863973.m0`). Home and the board read the DAO's stake with `get_account_total_balance`.
 - **NEAR Social.** Avatars are saved to the member's own SocialDB data on `v1.social08.testnet` (key `<account>/terra/avatar`, via `set`) and read back with `get`. Accounts with no saved avatar get a generated default.
 - **Named accounts.** Every screen shows readable `name.testnet` accounts. Records, tiers and approvals all key on the account name.
-- **Wallets and reads.** NEAR Connect (`@hot-labs/near-connect`) handles sign-in and signing on testnet. Reads go over JSON-RPC (FastNEAR, with FastNEAR's archival RPC as fallback), and the activity feed uses the NearBlocks testnet API.
+- **Wallets and reads.** NEAR Connect (`@hot-labs/near-connect`) handles sign-in and signing on testnet. Reads go over JSON-RPC: FastNEAR first, then dRPC (`near-testnet.drpc.org`), then FastNEAR's archival RPC. The app fails over and backs off on rate limits, caps parallel requests and caches activity for a minute, and the activity feed uses the NearBlocks testnet API.
 
 ## Try it
 
@@ -52,7 +52,7 @@ You need a browser. Steps 1–6 need no account. Steps 7–9 need **two NEAR tes
 8. Signed in as A: **Home → Chip in** 1 NEAR → the balance goes up and the chip-in appears in Activity. Then **Pay**, choose **NEAR account**, pay B $1 → sign → the request appears in **Approve** as Small.
 9. Sign in as B → **Approve** → click **Approve and pay** → the payout tracker follows the transaction, the DAO pays out, and the payout appears in Activity, on the Board and in A's record on **Members**.
 
-These signed flows were run end to end on testnet against the demo DAO: chip in, a request with a live quote, a fast-lane approval and payout, a decline, an invite, a council vote and an avatar save. Every one of them is on chain in `terra-demo.sputnikv2.testnet`. Creating a group through the app made the demo DAO itself; a fresh run of step 7 is being re-checked.
+These signed flows were run end to end on testnet against the demo DAO: chip in, a request with a live quote, a fast-lane approval and payout, a decline, an invite, a council vote and an avatar save. Every one of them is on chain in `terra-demo.sputnikv2.testnet`. Create group (step 7) was verified twice through the app's 3-step flow: once to create the demo DAO, and again on a fresh run that created `terra-qa-club.sputnikv2.testnet` ([tx](https://testnet.nearblocks.io/txns/XNBfkstsCqvZzXXkAdSnf7HEqPnMWJawbh2JiEE2H5J)).
 
 ## Run locally
 
@@ -95,7 +95,7 @@ No starter template; the project was scaffolded with plain Vite. All code in thi
 | oxlint | Linting |
 | Geist and Geist Mono (Google Fonts) | Typography |
 | DiceBear HTTP API (`thumbs` style) | Default avatars |
-| NEAR JSON-RPC (FastNEAR) | Chain reads |
+| NEAR JSON-RPC (FastNEAR, dRPC) | Chain reads |
 | NearBlocks testnet API | Activity feed and transaction links |
 | NEAR Intents 1Click API | Token list, NEAR price, dry quotes |
 | Sputnik DAO contract and testnet factory `sputnikv2.testnet` | Treasury, proposals, votes |
