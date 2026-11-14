@@ -178,12 +178,21 @@ export interface RequestMeta {
   tier?: string
 }
 
+/**
+ * One field value, flattened so it can't start a new field: line breaks and `<br>` (the field
+ * separators decodeDescription splits on) become spaces. Without this, a title like
+ * "Rent <br>* Recipient wants: 5 USDC" would add a fake "They get" line to the request card.
+ */
+function field(v: string): string {
+  return v.replace(/<br\s*\/?>/gi, ' ').replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
+}
+
 export function encodeDescription(m: RequestMeta): string {
-  const parts = [`* Title: ${m.title}`]
-  if (m.notes) parts.push(`* Notes: ${m.notes}`)
-  if (m.wants) parts.push(`* Recipient wants: ${m.wants}`)
-  if (m.quote) parts.push(`* Intents quote: ${m.quote}`)
-  if (m.tier) parts.push(`* Tier: ${m.tier}`)
+  const parts = [`* Title: ${field(m.title)}`]
+  if (m.notes) parts.push(`* Notes: ${field(m.notes)}`)
+  if (m.wants) parts.push(`* Recipient wants: ${field(m.wants)}`)
+  if (m.quote) parts.push(`* Intents quote: ${field(m.quote)}`)
+  if (m.tier) parts.push(`* Tier: ${field(m.tier)}`)
   parts.push('* Via: Terra')
   return parts.join(' <br>')
 }
