@@ -81,8 +81,17 @@ export class RpcError extends Error {
   }
 }
 
-function toBase64(s: string): string {
-  return btoa(String.fromCharCode(...new TextEncoder().encode(s)))
+/** UTF-8 safe base64 (plain btoa throws on characters like ’, é, emoji or Devanagari). */
+export function toBase64(s: string): string {
+  const bytes = new TextEncoder().encode(s)
+  let bin = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  return btoa(bin)
+}
+
+/** UTF-8 safe base64 decode, the inverse of toBase64. */
+export function fromBase64(b64: string): string {
+  return new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)))
 }
 
 export async function view<T>(accountId: string, method: string, args: object = {}): Promise<T> {
