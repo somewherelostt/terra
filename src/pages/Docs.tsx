@@ -171,18 +171,8 @@ export default function Docs() {
 
   return (
     <div className="relative isolate min-h-screen overflow-x-clip">
-      {/* Faint dot grid with a lime glow at the top, fading out: the docs' one decorative touch. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px]"
-        style={{
-          backgroundImage:
-            'radial-gradient(ellipse 60% 70% at 50% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%), radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0)',
-          backgroundSize: '100% 100%, 22px 22px',
-          maskImage: 'linear-gradient(to bottom, black 30%, transparent)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 30%, transparent)',
-        }}
-      />
+      {/* The landing's deep blue, as a soft glow behind the top of the docs, over a faint dot grid. */}
+      <div aria-hidden className="docs-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[620px]" />
       <LandingNav boardUrl={boardUrl} home="./" current="docs" />
       <PhonePicker active={active} onPick={pick} onSearch={() => setSearch(true)} />
 

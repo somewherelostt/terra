@@ -237,6 +237,21 @@ button:active { transform: scale(.98); }
 /* ---------- Site footer: the horizon again, calmer ----------
    A faint deep-blue haze in soft wisps rising from the bottom edge, with a fine grain on top.
    Kept dim so muted text stays readable. Light mode: a pale sky-blue haze. CSS only. */
+/* Docs: the landing's deep blue as a glow at the top, over a faint dot grid, fading into the page. */
+.docs-glow {
+  background-image:
+    radial-gradient(ellipse 70% 75% at 50% -10%, rgba(11, 47, 168, 0.55), rgba(6, 16, 56, 0.35) 45%, transparent 75%),
+    radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
+  background-size: 100% 100%, 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, black 35%, transparent);
+  mask-image: linear-gradient(to bottom, black 35%, transparent);
+}
+:root[data-theme="light"] .docs-glow {
+  background-image:
+    radial-gradient(ellipse 70% 75% at 50% -10%, rgba(127, 176, 255, 0.45), rgba(207, 225, 255, 0.35) 45%, transparent 75%),
+    radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
+}
+
 .site-footer { background: linear-gradient(180deg, var(--bg) 20%, #070b1c 100%); }
 :root[data-theme="light"] .site-footer { background: linear-gradient(180deg, var(--bg) 20%, #eef4ff 100%); }
 .site-footer::before, .site-footer::after {
