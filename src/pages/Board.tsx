@@ -2,7 +2,7 @@ import { openDao, useDao } from '../lib/store'
 import { allMembers, approvalRules, decodeDescription, isNearTransfer } from '../lib/dao'
 import { nanoToDate, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { TIER_LIMITS_USD, openRequests, tierFor } from '../lib/record'
-import { RowText, TxLink } from '../components/ui'
+import { Avatar, RowText, TxLink } from '../components/ui'
 import { prettyName } from '../App'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -115,7 +115,10 @@ export default function Board() {
                   const wants = meta.wants?.replace(/\s+to\s+\S+$/, '')
                   return (
                     <div key={p.id} className="grid grid-cols-[1fr_auto_auto] items-baseline gap-8 border-b border-line py-4 last:border-0">
-                      <RowText main={meta.title} detail={`${wants ?? 'NEAR'} · ${when}`} extra={<TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />} />
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        {t && <Avatar id={t.receiver_id} size={22} />}
+                        <RowText main={meta.title} detail={`${wants ?? 'NEAR'} · ${when}`} extra={<TxLink hash={activity?.payoutTx.get(p.id)} label="Proof" />} />
+                      </span>
                       <span className="text-muted">{approvedBy}</span>
                       <span className="tnum w-24 text-right">{t ? money(t.amount) : ''}</span>
                     </div>

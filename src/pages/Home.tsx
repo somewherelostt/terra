@@ -190,8 +190,9 @@ function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loa
             label = <>{shortName(a.who)} sent a transaction</>
         }
         return (
-          <div key={(a.txHash ?? '') + a.kind + i} className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
-            <span className="flex min-w-0 items-baseline gap-2">
+          <div key={(a.txHash ?? '') + a.kind + i} className="flex items-center justify-between gap-4 border-b border-line py-3.5 last:border-0">
+            <span className="flex min-w-0 items-center gap-2.5">
+              <Avatar id={a.kind === 'payout' ? (a.to ?? a.who) : a.who} size={22} />
               {label}
               <span className="shrink-0 text-[12px] text-muted">{timeAgo(a.time)}</span>
             </span>

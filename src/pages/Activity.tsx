@@ -3,7 +3,7 @@ import type { ActivityItem } from '../lib/activity'
 import { useDao } from '../lib/store'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { decodeDescription, isExpired, isNearTransfer, type Proposal } from '../lib/dao'
-import { RowText, TxLink } from '../components/ui'
+import { Avatar, RowText, TxLink } from '../components/ui'
 
 type Filter = 'All' | 'Money in' | 'Money out' | 'Requests'
 
@@ -82,8 +82,9 @@ export function ActivityList({ items, loading }: { items?: ActivityItem[]; loadi
             const p = a.proposalId != null ? byId.get(a.proposalId) : undefined
             const { text, amount, tone } = describe(a, p, money, dao ? (q: Proposal) => isExpired(q, dao.policy) : () => false)
             return (
-              <div key={(a.txHash ?? '') + a.kind + i} className="grid grid-cols-[1fr_auto_auto] items-baseline gap-4 border-b border-line py-3.5 last:border-0 sm:gap-8">
-                <span className="flex min-w-0 items-baseline gap-2">
+              <div key={(a.txHash ?? '') + a.kind + i} className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-line py-3.5 last:border-0 sm:gap-8">
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <Avatar id={a.kind === 'payout' ? (a.to ?? a.who) : a.who} size={22} />
                   {text}
                   {!a.ok && <span className="shrink-0 text-[12px] text-bad">failed</span>}
                 </span>

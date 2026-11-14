@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { accountUrl, txUrl } from '../lib/near'
+import { useAvatarUrl } from '../lib/avatar'
 import { shortName, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -60,16 +61,32 @@ export function Account({ id, className = '' }: { id: string; className?: string
 }
 
 export function Avatar({ id, size = 32 }: { id: string; size?: number }) {
+  const url = useAvatarUrl(id)
+  const [failed, setFailed] = useState(false)
   let h = 0
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360
+  if (failed)
+    return (
+      <span
+        className="inline-flex shrink-0 items-center justify-center rounded-full font-medium uppercase text-white"
+        style={{ width: size, height: size, background: `hsl(${h} 45% 42%)`, fontSize: size * 0.42 }}
+        title={id}
+      >
+        {shortName(id).slice(0, 1)}
+      </span>
+    )
   return (
-    <span
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-medium uppercase text-white"
-      style={{ width: size, height: size, background: `hsl(${h} 45% 42%)`, fontSize: size * 0.42 }}
+    <img
+      src={url}
+      alt=""
       title={id}
-    >
-      {shortName(id).slice(0, 1)}
-    </span>
+      width={size}
+      height={size}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="inline-block shrink-0 rounded-full bg-soft object-cover"
+      style={{ width: size, height: size }}
+    />
   )
 }
 

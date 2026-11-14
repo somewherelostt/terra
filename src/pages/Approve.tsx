@@ -8,7 +8,7 @@ import { useWallet } from '../lib/wallet'
 import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, shortName, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests, routeRequest } from '../lib/record'
-import { Button, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
+import { Avatar, Button, RowText, TxLink, TxStatus, showToast, useTx } from '../components/ui'
 
 export default function Approve() {
   const { dao, accountId, tracks } = { ...useDao(), ...useWallet() }
@@ -216,7 +216,8 @@ export function RequestCard({ p }: { p: Proposal }) {
       className={`flex flex-col rounded-2xl p-6 transition-[transform,opacity] duration-300 ${snoozing ? 'translate-x-3 opacity-40' : ''} ${hero ? 'bg-hero text-on-hero ring-1 ring-[var(--hero-ring)]' : 'border border-line bg-card'}`}
     >
       <div className={`flex items-center justify-between gap-3 text-[12px] ${sub}`}>
-        <span className="truncate">
+        <span className="flex min-w-0 items-center gap-2 truncate">
+          <Avatar id={p.proposer} size={20} />
           {shortName(p.proposer)} is asking · {timeAgo(nanoToDate(p.submission_time))}
           {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ' · new member' : ''}
         </span>
