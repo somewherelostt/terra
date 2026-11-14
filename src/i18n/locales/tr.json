@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra ana sayfa",
   "footer.tagline": "Topluluk kasaları için üye uygulaması.",
   "footer.navLabel": "Alt bilgi",
-  "footer.github": "GitHub'da Terra",
+  "footer.github": "GitHub'da açık kaynak",
   "footer.copyright": "© {year} Terra · Açık kaynak, NEAR üzerinde geliştirildi",
   "account.toLight": "Açık temaya geç",
   "account.toDark": "Koyu temaya geç",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "Herkes her ödemeyi görür",
   "landing.why.b2.text": "Her katkı ve her ödeme tüm üyelere açıktır, herkese açık bir makbuzla.",
   "landing.why.b3.title": "Herkese, her yerde ödeyin",
-  "landing.why.b3.text": "İnsanlara istedikleri parayla, kullandıkları zincirde ödeyin; kimse onaylamadan önce canlı fiyatı görün."
+  "landing.why.b3.text": "İnsanlara istedikleri parayla, kullandıkları zincirde ödeyin; kimse onaylamadan önce canlı fiyatı görün.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "Açık kaynak · MIT",
+  "landing.oss.title": "Açık kaynak",
+  "landing.oss.text": "Terra, MIT lisansıyla açık kaynaktır. Kodu okuyun, fork'layın, kendinizinkini çalıştırın.",
+  "landing.oss.cta": "GitHub'da görüntüle",
+  "landing.oss.github": "GitHub'daki kod"
 }

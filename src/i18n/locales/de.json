@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra-Startseite",
   "footer.tagline": "Die App für Mitglieder von Gemeinschaftskassen.",
   "footer.navLabel": "Fußzeile",
-  "footer.github": "Terra auf GitHub",
+  "footer.github": "Open Source auf GitHub",
   "footer.copyright": "© {year} Terra · Open Source, gebaut auf NEAR",
   "account.toLight": "Zum hellen Design wechseln",
   "account.toDark": "Zum dunklen Design wechseln",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "Alle sehen jede Zahlung",
   "landing.why.b2.text": "Jede Einzahlung und jede Auszahlung ist für alle Mitglieder sichtbar, mit öffentlichem Beleg.",
   "landing.why.b3.title": "Zahle an jeden, überall",
-  "landing.why.b3.text": "Bezahle Leute in der Währung, die sie wollen, auf der Chain, die sie nutzen, mit Live-Kurs, bevor jemand zustimmt."
+  "landing.why.b3.text": "Bezahle Leute in der Währung, die sie wollen, auf der Chain, die sie nutzen, mit Live-Kurs, bevor jemand zustimmt.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "Open Source · MIT",
+  "landing.oss.title": "Open Source",
+  "landing.oss.text": "Terra ist Open Source unter MIT. Lies den Code, forke ihn, betreibe deine eigene Version.",
+  "landing.oss.cta": "Auf GitHub ansehen",
+  "landing.oss.github": "Code auf GitHub"
 }

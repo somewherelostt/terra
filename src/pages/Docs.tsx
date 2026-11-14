@@ -178,7 +178,7 @@ export default function Docs() {
 
       <div className="mx-auto grid max-w-[1200px] gap-10 px-4 sm:px-6 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[224px_minmax(0,1fr)] lg:gap-14 xl:grid-cols-[224px_minmax(0,1fr)_200px] xl:gap-12">
         <aside className="hidden md:block">
-          <nav aria-label={t('docs.sectionsLabel')} className="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto py-10 pe-1">
+          <nav aria-label={t('docs.sectionsLabel')} className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-10 pe-1">
             <SearchButton onOpen={() => setSearch(true)} />
             {GROUPS.map((g) => (
               <div key={g.id} className="mt-7 first-of-type:mt-6">
@@ -371,7 +371,7 @@ function PhonePicker({ active, onPick, onSearch }: { active: string; onPick: (id
   }, [open])
 
   return (
-    <div className="glass-bar sticky top-16 z-20 flex border-b border-line md:hidden">
+    <div className="glass-bar sticky top-14 z-20 flex border-b border-line md:hidden">
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -674,7 +674,7 @@ function RightRail() {
   ]
   return (
     <aside className="hidden xl:block" aria-label={t('docs.rail.label')}>
-      <div className="sticky top-16 py-10">
+      <div className="sticky top-14 py-10">
         <div className="pb-3 text-[12px] font-medium text-ink">{t('docs.rail.title')}</div>
         <ul className="flex flex-col gap-px">
           {links.map(([label, href, d]) => (

@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra 首页",
   "footer.tagline": "社群金库的成员应用。",
   "footer.navLabel": "页脚",
-  "footer.github": "GitHub 上的 Terra",
+  "footer.github": "在 GitHub 上开源",
   "footer.copyright": "© {year} Terra · 开源，构建于 NEAR",
   "account.toLight": "切换到浅色主题",
   "account.toDark": "切换到深色主题",
@@ -1005,5 +1005,11 @@
   "landing.why.b2.title": "每笔付款人人可见",
   "landing.why.b2.text": "每一笔出资和付款所有成员都能看到,并有公开凭证。",
   "landing.why.b3.title": "付给任何人,任何地方",
-  "landing.why.b3.text": "用对方想要的币、在对方使用的链上付款,批准前就能看到实时价格。"
+  "landing.why.b3.text": "用对方想要的币、在对方使用的链上付款,批准前就能看到实时价格。",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "开源 · MIT",
+  "landing.oss.title": "开源",
+  "landing.oss.text": "Terra 以 MIT 许可开源。阅读代码、Fork 它、运行你自己的版本。",
+  "landing.oss.cta": "在 GitHub 上查看",
+  "landing.oss.github": "GitHub 上的代码"
 }

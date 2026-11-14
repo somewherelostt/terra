@@ -8,7 +8,7 @@
   "footer.homeLabel": "Inicio de Terra",
   "footer.tagline": "La app para miembros de tesorerías comunitarias.",
   "footer.navLabel": "Pie de página",
-  "footer.github": "Terra en GitHub",
+  "footer.github": "Código abierto en GitHub",
   "footer.copyright": "© {year} Terra · Código abierto, creado sobre NEAR",
   "account.toLight": "Cambiar al tema claro",
   "account.toDark": "Cambiar al tema oscuro",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "Todos ven cada pago",
   "landing.why.b2.text": "Cada aporte y cada pago es visible para todos los miembros, con un recibo público.",
   "landing.why.b3.title": "Paga a cualquiera, en cualquier lugar",
-  "landing.why.b3.text": "Paga a la gente en la moneda que quiere, en la cadena que usa, con un precio en vivo antes de que nadie apruebe."
+  "landing.why.b3.text": "Paga a la gente en la moneda que quiere, en la cadena que usa, con un precio en vivo antes de que nadie apruebe.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "Código abierto · MIT",
+  "landing.oss.title": "Código abierto",
+  "landing.oss.text": "Terra es de código abierto bajo MIT. Lee el código, haz un fork, ejecuta tu propia versión.",
+  "landing.oss.cta": "Ver en GitHub",
+  "landing.oss.github": "Código en GitHub"
 }

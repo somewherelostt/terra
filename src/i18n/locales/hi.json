@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra होम",
   "footer.tagline": "कम्युनिटी ट्रेज़री के सदस्यों का ऐप।",
   "footer.navLabel": "फ़ुटर",
-  "footer.github": "GitHub पर Terra",
+  "footer.github": "GitHub पर ओपन सोर्स",
   "footer.copyright": "© {year} Terra · ओपन सोर्स, NEAR पर बना",
   "account.toLight": "लाइट थीम पर जाएँ",
   "account.toDark": "डार्क थीम पर जाएँ",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "हर भुगतान सबको दिखता है",
   "landing.why.b2.text": "हर योगदान और हर भुगतान सभी सदस्यों को दिखता है, सार्वजनिक रसीद के साथ।",
   "landing.why.b3.title": "किसी को भी, कहीं भी भुगतान करें",
-  "landing.why.b3.text": "लोगों को उनकी पसंद के कॉइन में, उनकी चेन पर भुगतान करें, किसी की मंज़ूरी से पहले लाइव कीमत के साथ।"
+  "landing.why.b3.text": "लोगों को उनकी पसंद के कॉइन में, उनकी चेन पर भुगतान करें, किसी की मंज़ूरी से पहले लाइव कीमत के साथ।",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "ओपन सोर्स · MIT",
+  "landing.oss.title": "ओपन सोर्स",
+  "landing.oss.text": "Terra MIT लाइसेंस के तहत ओपन सोर्स है। कोड पढ़ें, फ़ोर्क करें, अपना खुद का चलाएँ।",
+  "landing.oss.cta": "GitHub पर देखें",
+  "landing.oss.github": "GitHub पर कोड"
 }

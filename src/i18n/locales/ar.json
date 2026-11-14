@@ -8,7 +8,7 @@
   "footer.homeLabel": "الصفحة الرئيسية لـ Terra",
   "footer.tagline": "تطبيق الأعضاء لخزائن المجتمعات.",
   "footer.navLabel": "التذييل",
-  "footer.github": "Terra على GitHub",
+  "footer.github": "مفتوح المصدر على GitHub",
   "footer.copyright": "© {year} Terra · مفتوح المصدر، مبني على NEAR",
   "account.toLight": "التبديل إلى المظهر الفاتح",
   "account.toDark": "التبديل إلى المظهر الداكن",
@@ -1185,5 +1185,11 @@
   "landing.why.b2.title": "الجميع يرى كل دفعة",
   "landing.why.b2.text": "كل مساهمة وكل دفعة ظاهرة لجميع الأعضاء، مع إيصال عام.",
   "landing.why.b3.title": "ادفع لأي أحد، في أي مكان",
-  "landing.why.b3.text": "ادفع للناس بالعملة التي يريدونها، على الشبكة التي يستخدمونها، مع سعر مباشر قبل أي موافقة."
+  "landing.why.b3.text": "ادفع للناس بالعملة التي يريدونها، على الشبكة التي يستخدمونها، مع سعر مباشر قبل أي موافقة.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "مفتوح المصدر · MIT",
+  "landing.oss.title": "مفتوح المصدر",
+  "landing.oss.text": "Terra مفتوح المصدر بترخيص MIT. اقرأ الشيفرة، انسخها، وشغّل نسختك الخاصة.",
+  "landing.oss.cta": "عرض على GitHub",
+  "landing.oss.github": "الشيفرة على GitHub"
 }

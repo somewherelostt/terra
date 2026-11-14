@@ -8,7 +8,7 @@
   "footer.homeLabel": "Accueil Terra",
   "footer.tagline": "L’appli des membres pour les trésoreries communautaires.",
   "footer.navLabel": "Pied de page",
-  "footer.github": "Terra sur GitHub",
+  "footer.github": "Open source sur GitHub",
   "footer.copyright": "© {year} Terra · Open source, construit sur NEAR",
   "account.toLight": "Passer au thème clair",
   "account.toDark": "Passer au thème sombre",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "Tout le monde voit chaque paiement",
   "landing.why.b2.text": "Chaque cotisation et chaque paiement est visible par tous les membres, avec un reçu public.",
   "landing.why.b3.title": "Payez n'importe qui, n'importe où",
-  "landing.why.b3.text": "Payez les gens dans la monnaie qu'ils veulent, sur la chaîne qu'ils utilisent, avec un prix en direct avant tout vote."
+  "landing.why.b3.text": "Payez les gens dans la monnaie qu'ils veulent, sur la chaîne qu'ils utilisent, avec un prix en direct avant tout vote.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "Open source · MIT",
+  "landing.oss.title": "Open source",
+  "landing.oss.text": "Terra est open source sous licence MIT. Lisez le code, forkez-le, faites tourner le vôtre.",
+  "landing.oss.cta": "Voir sur GitHub",
+  "landing.oss.github": "Code sur GitHub"
 }

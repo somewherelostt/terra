@@ -8,7 +8,7 @@ import { useWallet } from '../lib/wallet'
 import { RECORDED_QUOTE, getTokens, quotePayout, type QuoteResult } from '../lib/intents'
 import { TIER_LIMITS_USD } from '../lib/record'
 import { Spinner } from '../components/ui'
-import SiteFooter from '../components/SiteFooter'
+import SiteFooter, { GitHubMark, REPO } from '../components/SiteFooter'
 import Faq from '../components/Faq'
 import { AccountChip, AccountHosts, AccountMenuItems, ThemeButton, openTerra } from '../components/AccountMenu'
 import { formatDate, formatNumber, tr, useT } from '../i18n'
@@ -34,9 +34,15 @@ export default function Landing() {
       {/* Hero, over a deep blue horizon that rises behind the product preview */}
       <div className="hero-horizon relative isolate overflow-hidden">
       <section className="mx-auto max-w-[1200px] px-4 pt-12 text-center sm:px-6 md:pt-24">
-        <div className="inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-mute sm:text-[12.5px]">
-          <span className="live size-1.5 rounded-full bg-accent" />
-          <span className="truncate">{tr('landing.hero.badge', { wide: (c) => <span className="hidden sm:inline">{c}</span> })}</span>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-mute sm:text-[12.5px]">
+            <span className="live size-1.5 rounded-full bg-accent" />
+            <span className="truncate">{tr('landing.hero.badge', { wide: (c) => <span className="hidden sm:inline">{c}</span> })}</span>
+          </div>
+          <a href={REPO} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line px-3 py-1 text-[11.5px] text-ink transition-colors hover:border-ink/40 sm:text-[12.5px]">
+            <GitHubMark className="size-3.5" />
+            {t('landing.hero.openSource')}
+          </a>
         </div>
         <h1 className="mx-auto mt-7 max-w-[1120px] text-[40px] leading-[1] font-light tracking-[-0.045em] text-balance sm:text-[52px] md:text-[60px] md:leading-[0.98] lg:text-[68px]">
           <Words text={t('landing.hero.line1')} start={60} />
@@ -136,8 +142,20 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Built on: the stack, in one quiet line */}
+      {/* Open source, then the stack in one quiet line */}
       <div className="mx-auto max-w-[1200px] px-6 pb-20 md:pb-28">
+        <div className="mb-10 flex flex-col gap-4 rounded-2xl border border-line bg-panel p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-3.5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line"><GitHubMark className="size-5" /></span>
+            <div>
+              <div className="text-[15px] font-medium">{t('landing.oss.title')}</div>
+              <p className="mt-1 text-[14px] leading-relaxed text-mute">{t('landing.oss.text')}</p>
+            </div>
+          </div>
+          <a href={REPO} target="_blank" rel="noreferrer" className={`${PILL} shrink-0 justify-center self-start border border-line hover:bg-sand sm:self-auto`}>
+            {t('landing.oss.cta')} <span aria-hidden className="ms-1.5 inline-block rtl:-scale-x-100">→</span>
+          </a>
+        </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-8 text-[13px] text-mute">
           <span>{t('landing.trust.builtOn')}</span>
           <span className="h-4 w-px bg-line" />
@@ -306,6 +324,9 @@ function FloatCard({ side, delay, title, text }: { side: 'left' | 'right'; delay
 /** Section ids on the landing; labels are `landing.nav.<id>`. Only "how" shows on the desktop bar below lg. */
 const NAV_IDS = ['how', 'approvals', 'faq'] as const
 
+/** Compact rounded-full buttons in the nav. */
+const PILL = 'inline-flex h-9 items-center rounded-full px-4 text-[13.5px] font-medium whitespace-nowrap transition-colors'
+
 /**
  * Landing nav: transparent at the top, frosted once you scroll; one accent button; account chip when signed in.
  * Also used by the public board, where section links point back to the landing (`home="./"`) and the
@@ -364,80 +385,72 @@ export function LandingNav({
   }, [menu])
 
   const primary = !accountId && joinCta ? (
-    <button type="button" onClick={joinCta.onClick} className="inline-flex h-11 max-w-[11rem] items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong md:h-10 lg:max-w-none">
+    <button type="button" onClick={joinCta.onClick} className={`${PILL} max-w-[11rem] bg-accent text-on-accent hover:bg-brand-strong lg:max-w-none`}>
       <span className="lg:hidden">{t('landing.nav.join')}</span>
       <span className="hidden truncate lg:inline">{joinCta.label}</span>
     </button>
   ) : accountId ? (
-    <button type="button" onClick={openTerra} className="inline-flex h-11 md:h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
+    <button type="button" onClick={openTerra} className={`${PILL} bg-accent text-on-accent hover:bg-brand-strong`}>
       {t('landing.nav.openTerra')} <span aria-hidden className="ms-1.5 inline-block rtl:-scale-x-100">→</span>
     </button>
   ) : (
-    <a href="#connect" className="inline-flex h-11 md:h-10 items-center rounded-lg bg-accent px-4 text-[13.5px] font-medium whitespace-nowrap text-on-accent hover:bg-brand-strong">
+    <a href="#connect" className={`${PILL} bg-accent text-on-accent hover:bg-brand-strong`}>
       <span className="lg:hidden">{t('landing.nav.connect')}</span>
       <span className="hidden lg:inline">{t('landing.nav.connectTreasury')}</span>
     </a>
   )
 
+  const link = (on: boolean) => `flex h-9 items-center px-3 transition-colors ${on ? 'text-ink' : 'text-ink/65 hover:text-ink'}`
+  const github = (
+    <a href={REPO} target="_blank" rel="noreferrer" aria-label={t('landing.nav.github')} title={t('landing.nav.github')} className="grid size-9 place-items-center rounded-full text-ink/75 transition-colors hover:bg-sand hover:text-ink">
+      <GitHubMark />
+    </a>
+  )
+
   return (
-    // Floats: no edge-to-edge strip. At the top it's transparent; once you scroll, the whole nav becomes
-    // one rounded frosted card inset from the edges. Total height stays 64px (pt-3 + 52px) for sticky offsets.
-    <header className="pointer-events-none sticky top-0 z-30 h-16 px-2 pt-3 sm:px-3">
+    // A plain solid bar, edge to edge, with a hairline under it (Maaz: "like Cursor"). Page colour at the top;
+    // a light blur once you scroll. 56px tall: Docs' sticky sidebars sit at top-14.
+    <header className={`sticky top-0 z-30 h-14 border-b border-line transition-[background-color] duration-200 ${scrolled ? 'nav-solid-scrolled' : 'bg-bg'}`}>
       <AccountHosts />
-      <div
-        className={`pointer-events-auto relative mx-auto flex h-[52px] max-w-[1200px] items-center gap-3 rounded-2xl border px-2 transition-[background-color,border-color] duration-200 sm:px-4 ${scrolled ? 'glass' : 'border-transparent bg-transparent'}`}
-      >
-        <a href={home || '#'} className="-ms-1 flex h-11 items-center gap-2 rounded-lg px-1 md:h-10" aria-label={t('common.terraHome')}>
+      <div className="relative mx-auto flex h-full max-w-[1200px] items-center gap-3 px-4 sm:px-6">
+        <a href={home || '#'} className="-ms-1 flex h-10 items-center gap-2 rounded-lg px-1" aria-label={t('common.terraHome')}>
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
         </a>
 
-        {/* Desktop: three links in a small frosted pill, centred between the logo and the actions (Maaz picked option B). */}
-        <div className="pointer-events-none hidden flex-1 justify-center md:flex lg:absolute lg:inset-x-0">
-          <nav aria-label={t('landing.nav.sections')} className="glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-[13.5px] whitespace-nowrap">
-            <a
-              href={`${home}#how`}
-              aria-current={!current && active === 'how' ? 'true' : undefined}
-              className={`flex h-9 items-center rounded-full px-4 transition-colors ${!current && active === 'how' ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
-            >
-              {navLabel.how}
-            </a>
-            <a
-              href={boardUrl}
-              aria-current={current === 'board' ? 'page' : undefined}
-              className={`flex h-9 items-center rounded-full px-4 transition-colors ${current === 'board' ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
-            >
-              {t('landing.nav.board')}
-            </a>
-            <a
-              href={`${home}#/docs`}
-              aria-current={current === 'docs' ? 'page' : undefined}
-              className={`flex h-9 items-center rounded-full px-4 transition-colors ${current === 'docs' ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
-            >
-              {t('landing.nav.docs')}
-            </a>
-          </nav>
-        </div>
+        {/* Desktop: plain text links, centred on the page from lg up; the active one is just brighter. */}
+        <nav aria-label={t('landing.nav.sections')} className="hidden flex-1 items-center justify-center text-[14px] whitespace-nowrap md:flex lg:pointer-events-none lg:absolute lg:inset-x-0 lg:[&>a]:pointer-events-auto">
+          <a href={`${home}#how`} aria-current={!current && active === 'how' ? 'true' : undefined} className={link(!current && active === 'how')}>
+            {navLabel.how}
+          </a>
+          <a href={boardUrl} aria-current={current === 'board' ? 'page' : undefined} className={link(current === 'board')}>
+            {t('landing.nav.board')}
+          </a>
+          <a href={`${home}#/docs`} aria-current={current === 'docs' ? 'page' : undefined} className={link(current === 'docs')}>
+            {t('landing.nav.docs')}
+          </a>
+        </nav>
 
-        <div className="hidden items-center gap-2 md:flex lg:ms-auto">
+        <div className="relative hidden items-center gap-1.5 md:flex lg:ms-auto">
+          {github}
           {accountId ? (
             <AccountChip />
           ) : (
-            <button type="button" onClick={() => go('signin')} className="inline-flex h-10 items-center rounded-lg px-3 text-[13.5px] font-medium whitespace-nowrap hover:bg-sand">
+            <button type="button" onClick={() => go('signin')} className="flex h-9 items-center px-2.5 text-[14px] whitespace-nowrap text-ink/75 transition-colors hover:text-ink">
               {t('landing.nav.signIn')}
             </button>
           )}
           {primary}
         </div>
 
-        <div className="ms-auto flex items-center gap-1.5 md:hidden">
-          {primary}
+        <div className="ms-auto flex items-center gap-1 md:hidden">
+          {github}
           <button
             type="button"
             onClick={() => setMenu(true)}
             aria-label={t('landing.nav.openMenu')}
             aria-expanded={menu}
-            className="grid size-11 place-items-center rounded-lg text-ink hover:bg-sand"
+            className="grid size-11 place-items-center rounded-full text-ink hover:bg-sand"
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden>
               <path d="M4 7h16M4 12h16M4 17h16" />
@@ -460,7 +473,12 @@ export function LandingNav({
               ))}
               <a href={boardUrl} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">{t('landing.nav.board')}</a>
               <a href={`${home}#/docs`} onClick={() => setMenu(false)} aria-current={current === 'docs' ? 'page' : undefined} className="flex min-h-12 items-center rounded-lg px-3 text-[15px] hover:bg-soft">{t('landing.nav.docs')}</a>
+              <a href={REPO} target="_blank" rel="noreferrer" className="flex min-h-12 items-center gap-2.5 rounded-lg px-3 text-[15px] hover:bg-soft">
+                <GitHubMark />
+                {t('landing.oss.github')}
+              </a>
             </nav>
+            <div className="mt-2 px-1 [&>*]:h-11 [&>*]:w-full [&>*]:max-w-none [&>*]:justify-center" onClick={() => setMenu(false)}>{primary}</div>
             <div className="my-2 h-px bg-line" />
             {accountId ? (
               <AccountMenuItems onDone={() => setMenu(false)} />

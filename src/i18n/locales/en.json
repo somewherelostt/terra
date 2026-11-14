@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra home",
   "footer.tagline": "The members' app for community treasuries.",
   "footer.navLabel": "Footer",
-  "footer.github": "Terra on GitHub",
+  "footer.github": "Open source on GitHub",
   "footer.copyright": "© {year} Terra · Open source, built on NEAR",
   "account.toLight": "Switch to light theme",
   "account.toDark": "Switch to dark theme",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "Everyone sees every payment",
   "landing.why.b2.text": "Every chip-in and every payout is visible to all members, with a public receipt.",
   "landing.why.b3.title": "Pay anyone, anywhere",
-  "landing.why.b3.text": "Pay people in the coin they want, on the chain they use, with a live price before anyone approves."
+  "landing.why.b3.text": "Pay people in the coin they want, on the chain they use, with a live price before anyone approves.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "Open source · MIT",
+  "landing.oss.title": "Open source",
+  "landing.oss.text": "Terra is open source under MIT. Read the code, fork it, run your own.",
+  "landing.oss.cta": "View on GitHub",
+  "landing.oss.github": "Code on GitHub"
 }

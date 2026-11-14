@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra 홈",
   "footer.tagline": "커뮤니티 공동 자금을 위한 멤버 앱.",
   "footer.navLabel": "푸터",
-  "footer.github": "GitHub의 Terra",
+  "footer.github": "GitHub의 오픈 소스",
   "footer.copyright": "© {year} Terra · 오픈소스, NEAR 기반",
   "account.toLight": "라이트 테마로 전환",
   "account.toDark": "다크 테마로 전환",
@@ -1005,5 +1005,11 @@
   "landing.why.b2.title": "모든 지급이 보여요",
   "landing.why.b2.text": "모든 입금과 지급이 모든 멤버에게 보이고, 공개 영수증이 남습니다.",
   "landing.why.b3.title": "누구에게나, 어디로든",
-  "landing.why.b3.text": "상대가 원하는 코인으로, 상대가 쓰는 체인에 지급하세요. 승인 전에 실시간 가격을 확인할 수 있어요."
+  "landing.why.b3.text": "상대가 원하는 코인으로, 상대가 쓰는 체인에 지급하세요. 승인 전에 실시간 가격을 확인할 수 있어요.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "오픈 소스 · MIT",
+  "landing.oss.title": "오픈 소스",
+  "landing.oss.text": "Terra는 MIT 라이선스 오픈 소스입니다. 코드를 읽고, 포크하고, 직접 운영하세요.",
+  "landing.oss.cta": "GitHub에서 보기",
+  "landing.oss.github": "GitHub 코드"
 }

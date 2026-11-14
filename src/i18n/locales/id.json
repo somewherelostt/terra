@@ -8,7 +8,7 @@
   "footer.homeLabel": "Beranda Terra",
   "footer.tagline": "Aplikasi anggota untuk kas komunitas.",
   "footer.navLabel": "Footer",
-  "footer.github": "Terra di GitHub",
+  "footer.github": "Sumber terbuka di GitHub",
   "footer.copyright": "© {year} Terra · Sumber terbuka, dibangun di atas NEAR",
   "account.toLight": "Ganti ke tema terang",
   "account.toDark": "Ganti ke tema gelap",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "Semua melihat setiap pembayaran",
   "landing.why.b2.text": "Setiap patungan dan pembayaran terlihat oleh semua anggota, dengan bukti publik.",
   "landing.why.b3.title": "Bayar siapa saja, di mana saja",
-  "landing.why.b3.text": "Bayar orang dengan koin yang mereka mau, di chain yang mereka pakai, dengan harga langsung sebelum ada yang menyetujui."
+  "landing.why.b3.text": "Bayar orang dengan koin yang mereka mau, di chain yang mereka pakai, dengan harga langsung sebelum ada yang menyetujui.",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "Sumber terbuka · MIT",
+  "landing.oss.title": "Sumber terbuka",
+  "landing.oss.text": "Terra bersumber terbuka dengan lisensi MIT. Baca kodenya, fork, jalankan versimu sendiri.",
+  "landing.oss.cta": "Lihat di GitHub",
+  "landing.oss.github": "Kode di GitHub"
 }

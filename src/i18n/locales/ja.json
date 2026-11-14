@@ -8,7 +8,7 @@
   "footer.homeLabel": "Terra ホーム",
   "footer.tagline": "コミュニティの共同資金のためのメンバー向けアプリ。",
   "footer.navLabel": "フッター",
-  "footer.github": "GitHub の Terra",
+  "footer.github": "GitHubでオープンソース",
   "footer.copyright": "© {year} Terra · オープンソース、NEAR 上に構築",
   "account.toLight": "ライトテーマに切り替える",
   "account.toDark": "ダークテーマに切り替える",
@@ -1041,5 +1041,11 @@
   "landing.why.b2.title": "すべての支払いが見える",
   "landing.why.b2.text": "すべての入金と支払いがメンバー全員に見え、公開の領収記録も残ります。",
   "landing.why.b3.title": "誰にでも、どこへでも",
-  "landing.why.b3.text": "相手が欲しいコインで、相手が使うチェーンに支払えます。承認の前にライブ価格を確認できます。"
+  "landing.why.b3.text": "相手が欲しいコインで、相手が使うチェーンに支払えます。承認の前にライブ価格を確認できます。",
+  "landing.nav.github": "GitHub",
+  "landing.hero.openSource": "オープンソース · MIT",
+  "landing.oss.title": "オープンソース",
+  "landing.oss.text": "TerraはMITライセンスのオープンソースです。コードを読んで、フォークして、自分で動かせます。",
+  "landing.oss.cta": "GitHubで見る",
+  "landing.oss.github": "GitHubのコード"
 }
