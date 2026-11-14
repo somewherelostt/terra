@@ -66,11 +66,12 @@ export default function Home() {
         )}
         {isFinite(nearUsd) && <span className="tnum">1 NEAR = {usd(nearUsd)}</span>}
       </div>
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-8 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button onClick={() => setChipOpen(true)}>Chip in</Button>
         <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
         <Button
           variant="secondary"
+          className="max-sm:hidden"
           onClick={() => navigator.clipboard?.writeText(shareUrl(dao.id, 'board')).then(() => setCopied(true)).catch(() => setCopied(false))}
         >
           {copied ? 'Board link copied' : 'Share board'}
@@ -91,7 +92,7 @@ export default function Home() {
         <div className="min-w-0">
           <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
             <span>Activity</span>
-            <button className="hover:text-ink" onClick={() => go('activity')}>See all</button>
+            <button className="-my-3 py-3 pl-4 hover:text-ink" onClick={() => go('activity')}>See all</button>
           </div>
           <HomeActivity items={activity?.items.slice(0, 4)} loading={!activity} nearUsd={nearUsd} />
         </div>
@@ -134,12 +135,12 @@ function CountNumber({ value, format }: { value: number; format: (n: number) => 
 
 function Stat({ label, value, className = '' }: { label: string; value: React.ReactNode | null; className?: string }) {
   return (
-    <div className={`py-5 ${className}`}>
-      <div className="text-[12px] text-muted">{label}</div>
+    <div className={`flex flex-col justify-between gap-1.5 py-5 ${className}`}>
+      <div className="text-[12px] leading-snug text-muted">{label}</div>
       {value == null ? (
-        <div className="skeleton mt-2.5 h-6 w-20" />
+        <div className="skeleton mt-1 h-6 w-20 max-w-full" />
       ) : (
-        <div className="tnum mt-1.5 text-[22px] font-light tracking-tight sm:text-[28px]">{value}</div>
+        <div className="tnum text-[22px] font-light tracking-tight sm:text-[28px]">{value}</div>
       )}
     </div>
   )
