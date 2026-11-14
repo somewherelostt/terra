@@ -403,44 +403,40 @@ export function LandingNav({
   return (
     <header className={`sticky top-0 z-30 border-b transition-colors ${scrolled ? 'glass-bar border-line' : 'border-transparent bg-transparent'}`}>
       <AccountHosts />
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
+      <div className="relative mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:px-6">
         <a href={home || '#'} className="-ms-1 flex h-11 items-center gap-2 rounded-lg px-1 md:h-10" aria-label={t('common.terraHome')}>
           <img src={ICON} alt="" className="size-7 rounded-[7px]" />
           <span className="text-[16px] font-medium tracking-tight">terra</span>
         </a>
 
-        <nav aria-label={t('landing.nav.sections')} className="ms-6 hidden items-center gap-1 text-[13.5px] whitespace-nowrap md:flex">
-          {NAV_IDS.map((id) => (
+        {/* Desktop: three links in a small frosted pill, centred between the logo and the actions (Maaz picked option B). */}
+        <div className="pointer-events-none hidden flex-1 justify-center md:flex lg:absolute lg:inset-x-0">
+          <nav aria-label={t('landing.nav.sections')} className="glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-[13.5px] whitespace-nowrap">
             <a
-              key={id}
-              href={`${home}#${id}`}
-              aria-current={active === id ? 'true' : undefined}
-              className={`relative h-10 items-center rounded-lg px-3 transition-colors ${id === 'how' ? 'flex' : 'hidden lg:flex'} ${active === id ? 'text-ink' : 'text-mute hover:text-ink'}`}
+              href={`${home}#how`}
+              aria-current={!current && active ? 'true' : undefined}
+              className={`flex h-9 items-center rounded-full px-4 transition-colors ${!current && active ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
             >
-              {navLabel[id]}
-              {active === id && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
+              {navLabel.how}
             </a>
-          ))}
-          <a
-            href={boardUrl}
-            aria-current={current === 'board' ? 'page' : undefined}
-            className={`relative flex h-10 items-center rounded-lg px-3 ${current === 'board' ? 'text-ink' : 'text-mute hover:text-ink'}`}
-          >
-            {t('landing.nav.board')}
-            {current === 'board' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
-          </a>
-          <a
-            href={`${home}#/docs`}
-            aria-current={current === 'docs' ? 'page' : undefined}
-            className={`relative flex h-10 items-center rounded-lg px-3 ${current === 'docs' ? 'text-ink' : 'text-mute hover:text-ink'}`}
-          >
-            {t('landing.nav.docs')}
-            {current === 'docs' && <span aria-hidden className="absolute inset-x-3 bottom-1.5 h-px bg-ink" />}
-          </a>
-        </nav>
+            <a
+              href={boardUrl}
+              aria-current={current === 'board' ? 'page' : undefined}
+              className={`flex h-9 items-center rounded-full px-4 transition-colors ${current === 'board' ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
+            >
+              {t('landing.nav.board')}
+            </a>
+            <a
+              href={`${home}#/docs`}
+              aria-current={current === 'docs' ? 'page' : undefined}
+              className={`flex h-9 items-center rounded-full px-4 transition-colors ${current === 'docs' ? 'bg-[var(--glass-active)] text-ink' : 'text-mute hover:text-ink'}`}
+            >
+              {t('landing.nav.docs')}
+            </a>
+          </nav>
+        </div>
 
-        <div className="ms-auto hidden items-center gap-2 md:flex">
-          <ThemeButton />
+        <div className="hidden items-center gap-2 md:flex lg:ms-auto">
           {accountId ? (
             <AccountChip />
           ) : (

@@ -1,4 +1,5 @@
 import LanguagePicker from './LanguagePicker'
+import { ThemeButton } from './AccountMenu'
 import { useT } from '../i18n'
 
 const ICON = `${import.meta.env.BASE_URL}favicon.svg`
@@ -46,6 +47,7 @@ export default function SiteFooter({ home = '', boardUrl }: { home?: string; boa
           <span>{t('footer.copyright', { year: '2026' })}</span>
           <div className="flex flex-wrap items-center gap-2">
             <LanguagePicker up align="end-md" />
+            <ThemeButton />
             <span className="rounded-full border border-line px-2 py-0.5 text-[11.5px]">{t('common.nearTestnet')}</span>
           </div>
         </div>
