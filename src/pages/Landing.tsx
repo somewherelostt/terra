@@ -694,6 +694,7 @@ function ConnectCta() {
             </h2>
           </div>
           <form
+            className="min-w-0"
             onSubmit={(e) => {
               e.preventDefault()
               connect()
