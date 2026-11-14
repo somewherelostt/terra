@@ -44,7 +44,9 @@ function reveal(id: string, smooth: boolean, from: 'outside' | 'inside' = 'outsi
     const r = el.getBoundingClientRect()
     const onScreen = r.top >= 72 && r.top + 160 <= window.innerHeight
     if (from === 'outside' || !onScreen) {
-      el.scrollIntoView({ behavior: smooth && !reduce() ? 'smooth' : 'instant', block: from === 'outside' ? 'start' : 'center' })
+      // window.scrollTo rather than scrollIntoView, which some browsers skip for content inside <details>.
+      const top = from === 'outside' ? r.top + window.scrollY - 96 : r.top + window.scrollY - window.innerHeight / 2 + 80
+      window.scrollTo({ top: Math.max(0, top), behavior: smooth && !reduce() ? 'smooth' : 'instant' })
     }
     el.querySelector('summary')?.focus({ preventScroll: true })
   }, reduce() ? 0 : 300)
