@@ -129,6 +129,10 @@ export default function Landing() {
             <Tier name="Mid" amount={`Up to $${TIER_LIMITS_USD.mid}`} text="A council majority signs off. First requests start here too." />
             <Tier name="Large" amount={`Over $${TIER_LIMITS_USD.mid}`} text="A council majority votes, and it stays on the public board while it's open." />
           </div>
+          <p className="mt-5 max-w-[720px] text-[13px] leading-relaxed text-mute">
+            Terra checks these limits. On chain, one trusted vote can approve a transfer of any size, so keep the trusted list small; allowances add a hard cap the
+            contract enforces.
+          </p>
         </div>
       </section>
 

@@ -168,6 +168,10 @@ export default function Members() {
           of the trusted role who isn't them. Requests up to ${TIER_LIMITS_USD.mid}, and bigger ones, need the council's majority; big ones stay on the public board while open. The council
           and the trusted role are set in the DAO's policy, and every record is computed from the DAO's own history on NEAR.
         </p>
+        <p className="mt-3 text-[13px] leading-relaxed text-muted">
+          The dollar limits are checked by Terra. On chain, one trusted vote can approve a transfer of any size, so keep the trusted list small. For a hard cap enforced on
+          chain, give a member an allowance instead.
+        </p>
         {!dao.policy.roles.some((r) => isRole(r.name, 'trusted')) && (
           <p className="mt-3 text-[13px] leading-relaxed text-muted">
             This DAO wasn't set up by Terra and has no trusted role, so there is no fast lane: {dao.policy.roles.some((r) => isRole(r.name, 'council')) ? 'its council decides' : 'the roles that can vote decide'}{' '}
