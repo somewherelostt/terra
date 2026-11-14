@@ -153,19 +153,27 @@ function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean
 }
 
 function MobileNav({ page }: { page: Page }) {
-  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'activity', 'members'].includes(n.page))
+  const { dao } = useDaoSafe()
+  const items = NAV.filter((n) => ['home', 'pay', 'approve', 'members', 'board'].includes(n.page))
+  const count = dao ? openRequests(dao).length : 0
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-card md:hidden">
-      {items.map((n) => (
-        <a
-          key={n.page}
-          href={`#/${n.page}`}
-          className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${page === n.page ? 'text-accent-text' : 'text-muted'}`}
-        >
-          <Icon d={n.icon} />
-          {n.label}
-        </a>
-      ))}
+    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      {items.map((n) => {
+        const href = n.page === 'board' && dao ? shareUrl(dao.id, 'board') : `#/${n.page}`
+        return (
+          <a
+            key={n.page}
+            href={href}
+            className={`relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium ${page === n.page ? 'text-ink' : 'text-muted'}`}
+          >
+            <Icon d={n.icon} />
+            {n.label}
+            {n.page === 'approve' && count > 0 && (
+              <span className="absolute left-1/2 top-1.5 ml-2 grid size-[16px] place-items-center rounded-full bg-accent text-[9.5px] font-medium text-on-accent">{count}</span>
+            )}
+          </a>
+        )
+      })}
     </nav>
   )
 }
@@ -177,6 +185,16 @@ function useDaoSafe() {
   } catch {
     return { dao: null }
   }
+}
+
+function MobileGroupName() {
+  const { dao } = useDaoSafe()
+  if (!dao) return null
+  return (
+    <button onClick={() => openDao(null)} className="min-w-0 truncate text-[14px] font-medium" title="Switch community">
+      {prettyName(dao.config.name)}
+    </button>
+  )
 }
 
 function GroupCard() {
@@ -229,8 +247,9 @@ function TopBar({ daoId }: { daoId: string | null }) {
   const [picking, setPicking] = useState(false)
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur md:px-8">
-      <div className="md:hidden">
+      <div className="flex min-w-0 items-center gap-2 md:hidden">
         <Logo compact />
+        <MobileGroupName />
       </div>
       <div className="hidden text-xs text-muted md:block">
         <span className="rounded-full bg-warn-soft px-2 py-0.5 font-medium text-warn">Testnet</span>
@@ -248,7 +267,7 @@ function TopBar({ daoId }: { daoId: string | null }) {
               className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-sm hover:bg-soft"
             >
               <Avatar id={accountId} size={26} />
-              <span className="max-w-40 truncate font-medium">{shortName(accountId)}</span>
+              <span className="hidden max-w-40 truncate font-medium sm:inline">{shortName(accountId)}</span>
             </button>
             <Button variant="ghost" onClick={signOut}>
               Sign out
