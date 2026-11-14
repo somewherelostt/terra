@@ -320,11 +320,8 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                 <input className={bare + ' font-mono text-[14px]'} value={address} onChange={(e) => setAddress(e.target.value)} placeholder={token?.blockchain === 'sol' ? 'Solana address' : 'Address on their chain'} spellCheck={false} />
               </label>
               <label className={line}>
-                <span className="text-[12px] text-muted">Testnet stand-in: the NEAR account that receives the payout</span>
+                <span className="text-[12px] text-muted">NEAR account that receives it on testnet</span>
                 <input className={bare + ' font-mono text-[14px]'} value={standIn} onChange={(e) => setStandIn(e.target.value.toLowerCase())} placeholder="you.testnet" spellCheck={false} />
-                <span className="mt-1 block text-[12px] text-muted">
-                  NEAR Intents runs on mainnet only. On testnet the treasury pays this account the quoted NEAR; on mainnet it pays the Intents deposit address and they get the token on their chain.
-                </span>
               </label>
             </>
           )}

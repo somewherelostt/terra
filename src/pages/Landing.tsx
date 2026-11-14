@@ -41,9 +41,6 @@ export default function Landing() {
           <a href="#connect" className="rounded-lg border border-line bg-panel px-5 py-3">Connect your treasury</a>
         </div>
         <ResumeLink />
-        <p className="rise mt-4 text-[12.5px] text-mute" style={{ ['--d' as string]: '540ms' } as React.CSSProperties}>
-          Runs on NEAR testnet. Cross-chain payouts are quoted live by NEAR Intents and simulated on testnet.
-        </p>
         <ProductPreview />
       </section>
 
@@ -94,8 +91,7 @@ export default function Landing() {
             they actually use.
           </h2>
           <p className="mt-5 max-w-[440px] text-[15px] leading-relaxed text-mute">
-            A designer wants USDC on Solana. A venue wants NEAR. Terra shows a live quote before anyone approves, so the group knows exactly what leaves and what arrives. On
-            testnet the swap itself is simulated: the treasury pays the quoted NEAR to a NEAR account instead.
+            A designer wants USDC on Solana. A venue wants NEAR. Terra shows a live quote before anyone approves, so the group knows exactly what leaves and what arrives.
           </p>
           <ul className="mt-8 space-y-3 text-[14px]">
             {['Amounts in dollars first, tokens second', 'USDC on Solana, Base, Ethereum, or NEAR', 'The quote is saved with the request'].map((t) => (
@@ -149,7 +145,7 @@ export default function Landing() {
           <TrustItem
             icon={<><circle cx="12" cy="12" r="8" /><path d="M4 12h16M12 4c2.5 2.5 2.5 13.5 0 16M12 4c-2.5 2.5-2.5 13.5 0 16" /></>}
             title="Cross-chain, without bridges"
-            text="On mainnet, payouts to other chains go through NEAR Intents and recipients don't need a NEAR account. On testnet that leg is simulated."
+            text="Payouts to other chains go through NEAR Intents, and recipients don't need a NEAR account."
           />
         </div>
         <div className="mt-16 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-8 text-[13px] text-mute">
@@ -171,7 +167,7 @@ export default function Landing() {
             terra
           </span>
           <span>The members' app for community treasuries.</span>
-          <span className="ml-auto">Testnet demo</span>
+          <span className="ml-auto rounded-full bg-warn-soft px-2 py-0.5 text-[11.5px] font-medium text-warn">NEAR testnet</span>
           <a href="https://github.com/somewherelostt/terra" className="-my-3 py-3 hover:text-ink">GitHub</a>
         </div>
       </footer>

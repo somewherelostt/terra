@@ -237,7 +237,7 @@ export function RequestCard({ p }: { p: Proposal }) {
       setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
       if (transfer && wantsLine) {
         await wait(950)
-        steps.push({ label: 'NEAR Intents swap · simulated on testnet', done: true, at: since() })
+        steps.push({ label: 'Cross-chain via NEAR Intents (mainnet)', done: false })
         setTrack(p.id, { ...base, eta: 'about 1 s', steps: [...steps] })
       }
       if (transfer) {
@@ -245,7 +245,7 @@ export function RequestCard({ p }: { p: Proposal }) {
         steps.push({ label: `Arrived in ${to}'s account`, done: true, at: since() })
       }
       const bubble = transfer
-        ? `Paid. ${to} has their ${yoctoToNear(transfer.amount)} NEAR${wantsLine ? ` (on mainnet: ${wantsLine})` : ''}.`
+        ? `Paid on NEAR. ${to} has their ${yoctoToNear(transfer.amount)} NEAR.`
         : join
           ? `Done. ${displayName(join.member)} is in.`
           : 'Done. The change is live.'
