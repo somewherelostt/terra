@@ -51,9 +51,9 @@ export default function Landing() {
                 {shortName(accountId)} · Sign out
               </button>
             ) : (
-              <button className="rounded-lg px-3 py-2 hover:bg-sand" onClick={() => go('signin')}>Sign in</button>
+              <button className="rounded-lg px-3 py-2.5 hover:bg-sand sm:py-2" onClick={() => go('signin')}>Sign in</button>
             )}
-            <a href="#connect" className="rounded-lg bg-accent px-3 py-2 text-on-accent sm:px-4">
+            <a href="#connect" className="rounded-lg bg-accent px-3 py-2.5 text-on-accent sm:px-4 sm:py-2">
               <span className="sm:hidden">Connect</span>
               <span className="hidden sm:inline">Connect a treasury</span>
             </a>
@@ -202,7 +202,7 @@ export default function Landing() {
           </span>
           <span>The members' app for community treasuries.</span>
           <span className="ml-auto">Testnet demo</span>
-          <a href="https://github.com/somewherelostt/terra" className="hover:text-ink">GitHub</a>
+          <a href="https://github.com/somewherelostt/terra" className="-my-3 py-3 hover:text-ink">GitHub</a>
         </div>
       </footer>
     </div>
@@ -550,11 +550,11 @@ function ConnectCta() {
             ) : (
               <p className="mt-3 text-[12.5px] opacity-60">
                 No DAO yet?{' '}
-                <button type="button" className="underline underline-offset-2" onClick={() => go('create')}>
+                <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => go('create')}>
                   Create one in a minute.
                 </button>{' '}
                 Or{' '}
-                <button type="button" className="underline underline-offset-2" onClick={() => openDao(DEMO_DAO)}>
+                <button type="button" className="relative underline underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-['']" onClick={() => openDao(DEMO_DAO)}>
                   try the demo community
                 </button>
                 .
