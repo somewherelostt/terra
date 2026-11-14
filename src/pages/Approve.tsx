@@ -185,7 +185,9 @@ export function RequestCard({ p }: { p: Proposal }) {
   const route = isTransfer ? routeRequest(dao, p, nearUsd, records) : null
   const rules = approvalRules(dao.policy, p.kind)
   const voters = route ? route.voters : [...new Set(rules.flatMap((r) => r.members))]
-  const needed = route ? route.needed : Math.min(...rules.map((r) => r.needed), Infinity)
+  // Some proposal kinds have no role allowed to approve them in this DAO's policy.
+  const noApprover = !route && rules.length === 0
+  const needed = route ? route.needed : noApprover ? 0 : Math.min(...rules.map((r) => r.needed))
   const approvals = voters.filter((v) => p.votes[v] === 'Approve').length
   const rejects = voters.filter((v) => p.votes[v] === 'Reject').length
   const myVote = accountId ? p.votes[accountId] : undefined
@@ -290,7 +292,7 @@ export function RequestCard({ p }: { p: Proposal }) {
           {route && route.tier === 'small' && route.effectiveTier !== 'small' ? ' · new member' : ''}
         </span>
         <span className="shrink-0">
-          {hero && canVote ? 'Small · you decide' : `${tierWord} · ${approvals} of ${needed}`}
+          {noApprover ? 'No role can approve this here' : hero && canVote ? 'Small · you decide' : `${tierWord} · ${approvals} of ${needed}`}
         </span>
       </div>
 
@@ -363,8 +365,10 @@ export function RequestCard({ p }: { p: Proposal }) {
               <div className="h-[3px] rounded-full bg-ink transition-all" style={{ width: `${Math.min(100, (approvals / Math.max(needed, 1)) * 100)}%` }} />
             </div>
             <div className="mt-2 text-[12px] text-muted">
-              {voters.filter((v) => p.votes[v] === 'Approve').map(displayName).join(', ') || 'No approvals yet'}
-              {approvals < needed ? ` · needs ${needed - approvals} more ${route?.effectiveTier === 'small' ? 'trusted member' : 'council member'}${needed - approvals === 1 ? '' : 's'}` : ''}
+              {noApprover
+                ? "This DAO's policy gives no role permission to approve this kind of request."
+                : voters.filter((v) => p.votes[v] === 'Approve').map(displayName).join(', ') || 'No approvals yet'}
+              {!noApprover && approvals < needed ? ` · needs ${needed - approvals} more ${route?.effectiveTier === 'small' ? 'trusted member' : 'council member'}${needed - approvals === 1 ? '' : 's'}` : ''}
               {rejects ? ` · ${rejects} declined` : ''}
             </div>
           </div>
@@ -374,7 +378,9 @@ export function RequestCard({ p }: { p: Proposal }) {
       <CommentsToggle daoId={dao.id} proposalId={p.id} hero={hero} />
 
       <div className="mt-6 flex-1" />
-      {!accountId ? (
+      {noApprover ? (
+        <p className={`text-[13px] ${sub}`}>No role can approve this here.</p>
+      ) : !accountId ? (
         <Button variant="secondary" onClick={signIn}>Sign in to approve</Button>
       ) : myVote ? (
         <p className={`text-[13px] ${sub}`}>You {myVote === 'Approve' ? 'approved' : myVote === 'Reject' ? 'declined' : 'voted on'} this.</p>
