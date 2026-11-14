@@ -4,13 +4,13 @@ import { invalidateActivity, loadActivity, type ActivityResult } from './activit
 import { getNearUsdPrice } from './intents'
 import { computeRecords, type MemberRecord } from './record'
 
-export const DEMO_DAO = import.meta.env.VITE_DEMO_DAO || 'riverside-coop.sputnikv2.testnet'
+export const DEMO_DAO = import.meta.env.VITE_DEMO_DAO || 'terra-demo.sputnikv2.testnet'
 export const STAKING_POOL = import.meta.env.VITE_STAKING_POOL || 'aurora.pool.f863973.m0'
 
 // ---------- tiny router: ?dao=<id>#/<page> ----------
 
-export type Page = 'home' | 'pay' | 'approve' | 'members' | 'activity' | 'board' | 'earn' | 'create' | 'signin'
-const PAGES: Page[] = ['home', 'pay', 'approve', 'members', 'activity', 'board', 'earn', 'create', 'signin']
+export type Page = 'home' | 'pay' | 'approve' | 'members' | 'activity' | 'board' | 'earn' | 'create' | 'signin' | 'join'
+const PAGES: Page[] = ['home', 'pay', 'approve', 'members', 'activity', 'board', 'earn', 'create', 'signin', 'join']
 
 function readRoute(): { page: Page; daoId: string | null; params: URLSearchParams } {
   const url = new URL(window.location.href)
