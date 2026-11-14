@@ -15,7 +15,8 @@ type Mode = 'near' | 'intents'
 export default function Pay({ params }: { params: URLSearchParams }) {
   const { dao, nearUsd, records, refresh } = useDao()
   const { accountId, signIn, send } = useWallet()
-  const [mode, setMode] = useState<Mode>(params.get('token') ? 'intents' : 'near')
+  // The demo flow is "$20 to a designer, in USDC on Solana", so that's the default.
+  const [mode, setMode] = useState<Mode>(params.get('to') && !params.get('token') ? 'near' : 'intents')
   const [title, setTitle] = useState(params.get('for') ?? '')
   const [receiver, setReceiver] = useState(params.get('to') ?? '')
   const [amount, setAmount] = useState(params.get('amount') ?? '')
@@ -51,6 +52,13 @@ export default function Pay({ params }: { params: URLSearchParams }) {
   }, [accountId, standIn])
 
   const token = tokens.find((t) => t.assetId === tokenId)
+  // The amount is typed in dollars; convert it to what actually moves.
+  const usdIn = /^\d+(\.\d{0,2})?$/.test(amount.trim()) ? Number(amount) : NaN
+  // Stablecoins (priced about $1) are paid dollar for dollar, so "$20" means exactly 20 USDC.
+  const stable = !!token && token.price > 0.97 && token.price < 1.03
+  const tokenAmount =
+    token && isFinite(usdIn) && usdIn > 0 && token.price > 0 ? (stable ? usdIn.toFixed(2) : trimNum(usdIn / token.price, Math.min(token.decimals, 6))) : ''
+  const nearAmount = isFinite(usdIn) && usdIn > 0 && isFinite(nearUsd) && nearUsd > 0 ? trimNum(usdIn / nearUsd, 4) : ''
   const popular = useMemo(
     () => POPULAR.map((p) => tokens.find((t) => t.symbol === p.symbol && t.blockchain === p.blockchain)).filter((t): t is IntentsToken => !!t),
     [tokens],
@@ -66,7 +74,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     setQuoteErr(null)
     setQuoteDown(false)
     if (mode !== 'intents' || !token || !dao) return
-    const units = toUnits(amount, token.decimals)
+    const units = toUnits(tokenAmount, token.decimals)
     if (!units || address.trim().length < 8 || addressProblem(token.blockchain, address.trim())) return
     const t = setTimeout(async () => {
       setQuoting(true)
@@ -82,12 +90,12 @@ export default function Pay({ params }: { params: URLSearchParams }) {
       }
     }, 500)
     return () => clearTimeout(t)
-  }, [mode, token, amount, address, dao, retry])
+  }, [mode, token, tokenAmount, address, dao, retry])
 
   // Live quotes refresh every 5 s (the ring drains), keeping the old quote on screen meanwhile.
   useEffect(() => {
     if (!quote || quote.recorded || mode !== 'intents' || !token) return
-    const units = toUnits(amount, token.decimals)
+    const units = toUnits(tokenAmount, token.decimals)
     if (!units) return
     setCountdown(5)
     const iv = setInterval(() => setCountdown((c) => (c <= 1 ? 1 : c - 1)), 1000)
@@ -111,7 +119,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
 
   // Amount the treasury sends, in yoctoNEAR.
   let yocto: bigint | null = null
-  if (mode === 'near') yocto = nearToYocto(amount)
+  if (mode === 'near') yocto = nearAmount ? nearToYocto(nearAmount) : null
   else if (quote) {
     // Round up to 0.01 NEAR so the payout covers the quote.
     const step = ONE_NEAR / 100n
@@ -142,10 +150,10 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     return `${Number(q.amountInFormatted).toFixed(2)} NEAR -> ${q.amountOutFormatted} ${token.symbol} on ${chainName(token.blockchain)}, about ${q.timeEstimate}s, ${quote.recorded ? 'sample recorded' : 'quoted'} ${t} UTC${quote.correlationId ? ` (${quote.correlationId.slice(0, 8)})` : ''}`
   }
 
-  const canUseSaved = !!token && token.symbol === 'USDC' && token.blockchain === 'sol' && !!toUnits(amount, 6)
+  const canUseSaved = !!token && token.symbol === 'USDC' && token.blockchain === 'sol' && !!toUnits(tokenAmount, 6)
   function useSavedQuote() {
     // The saved quote was for 20 USDC; scale it to the amount asked for and label it as saved.
-    const f = Number(amount) / 20
+    const f = Number(tokenAmount) / 20
     const q = RECORDED_QUOTE.quote
     const inYocto = (BigInt(q.amountIn) * BigInt(Math.round(f * 1e6))) / 1_000_000n
     setQuote({
@@ -155,8 +163,8 @@ export default function Pay({ params }: { params: URLSearchParams }) {
         amountIn: inYocto.toString(),
         amountInFormatted: String(Number(q.amountInFormatted) * f),
         amountInUsd: String(Number(q.amountInUsd) * f),
-        amountOut: toUnits(amount, 6) ?? q.amountOut,
-        amountOutFormatted: amount,
+        amountOut: toUnits(tokenAmount, 6) ?? q.amountOut,
+        amountOutFormatted: tokenAmount,
         amountOutUsd: String(Number(q.amountOutUsd) * f),
       },
     })
@@ -174,7 +182,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
     if (errors.length || !yocto || !dao) return
     const meta = {
       title: title.trim(),
-      wants: mode === 'intents' && token ? `${amount} ${token.symbol} on ${chainName(token.blockchain)} to ${address.trim()}` : undefined,
+      wants: mode === 'intents' && token ? `${quote ? quote.quote.amountOutFormatted : tokenAmount} ${token.symbol} on ${chainName(token.blockchain)} to ${address.trim()}` : undefined,
       quote: quoteText(),
       tier: effectiveTier ? TIER_COPY[effectiveTier].label : undefined,
     }
@@ -219,20 +227,26 @@ export default function Pay({ params }: { params: URLSearchParams }) {
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-8">
           <label className={line}>
-            <span className="text-[12px] text-muted">{mode === 'near' ? 'Amount in NEAR' : `Amount they get${token ? ` in ${token.symbol}` : ''}`}</span>
-            <input
-              className={bare + ' tnum text-[56px] font-light leading-none tracking-[-0.05em] sm:text-[72px]'}
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              aria-label="Amount"
-            />
-            {mode === 'near' && yocto && isFinite(nearUsd) && <span className="text-[12px] text-muted">≈ {usd(amountUsd)}</span>}
+            <span className="text-[12px] text-muted">Amount</span>
+            <div className="tnum mt-1 flex items-baseline text-[56px] font-light leading-none tracking-[-0.05em] sm:text-[72px]">
+              <span className="text-muted">$</span>
+              <input
+                className="w-full bg-transparent outline-none placeholder:text-muted/60"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
+                placeholder="0.00"
+                aria-label="Amount in US dollars"
+              />
+            </div>
+            <span className="mt-1 block h-4 text-[12px] text-muted">
+              {mode === 'near' ? (nearAmount ? `≈ ${nearAmount} NEAR` : '') : token && tokenAmount ? `They get ${stable ? "" : "about "}${tokenAmount} ${token.symbol} on ${chainName(token.blockchain)}` : ''}
+            </span>
           </label>
           <label className={line}>
             <span className="text-[12px] text-muted">What it's for</span>
-            <input className={bare + ' text-[17px]'} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Poster design for the meetup" maxLength={140} />
+            <input className={bare + ' text-[17px]'} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Poster design for the meetup" maxLength={60} />
+            <span className="mt-1 block text-right text-[11.5px] text-muted tnum">{title.length}/60</span>
           </label>
           <div>
             <span className="text-[12px] text-muted">They want</span>
@@ -321,7 +335,7 @@ export default function Pay({ params }: { params: URLSearchParams }) {
                   {quote ? (
                     <Rolling value={Number(quote.quote.amountOutFormatted)} format={(n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: token && token.decimals > 6 ? 6 : 2 })} />
                   ) : (
-                    amount || '0'
+                    tokenAmount || '0'
                   )} <span className="text-[18px] tracking-normal text-muted">{token?.symbol ?? ''}</span>
                 </div>
                 <div className="mt-6 text-[13.5px]">
@@ -428,4 +442,8 @@ function addressProblem(chain: string, a: string): string | null {
   if (chain === 'near' && !isValidAccountId(a)) return "That doesn't look like a NEAR account."
   if (chain === 'btc' && !/^(bc1[a-z0-9]{25,62}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(a)) return "That doesn't look like a Bitcoin address."
   return null
+}
+
+function trimNum(n: number, digits: number): string {
+  return n.toFixed(digits).replace(/\.?0+$/, '')
 }
