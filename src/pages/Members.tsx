@@ -209,7 +209,8 @@ function MemberCard({ r, you, onAvatar, canMessage }: { r: MemberRecord; you: bo
       <div className="flex items-center gap-3">
         <Avatar id={r.accountId} size={40} />
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px]">
+          {/* -m-1 p-1: room for the name button's focus ring inside the clipping box, same layout. */}
+          <div className="-m-1 truncate p-1 text-[15px]">
             <MemberName id={r.accountId} card />
             {you && <span className="text-muted"> · {t('members.you')}</span>}
           </div>
