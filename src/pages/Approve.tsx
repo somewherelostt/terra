@@ -5,7 +5,7 @@ import { prettyName } from '../App'
 import type { Track, TrackStep } from '../lib/store'
 import { go, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, isRole, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
+import { actProposalTx, approvalRules, can, decodeDescription, isExpired, isNearTransfer, isRole, isTransfer, kindLabel, kindName, type Proposal, type VoteAction } from '../lib/dao'
 import { nanoToDate, splitUsd, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { displayName, useNames } from '../lib/profile'
 import { openRequests, routeRequest } from '../lib/record'
@@ -193,9 +193,10 @@ export function RequestCard({ p }: { p: Proposal }) {
   if (!dao) return null
   const meta = decodeDescription(p.description)
   const transfer = isNearTransfer(p.kind) ? p.kind.Transfer : null
-  const isTransfer = !!transfer
+  // A fungible-token payout (any non-empty token_id): not tier-routed, but its amount, token and receiver are still shown.
+  const tokenTransfer = !transfer && isTransfer(p.kind) ? p.kind.Transfer : null
   const join = joinRequestOf(p)
-  const route = isTransfer ? routeRequest(dao, p, nearUsd, records) : null
+  const route = transfer ? routeRequest(dao, p, nearUsd, records) : null
   const rules = approvalRules(dao.policy, p.kind)
   const voters = route ? route.voters : [...new Set(rules.flatMap((r) => r.members))]
   // Some proposal kinds have no role allowed to approve them in this DAO's policy.
@@ -277,7 +278,8 @@ export function RequestCard({ p }: { p: Proposal }) {
   if (track) return <TrackerCard p={p} track={track} hero={route?.effectiveTier === 'small'} onDone={() => setTrack(p.id, null)} />
   const hero = route?.effectiveTier === 'small'
   const tierWord = route ? { small: t('approve.tier.small'), mid: t('approve.tier.mid'), large: t('approve.tier.large') }[route.effectiveTier] : requestKind(p.kind)
-  const theyGet = meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
+  // Free text from the description; Terra only writes it for NEAR payouts, so it's shown only next to one.
+  const theyGet = transfer && meta.wants ? meta.wants.replace(/\s+to\s+\S+$/, '') : null
   const arrives = meta.quote?.match(/about (\d+)s/)?.[1]
   const [dollars, cents] = transfer ? splitUsd(yoctoToNumber(transfer.amount) * nearUsd) : ['', '']
   const sub = hero ? 'opacity-60' : 'text-muted'
@@ -352,6 +354,16 @@ export function RequestCard({ p }: { p: Proposal }) {
             <span className="min-w-0 text-end">
               <span className="tnum block truncate">{t('approve.card.paidToValue', { amount: yoctoToNear(transfer.amount), name: displayName(transfer.receiver_id) })}</span>
               <span className={`block truncate font-mono text-[11.5px] ${sub}`} title={transfer.receiver_id}>{transfer.receiver_id}</span>
+            </span>
+          </div>
+        )}
+        {tokenTransfer && (
+          <div className="flex items-baseline justify-between gap-3">
+            <span className={`shrink-0 ${sub}`}>{t('approve.card.paidTo')}</span>
+            <span className="min-w-0 text-end font-mono text-[12px]">
+              {/* Raw token units and contract id, exactly as the DAO will send them. */}
+              <span className="block truncate" title={`${tokenTransfer.amount} ${tokenTransfer.token_id}`}>{`${tokenTransfer.amount} ${tokenTransfer.token_id}`}</span>
+              <span className={`block truncate ${sub}`} title={tokenTransfer.receiver_id}>{tokenTransfer.receiver_id}</span>
             </span>
           </div>
         )}
