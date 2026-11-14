@@ -3,7 +3,8 @@ import { DaoProvider, go, lastDao, openDao, useDao, useRoute, type Page } from '
 import { useWallet } from './lib/wallet'
 import { Avatar, Button, Spinner } from './components/ui'
 import { shortName } from './lib/format'
-import { openRequests } from './lib/record'
+import { isTrusted, openRequests } from './lib/record'
+import { allMembers } from './lib/dao'
 import Landing from './pages/Landing'
 import Home from './pages/Home'
 import Pay from './pages/Pay'
@@ -89,18 +90,19 @@ function Shell({ page, daoId, children }: { page: Page; daoId: string | null; ch
     <div className="min-h-screen md:flex">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line px-4 py-6 md:flex">
         <Logo />
-        {daoId ? <GroupSwitcher /> : <div className="mt-6" />}
-        <nav className="mt-4 flex flex-col gap-1">
+        <nav className="mt-8 flex flex-col gap-px">
           {daoId &&
             NAV.map((n) => <NavItem key={n.page} item={n} active={page === n.page} />)}
         </nav>
-        <div className="mt-auto pt-6 text-xs leading-relaxed text-muted">
-          Runs on your community's own Sputnik DAO on NEAR testnet. Terra never holds the money.
-        </div>
+        {daoId ? (
+          <GroupCard />
+        ) : (
+          <div className="mt-auto pt-6 text-xs leading-relaxed text-muted">Terra never holds the money.</div>
+        )}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar daoId={daoId} />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-10">{children}</main>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 md:px-10 md:pb-12 md:pt-8 xl:px-14">{children}</main>
       </div>
       {daoId && <MobileNav page={page} />}
     </div>
@@ -117,11 +119,10 @@ function NavItem({ item, active }: { item: (typeof NAV)[number]; active: boolean
         e.preventDefault()
         go(item.page)
       }}
-      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${active ? 'bg-card text-ink ring-1 ring-line' : 'text-muted hover:text-ink'}`}
+      className={`flex items-center rounded-lg px-3 py-2 text-[13.5px] transition ${active ? 'bg-card text-ink ring-1 ring-line' : 'text-muted hover:text-ink'}`}
     >
-      <Icon d={item.icon} />
       <span className="flex-1">{item.label}</span>
-      {count > 0 && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-on-brand">{count}</span>}
+      {count > 0 && <span className="grid size-[18px] place-items-center rounded-full bg-brand text-[10.5px] font-medium text-on-brand">{count}</span>}
     </a>
   )
 }
@@ -153,23 +154,39 @@ function useDaoSafe() {
   }
 }
 
-function GroupSwitcher() {
-  const { dao } = useDao()
+function GroupCard() {
+  const { dao, records } = useDao()
+  const { accountId } = useWallet()
+  if (!dao) return <div className="mt-auto" />
+  const members = allMembers(dao.policy)
+  const mine = accountId ? records.get(accountId) : undefined
+  const status = !accountId
+    ? 'Viewing as a guest'
+    : mine?.roles.includes('council')
+      ? "You're on the council"
+      : isTrusted(mine)
+        ? "You're a trusted member"
+        : members.includes(accountId)
+          ? "You're a member"
+          : 'You can ask for money here'
   return (
-    <button
-      onClick={() => openDao(null)}
-      className="mt-6 flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5 text-left hover:bg-soft"
-      title="Switch community"
-    >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-sm font-medium text-accent-text">
-        {(dao?.config.name ?? '?').slice(0, 1).toUpperCase()}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium">{dao ? prettyName(dao.config.name) : '…'}</span>
-        <span className="block truncate text-xs text-muted">{dao?.id}</span>
-      </span>
-      <span className="text-muted">⇄</span>
-    </button>
+    <div className="mt-auto rounded-2xl bg-soft p-4">
+      <div className="flex -space-x-1.5">
+        {members.slice(0, 3).map((m) => (
+          <span key={m} className="rounded-full ring-2 ring-[var(--sand)]">
+            <Avatar id={m} size={24} />
+          </span>
+        ))}
+        {members.length > 3 && (
+          <span className="grid size-6 place-items-center rounded-full bg-card text-[9.5px] text-muted ring-2 ring-[var(--sand)]">+{members.length - 3}</span>
+        )}
+      </div>
+      <div className="mt-3 truncate text-[13.5px] font-medium" title={dao.id}>{prettyName(dao.config.name)}</div>
+      <div className="text-[12px] text-muted">{status}</div>
+      <button onClick={() => openDao(null)} className="mt-3 text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline">
+        Switch community
+      </button>
+    </div>
   )
 }
 

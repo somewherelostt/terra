@@ -1,106 +1,203 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { go, shareUrl, useDao } from '../lib/store'
 import { useWallet } from '../lib/wallet'
-import { allMembers, chipInTx, isNearTransfer } from '../lib/dao'
-import { nearToYocto, usd, yoctoToNumber } from '../lib/format'
+import { allMembers, chipInTx, decodeDescription, isNearTransfer } from '../lib/dao'
+import { nearToYocto, shortName, timeAgo, usd, yoctoToNear, yoctoToNumber } from '../lib/format'
 import { openRequests } from '../lib/record'
-import { Avatar, Button, Card, Field, Money, SectionTitle, TxStatus, inputCls, useTx } from '../components/ui'
-import { ActivityList } from './Activity'
+import type { ActivityItem } from '../lib/activity'
+import { Button, Spinner, TxLink, TxStatus, useTx } from '../components/ui'
 import { prettyName } from '../App'
+
+/** "$1,240.00" → ["$1,240", ".00"], so cents can be muted. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function splitUsd(n: number): [string, string] {
+  if (!isFinite(n)) return ['$—', '']
+  const s = n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const i = s.lastIndexOf('.')
+  return i < 0 ? [s, ''] : [s.slice(0, i), s.slice(i)]
+}
 
 export default function Home() {
   const { dao, nearUsd, activity, refresh } = useDao()
   const { accountId } = useWallet()
+  const [copied, setCopied] = useState(false)
+  const chipRef = useRef<HTMLInputElement>(null)
   if (!dao) return null
   const open = openRequests(dao)
   const members = allMembers(dao.policy)
   const total = dao.spendable + dao.staked
+  const [dollars, cents] = splitUsd(yoctoToNumber(total) * nearUsd)
+  const payouts = dao.proposals.filter((p) => p.status === 'Approved' && isNearTransfer(p.kind))
+  const paidOut = payouts.reduce((s, p) => s + (isNearTransfer(p.kind) ? BigInt(p.kind.Transfer.amount) : 0n), 0n)
+  const name = prettyName(dao.config.name)
+  const today = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight">{prettyName(dao.config.name)}</h1>
-        {dao.config.purpose && <p className="mt-1 max-w-2xl text-sm text-muted">{dao.config.purpose}</p>}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <div className="text-sm font-medium text-muted">Treasury balance</div>
-              <div className="mt-2">
-                <Money yocto={total} nearUsd={nearUsd} size="xl" />
-              </div>
-              {dao.staked > 0n && (
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-good-soft px-3 py-1 text-xs font-medium text-good">
-                  Earning · {usd(yoctoToNumber(dao.staked) * nearUsd)} staked
-                </div>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => go('pay')}>Ask for money</Button>
-              <Button variant="secondary" onClick={() => go('approve')}>
-                Approve{open.length ? ` (${open.length})` : ''}
-              </Button>
-            </div>
-          </div>
-          <div className="mt-6 grid grid-cols-3 gap-4 border-t border-line pt-4 text-sm">
-            <Stat label="Members" value={String(members.length)} />
-            <Stat label="Open requests" value={String(open.length)} />
-            <Stat label="Paid out" value={String(dao.proposals.filter((p) => p.status === 'Approved' && isNearTransfer(p.kind)).length)} />
-          </div>
-        </Card>
-
-        <ChipIn daoId={dao.id} signedIn={!!accountId} nearUsd={nearUsd} onDone={refresh} />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <SectionTitle right={<button className="text-sm font-medium text-accent-text hover:underline" onClick={() => go('activity')}>See all</button>}>
-            Recent activity
-          </SectionTitle>
-          <ActivityList items={activity?.items.slice(0, 6)} loading={!activity} />
-        </Card>
-        <Card>
-          <SectionTitle right={<button className="text-sm font-medium text-accent-text hover:underline" onClick={() => go('members')}>Records</button>}>
-            Members
-          </SectionTitle>
-          <ul className="space-y-2.5">
-            {members.slice(0, 8).map((m) => (
-              <li key={m} className="flex items-center gap-3 text-sm">
-                <Avatar id={m} size={28} />
-                <span className="truncate" title={m}>{m}</span>
-              </li>
-            ))}
-          </ul>
-          <ShareBox daoId={dao.id} />
-        </Card>
-      </div>
-    </div>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs text-muted">{label}</div>
-      <div className="mt-0.5 text-lg font-medium tabular-nums">{value}</div>
+      <div className="flex items-center justify-between text-[13px] text-muted">
+        <span>Home</span>
+        <span>{today}</span>
+      </div>
+
+      <div className="mt-10 text-[13px] text-muted">{name} holds</div>
+      <div className="tnum mt-3 text-[64px] font-light leading-[0.9] tracking-[-0.055em] sm:text-[96px] lg:text-[112px]">
+        {dollars}
+        <span className="text-muted">{cents}</span>
+      </div>
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-muted">
+        <span className="tnum">{yoctoToNear(total)} NEAR</span>
+        {dao.staked > 0n && (
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-good" />
+            <span className="text-good">Earning on {yoctoToNear(dao.staked, 0)} NEAR staked</span>
+          </span>
+        )}
+        {isFinite(nearUsd) && <span className="tnum">1 NEAR = {usd(nearUsd)}</span>}
+      </div>
+      <div className="mt-8 flex flex-wrap gap-2">
+        <Button onClick={() => chipRef.current?.focus()}>Chip in</Button>
+        <Button variant="secondary" onClick={() => go('pay')}>Request money</Button>
+        <Button
+          variant="secondary"
+          onClick={() => navigator.clipboard?.writeText(shareUrl(dao.id, 'board')).then(() => setCopied(true)).catch(() => setCopied(false))}
+        >
+          {copied ? 'Board link copied' : 'Share board'}
+        </Button>
+      </div>
+
+      <div className="mt-12 grid grid-cols-3 border-y border-line">
+        <Stat label="Members" value={String(members.length)} className="border-r border-line pr-5" />
+        <Stat label="Paid out" value={isFinite(nearUsd) ? usd(yoctoToNumber(paidOut) * nearUsd) : `${yoctoToNear(paidOut, 0)} NEAR`} className="border-r border-line px-5" />
+        <Stat label="Open requests" value={String(open.length)} className="px-5" />
+      </div>
+
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="min-w-0">
+          <div className="mb-1 flex items-center justify-between text-[13px] text-muted">
+            <span>Activity</span>
+            <button className="hover:text-ink" onClick={() => go('activity')}>See all</button>
+          </div>
+          <HomeActivity items={activity?.items.slice(0, 7)} loading={!activity} nearUsd={nearUsd} />
+        </div>
+        <div className="space-y-5">
+          {open.length > 0 && (
+            <button onClick={() => go('approve')} className="block w-full rounded-2xl border border-line p-5 text-left hover:bg-soft">
+              <div className="text-[12px] text-muted">{open.length === 1 ? '1 request needs a decision' : `${open.length} requests need a decision`}</div>
+              <div className="mt-1 text-[15px]">{decodeDescription(open[0].description).title}</div>
+            </button>
+          )}
+          <ChipIn inputRef={chipRef} daoId={dao.id} signedIn={!!accountId} nearUsd={nearUsd} onDone={refresh} name={name} />
+        </div>
+      </div>
     </div>
   )
 }
 
-function ChipIn({ daoId, signedIn, nearUsd, onDone }: { daoId: string; signedIn: boolean; nearUsd: number; onDone: () => Promise<void> }) {
+function Stat({ label, value, className = '' }: { label: string; value: string; className?: string }) {
+  return (
+    <div className={`py-5 ${className}`}>
+      <div className="text-[12px] text-muted">{label}</div>
+      <div className="tnum mt-1.5 text-[22px] font-light tracking-tight sm:text-[28px]">{value}</div>
+    </div>
+  )
+}
+
+function HomeActivity({ items, loading, nearUsd }: { items?: ActivityItem[]; loading: boolean; nearUsd: number }) {
+  const { dao } = useDao()
+  if (loading)
+    return (
+      <div className="flex items-center gap-2 py-6 text-[13px] text-muted">
+        <Spinner /> Loading history…
+      </div>
+    )
+  if (!items?.length) return <div className="border-b border-line py-6 text-[13.5px] text-muted">Nothing yet. Chip in or request money to get things going.</div>
+  const byId = new Map(dao?.proposals.map((p) => [p.id, p]))
+  const money = (y?: string) => (y ? (isFinite(nearUsd) ? usd(yoctoToNumber(y) * nearUsd) : `${yoctoToNear(y)} NEAR`) : '')
+  return (
+    <div className="text-[13.5px]">
+      {items.map((a, i) => {
+        const p = a.proposalId != null ? byId.get(a.proposalId) : undefined
+        const title = p ? decodeDescription(p.description).title : undefined
+        let label: React.ReactNode
+        let amount: React.ReactNode = null
+        switch (a.kind) {
+          case 'chip-in':
+            label = <>{shortName(a.who)} chipped in <span className="text-muted">· {yoctoToNear(a.amount ?? '0')} NEAR</span></>
+            amount = <span className="text-good">+{money(a.amount)}</span>
+            break
+          case 'payout':
+            label = <>{title ?? 'Payout'} <span className="text-muted">· paid to {shortName(a.to ?? '')}</span></>
+            amount = <>−{money(a.amount)}</>
+            break
+          case 'request':
+            label = <>{shortName(a.who)} is asking <span className="text-muted">· {title ?? 'a change'}</span></>
+            amount = a.amount ? <span className="text-muted">{money(a.amount)}</span> : null
+            break
+          case 'approve':
+          case 'reject':
+            label = <>{shortName(a.who)} {a.kind === 'approve' ? 'approved' : 'declined'} <span className="text-muted">· {title ?? `request #${a.proposalId}`}</span></>
+            break
+          default:
+            label = <>{shortName(a.who)} sent a transaction</>
+        }
+        return (
+          <div key={(a.txHash ?? '') + a.kind + i} className="flex items-baseline justify-between gap-4 border-b border-line py-3.5 last:border-0">
+            <span className="min-w-0 truncate">
+              {label}
+              <span className="ml-2 text-[12px] text-muted">{timeAgo(a.time)}</span>
+            </span>
+            <span className="tnum flex shrink-0 items-baseline gap-3">
+              {amount}
+              <TxLink hash={a.txHash} label="tx" />
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function ChipIn({
+  inputRef,
+  daoId,
+  signedIn,
+  nearUsd,
+  onDone,
+  name,
+}: {
+  inputRef: React.RefObject<HTMLInputElement | null>
+  daoId: string
+  signedIn: boolean
+  nearUsd: number
+  onDone: () => Promise<void>
+  name: string
+}) {
   const [amount, setAmount] = useState('1')
   const { send, signIn } = useWallet()
   const tx = useTx()
   const yocto = nearToYocto(amount)
   return (
-    <Card>
-      <SectionTitle>Chip in</SectionTitle>
-      <p className="mb-4 text-sm text-muted">Send NEAR straight to the treasury. It shows up in the activity for everyone.</p>
-      <Field label="Amount (NEAR)" hint={yocto && isFinite(nearUsd) ? `≈ ${usd(yoctoToNumber(yocto) * nearUsd)}` : ' '}>
-        <input className={inputCls} inputMode="decimal" value={amount} onChange={(e) => { setAmount(e.target.value); tx.reset() }} aria-label="Chip in amount in NEAR" />
-      </Field>
+    <div className="rounded-2xl border border-line bg-card p-6">
+      <div className="text-[12px] text-muted">Chip in</div>
+      <p className="mt-1 text-[13.5px] text-muted">Goes straight to {name}'s treasury. Everyone sees it in the activity.</p>
+      <label className="mt-5 block border-b border-line pb-2">
+        <span className="text-[12px] text-muted">Amount</span>
+        <div className="mt-1 flex items-baseline gap-2">
+          <input
+            ref={inputRef}
+            className="tnum w-full bg-transparent text-[40px] font-light leading-none tracking-[-0.04em] outline-none"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => {
+              setAmount(e.target.value)
+              tx.reset()
+            }}
+            aria-label="Chip in amount in NEAR"
+          />
+          <span className="text-[15px] text-muted">NEAR</span>
+        </div>
+      </label>
+      <div className="mt-2 h-4 text-[12px] text-muted">{yocto && isFinite(nearUsd) ? `≈ ${usd(yoctoToNumber(yocto) * nearUsd)}` : ''}</div>
       <div className="mt-4">
         {signedIn ? (
           <Button
@@ -115,32 +212,7 @@ function ChipIn({ daoId, signedIn, nearUsd, onDone }: { daoId: string; signedIn:
         )}
       </div>
       <div className="mt-3">
-        <TxStatus state={tx.state} doneText="Thanks! Your chip-in reached the treasury." />
-      </div>
-    </Card>
-  )
-}
-
-function ShareBox({ daoId }: { daoId: string }) {
-  const [copied, setCopied] = useState(false)
-  const url = shareUrl(daoId, 'board')
-  return (
-    <div className="mt-5 rounded-xl bg-soft p-3">
-      <div className="text-xs font-medium text-ink">Read-only link for sponsors</div>
-      <div className="mt-1 text-xs text-muted">Balance, requests, payouts and records. No sign-in, no buttons.</div>
-      <div className="mt-2 flex gap-2">
-        <Button
-          variant="secondary"
-          className="flex-1 !py-1.5 !text-xs"
-          onClick={() => {
-            navigator.clipboard?.writeText(url).then(() => setCopied(true)).catch(() => setCopied(false))
-          }}
-        >
-          {copied ? 'Copied' : 'Copy link'}
-        </Button>
-        <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-xl px-3 text-xs font-medium text-accent-text hover:underline">
-          Open ↗
-        </a>
+        <TxStatus state={tx.state} doneText="Thanks! It reached the treasury." />
       </div>
     </div>
   )
