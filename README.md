@@ -3,8 +3,8 @@
 **The members' app for a community treasury on NEAR.**
 
 - Live demo: {{LIVE_URL}}
-- Demo community (testnet Sputnik DAO): `{{DEMO_DAO}}`
-- Public board: {{LIVE_URL}}/?dao={{DEMO_DAO}}#/board
+- Demo community: **City Club**, the testnet Sputnik DAO `terra-demo.sputnikv2.testnet`, created through Terra's own Create group flow ([creation tx](https://testnet.nearblocks.io/txns/Hy3hR85myJ9UoJ7rHDm9zxkpxTGe9MFP2bpFELSSvDo6))
+- Public board: {{LIVE_URL}}/?dao=terra-demo.sputnikv2.testnet#/board
 - Network: NEAR **testnet**. NEAR Intents quotes come from the live mainnet 1Click API as dry runs.
 
 ## What Terra is
@@ -36,22 +36,23 @@ The dollar limits of each tier are enforced by the app, not by the contract. See
 - **Staking.** Earn files a DAO `FunctionCall` proposal calling `deposit_and_stake` on a testnet validator pool (default `aurora.pool.f863973.m0`). Home and the board read the DAO's stake with `get_account_total_balance`.
 - **NEAR Social.** Avatars are saved to the member's own SocialDB data on `v1.social08.testnet` (key `<account>/terra/avatar`, via `set`) and read back with `get`. Accounts with no saved avatar get a generated default.
 - **Named accounts.** Every screen shows readable `name.testnet` accounts. Records, tiers and approvals all key on the account name.
-- **Wallets and reads.** NEAR Connect (`@hot-labs/near-connect`) handles sign-in and signing on testnet. Reads go over JSON-RPC (FastNEAR, then `rpc.testnet.near.org` as fallback), and the activity feed uses the NearBlocks testnet API.
+- **Wallets and reads.** NEAR Connect (`@hot-labs/near-connect`) handles sign-in and signing on testnet. Reads go over JSON-RPC (FastNEAR, with FastNEAR's archival RPC as fallback), and the activity feed uses the NearBlocks testnet API.
 
 ## Try it
 
-You need a browser. Steps 1–5 need no account. Steps 6–8 need **two NEAR testnet accounts** (any NEAR wallet on testnet, funded from the testnet faucet).
+You need a browser. Steps 1–6 need no account. Steps 7–9 need **two NEAR testnet accounts** (any NEAR wallet on testnet, funded from the testnet faucet).
 
-1. Open {{LIVE_URL}} and click **try the demo community** (under the DAO box) → Home opens for `{{DEMO_DAO}}`.
-2. On **Home** → the treasury balance is shown in **US dollars**, with the NEAR amount and today's NEAR price underneath, then members, total paid out and recent activity. All of it is read live from the testnet DAO.
+1. Open {{LIVE_URL}} and click **try the demo community** (under the DAO box) → Home opens for **City Club** (`terra-demo.sputnikv2.testnet`).
+2. On **Home** → the treasury balance is shown in **US dollars**, with the NEAR amount and today's NEAR price underneath, then members, total paid out and recent activity (chip-ins and a paid snacks request). All of it is read live from the testnet DAO.
 3. Click **Pay** in the sidebar. Type `20` in Amount and any reason, keep **USDC on Solana**, and paste any Solana address in **Their Solana address** → within a few seconds a card labelled **Live quote · NEAR Intents** shows "They get exactly 20.00 USDC", how much NEAR the treasury sends (about 6 NEAR at today's price), the fee, and the arrival time (about 20 seconds). The tier note under it says which approval lane the request would take.
-4. Click **Approve** → open requests show their tier ("Small", "Mid", "Large"), who asked, the requester's record, the saved quote, and "N of M" approvals so far. As a guest you can see them but not vote.
-5. Click **Board** (or open {{LIVE_URL}}/?dao={{DEMO_DAO}}#/board in a private window) → the public board, with no sign-in and no money buttons: balance, paid-out total, members, and each payout with who approved it and a proof link to NearBlocks.
-6. **Start your own group** (signed flows): on the landing page click **Create one in a minute**. Signed in as A, name the group, list A and B as council and B as trusted, set a starting deposit of at least 5 NEAR (the factory needs about 5 NEAR to store the DAO contract), and sign the factory call → you land on Home for your new DAO.
-7. Signed in as A: **Home → Chip in** 1 NEAR → the balance goes up and the chip-in appears in Activity. Then **Pay**, choose **NEAR account**, pay B $1 → sign → the request appears in **Approve** as Small.
-8. Sign in as B → **Approve** → click **Approve and pay** → the payout tracker follows the transaction, the DAO pays out, and the payout appears in Activity, on the Board and in A's record on **Members**.
+4. Click **Approve** → the open requests: a $20 poster design paid in USDC on Solana (with the Intents quote saved in the proposal), an $8 venue deposit, and an invite to add a member to the council (one approve, one decline, so still open). Each card shows who asked, its tier and approvals so far (for example "Small · 0 of 1"), the requester's record, what the recipient gets, and a NearBlocks link. Under **Recently decided** you see the paid snacks request and a declined printer-ink request. As a guest you can see everything but not vote ("Sign in to approve").
+5. Click **Members** → each member's standing (Council, Trusted or New), how much they chipped in, requests paid, and their fast-lane limit ($50 or $500), all computed from the DAO's own history.
+6. Click **Board** (or open {{LIVE_URL}}/?dao=terra-demo.sputnikv2.testnet#/board in a private window) → the public board, with no sign-in and no money buttons: balance, paid-out total, members, the requests waiting for approval, and each payout with who approved it and a proof link to NearBlocks. The $3 snacks payout shows "1 trusted member": that was the fast lane.
+7. **Start your own group** (signed flows): on the landing page click **Create one in a minute**. Signed in as A, name the group, list A and B as council and B as trusted, set a starting deposit of at least 5 NEAR (the factory needs about 5 NEAR to store the DAO contract), and sign the factory call → you land on Home for your new DAO.
+8. Signed in as A: **Home → Chip in** 1 NEAR → the balance goes up and the chip-in appears in Activity. Then **Pay**, choose **NEAR account**, pay B $1 → sign → the request appears in **Approve** as Small.
+9. Sign in as B → **Approve** → click **Approve and pay** → the payout tracker follows the transaction, the DAO pays out, and the payout appears in Activity, on the Board and in A's record on **Members**.
 
-Steps 6–8 use real testnet transactions signed by your own wallet. They haven't yet been run end to end on the deployed demo DAO.
+These signed flows were run end to end on testnet against the demo DAO: chip in, a request with a live quote, a fast-lane approval and payout, a decline, an invite, a council vote and an avatar save. Every one of them is on chain in `terra-demo.sputnikv2.testnet`. Creating a group through the app made the demo DAO itself; a fresh run of step 7 is being re-checked.
 
 ## Run locally
 
@@ -67,7 +68,7 @@ pnpm dev               # http://localhost:5173
 
 | Variable | Default | What it does |
 |---|---|---|
-| `VITE_DEMO_DAO` | `riverside-coop.sputnikv2.testnet` | DAO opened by "try the demo community" |
+| `VITE_DEMO_DAO` | `terra-demo.sputnikv2.testnet` | DAO opened by "try the demo community" |
 | `VITE_STAKING_POOL` | `aurora.pool.f863973.m0` | Testnet validator pool used by Earn |
 
 Other scripts: `pnpm build` (type-check and production build into `dist/`), `pnpm preview`, `pnpm lint`. No backend and no API keys are needed: the app calls NEAR RPC, NearBlocks and the 1Click API straight from the browser. A fresh clone with `pnpm install` then `pnpm dev` and `pnpm build` was checked on 14 Nov 2026.
@@ -94,7 +95,7 @@ No starter template; the project was scaffolded with plain Vite. All code in thi
 | oxlint | Linting |
 | Geist and Geist Mono (Google Fonts) | Typography |
 | DiceBear HTTP API (`thumbs` style) | Default avatars |
-| NEAR JSON-RPC (FastNEAR, near.org) | Chain reads |
+| NEAR JSON-RPC (FastNEAR) | Chain reads |
 | NearBlocks testnet API | Activity feed and transaction links |
 | NEAR Intents 1Click API | Token list, NEAR price, dry quotes |
 | Sputnik DAO contract and testnet factory `sputnikv2.testnet` | Treasury, proposals, votes |
