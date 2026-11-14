@@ -227,9 +227,10 @@ export async function loadDao(id: string, stakingPool?: string | null): Promise<
     view<number>(id, 'get_last_proposal_id'),
   ])
   if (!account) throw new Error(`Account ${id} not found`)
-  const from = Math.max(0, lastProposalId - 200)
+  // The whole history, so member records remember every paid and turned-down request.
+  // Pages of 100 go out together; near.ts caps how many run at once.
   const starts: number[] = []
-  for (let i = from; i < lastProposalId; i += 100) starts.push(i)
+  for (let i = 0; i < lastProposalId; i += 100) starts.push(i)
   const pages = await Promise.all(starts.map((i) => view<Proposal[]>(id, 'get_proposals', { from_index: i, limit: 100 })))
   const proposals: Proposal[] = pages.flat()
   let staked = 0n
